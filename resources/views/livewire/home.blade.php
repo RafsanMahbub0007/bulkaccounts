@@ -1,0 +1,10 @@
+<div>
+    @include('partials.hero')
+    @include('partials.featured-categories')
+    @include('partials.affordable-pricing')
+    @include('partials.guaranteed-safety')
+    @include('partials.global-availability')
+    @include('partials.why-us')
+    @include('partials.testimonials')
+    @include('partials.cta')
+</div>
