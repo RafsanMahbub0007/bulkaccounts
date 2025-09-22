@@ -15,7 +15,6 @@ use App\Livewire\UserPayments;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/pricing', Products::class)->name('pricing');
-Route::get('/categories/{category:slug}', ProductDetails::class)->name('category.details');
 Route::get('/product/{product:slug}', ProductDetails::class)->name('product.details');
 Route::get('/blog', Posts::class)->name('blog');
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');
