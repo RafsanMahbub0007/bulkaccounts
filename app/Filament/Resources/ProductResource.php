@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -42,6 +43,21 @@ class ProductResource extends Resource
                     ->label('Category')
                     ->relationship('category', 'name')
                     ->required(),
+                Select::make('subcategory_id')
+                    ->label('Sub Category')
+                    ->relationship('subCategory', 'name')
+                    ->required(),
+                CheckboxList::make('features')
+                    ->label('Features')
+                    ->options([
+                        '2fa_certified' => '2FA Certified',
+                        'mail_verified' => 'Mail Verified',
+                        'aged' => 'Aged',
+                        'brand_new' => 'Brand New',
+                        'eva' => 'EVA',
+                        'pva' => 'PVA',
+                    ])
+                    ->columns(2),
                 TextInput::make('price')
                     ->numeric()
                     ->required(),
