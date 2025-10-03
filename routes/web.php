@@ -12,11 +12,13 @@ use App\Livewire\UserOrders;
 use App\Livewire\UserOrderDetails;
 use App\Livewire\Posts;
 use App\Livewire\PostDetails;
+use App\Livewire\SubCategoryDetails;
 use App\Livewire\UserPayments;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/pricing', Products::class)->name('pricing');
-Route::get('category/{category:slug}', Categorydetails::class)->name('category.details');
+Route::get('{category:slug}', Categorydetails::class)->name('category.details');
+Route::get('{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
 Route::get('/product/{product:slug}', ProductDetails::class)->name('product.details');
 Route::get('/blog', Posts::class)->name('blog');
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');

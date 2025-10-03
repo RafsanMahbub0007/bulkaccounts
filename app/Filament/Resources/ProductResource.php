@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Models\subCategory;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
@@ -21,6 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\BadgeColumn;
 
 class ProductResource extends Resource
 {
@@ -42,11 +44,21 @@ class ProductResource extends Resource
                 Select::make('category_id')
                     ->label('Category')
                     ->relationship('category', 'name')
-                    ->required(),
+                    ->required()
+                    ->reactive(),
                 Select::make('subcategory_id')
                     ->label('Sub Category')
-                    ->relationship('subCategory', 'name')
-                    ->required(),
+                    ->options(function (callable $get) {
+                        $categoryId = $get('category_id');
+                        if (!$categoryId) {
+                            return [];
+                        }
+                        return subCategory::where('category_id', $categoryId)
+                            ->pluck('name', 'id');
+                    })
+                    ->required()
+                    ->reactive()
+                    ->disabled(fn(callable $get) => !$get('category_id')),
                 CheckboxList::make('features')
                     ->label('Features')
                     ->options([
@@ -58,6 +70,10 @@ class ProductResource extends Resource
                         'pva' => 'PVA',
                     ])
                     ->columns(2),
+                FileUpload::make('product_image')
+                    ->image()
+                    ->directory('product-images')
+                    ->nullable(),
                 TextInput::make('price')
                     ->numeric()
                     ->required(),
@@ -67,14 +83,7 @@ class ProductResource extends Resource
                 TextInput::make('min_order_qty')
                     ->numeric()
                     ->default(10),
-                FileUpload::make('product_icon')
-                    ->image()
-                    ->directory('product-icons')
-                    ->nullable(),
-                FileUpload::make('product_image')
-                    ->image()
-                    ->directory('product-images')
-                    ->nullable(),
+
                 TagsInput::make('keywords')
                     ->placeholder('Add keywords...')
                     ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
@@ -97,18 +106,44 @@ class ProductResource extends Resource
                     ->searchable(),
                 TextColumn::make('slug'),
                 TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
+                TextColumn::make('subcategory.name')->label('Sub-Category')->sortable()->searchable(),
+                BadgeColumn::make('features')
+                    ->label('Features')
+                    ->getStateUsing(function ($record) {
+                        $labels = [
+                            '2fa_certified' => '2FA Certified',
+                            'mail_verified' => 'Mail Verified',
+                            'aged' => 'Aged',
+                            'brand_new' => 'Brand New',
+                            'eva' => 'EVA',
+                            'pva' => 'PVA',
+                        ];
+
+                        $features = is_array($record->features) ? $record->features : json_decode($record->features, true) ?? [];
+
+                        return array_map(fn($key) => $labels[$key] ?? $key, $features);
+                    })
+                    ->colors([
+                        'success'
+                    ])
+                    ->sortable(),
+
                 TextColumn::make('price')
                     ->money('USD'),
                 TextColumn::make('stock'),
                 TextColumn::make('min_order_qty'),
                 TextColumn::make('created_at')
                     ->date(),
-                TextColumn::make('updated_at')
-                    ->date(),
+
             ])
-            ->filters([ /* Add filters here if needed */])
+            ->filters([
+                //
+            ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

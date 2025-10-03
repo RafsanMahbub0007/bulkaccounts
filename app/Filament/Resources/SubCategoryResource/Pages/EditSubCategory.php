@@ -10,6 +10,10 @@ class EditSubCategory extends EditRecord
 {
     protected static string $resource = SubCategoryResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
     protected function getHeaderActions(): array
     {
         return [
