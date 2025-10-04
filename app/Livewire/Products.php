@@ -26,10 +26,10 @@ class Products extends Component
                 $query->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('description', 'like', '%' . $this->search . '%');
             })
-            ->when(!empty($this->category), function ($query) { // Changed to check for non-empty array
+            ->when(!empty($this->category), function ($query) { 
                 $query->whereIn('category_id', $this->category);
             })
-            ->orderBy('price', $this->sortDirection) // Only sorting by price
+            ->orderBy('price', $this->sortDirection)
             ->paginate(12);
 
         return view('livewire.products', compact('products', 'categories'));
