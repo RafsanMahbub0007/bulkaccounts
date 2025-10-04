@@ -26,7 +26,7 @@
                         <p class="text-gray-400 text-center text-base">
                             {{ \Illuminate\Support\Str::words($category->description, 8, '...') }}
                         </p>
-                        <a href="#"
+                        <a href="{{route('category.details',$category->slug)}}")
                             class="block mt-6 bg-red-600 text-white text-center font-semibold py-3 px-6 rounded-full hover:bg-red-700 transition">
                             Explore Now
                         </a>

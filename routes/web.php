@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\AboutDetails;
 use App\Livewire\Cart;
 use App\Livewire\Categorydetails;
 use Illuminate\Support\Facades\Route;
@@ -15,9 +16,13 @@ use App\Livewire\PostDetails;
 use App\Livewire\SubCategoryDetails;
 use App\Livewire\UserPayments;
 use App\Livewire\Categories;
+use App\Livewire\FaqDetails;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/pricing', Products::class)->name('pricing');
+Route::get('/faq', FaqDetails::class)->name('faq');
+Route::get('/about', AboutDetails::class)->name('about');
+
 Route::get('/category/{Category:slug}', Categories::class)->name('category.show');
 Route::get('{category:slug}', Categorydetails::class)->name('category.details');
 Route::get('{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
@@ -31,13 +36,8 @@ Route::get('/contact', Contact::class)->name('contact');
 
 
 // Static Routes
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
 
-Route::get('/faq', function () {
-    return view('faq');
-})->name('faq');
+
 
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');

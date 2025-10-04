@@ -24,6 +24,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ImageColumn;
 
 class ProductResource extends Resource
 {
@@ -104,6 +105,10 @@ class ProductResource extends Resource
                 TextColumn::make('slug'),
                 TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
                 TextColumn::make('subcategory.name')->label('Sub-Category')->sortable()->searchable(),
+                ImageColumn::make('image')
+                ->label('Image')
+                ->getStateUsing(fn ($record) => $record->product_image ? asset('storage/' . $record->product_image) : null)
+                ->square(),
                 BadgeColumn::make('feature_ids')
                     ->label('Features')
                     ->getStateUsing(function ($record) {
@@ -111,7 +116,9 @@ class ProductResource extends Resource
                         return \App\Models\ProductFeature::whereIn('id', $features)->pluck('name')->toArray();
                     })
                     ->colors(['success']),
-                TextColumn::make('price')
+                TextColumn::make('purchase_price')
+                    ->money('USD'),
+                TextColumn::make('selling_price')
                     ->money('USD'),
                 TextColumn::make('stock'),
                 TextColumn::make('min_order_qty')
