@@ -32,7 +32,7 @@ class SubCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('category_id') 
+                Select::make('category_id')
                     ->label('Select Category')
                     ->relationship('category', 'name')
                     ->required(),
@@ -74,7 +74,10 @@ class SubCategoryResource extends Resource
                     ->label('Category Name')
                     ->sortable()
                     ->searchable(),
-                ImageColumn::make('image')->label('Image'),
+                ImageColumn::make('image')
+                ->label('Image')
+                ->getStateUsing(fn ($record) => $record->image ? asset('storage/' . $record->image) : null)
+                ->square(),
                 TextColumn::make('order')->sortable()->label('Order'),
                 IconColumn::make('is_active')
                     ->label('Status')

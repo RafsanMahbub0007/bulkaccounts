@@ -14,8 +14,9 @@ class Product extends Model
         'slug',
         'category_id',
         'subcategory_id',
-        'features',
-        'price',
+        'feature_ids',
+        'purchase_price',
+        'selling_price',
         'stock',
         'min_order_qty',
         'product_icon',
@@ -26,7 +27,7 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'features' => 'array', 
+        'feature_ids' => 'array',
     ];
 
     public function category()
@@ -38,9 +39,14 @@ class Product extends Model
     {
         return $this->belongsTo(SubCategory::class, 'subcategory_id');
     }
-    
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(ProductFeature::class, 'product_feature');
     }
 }

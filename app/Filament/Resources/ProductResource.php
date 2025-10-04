@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Models\ProductFeature;
 use App\Models\subCategory;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
@@ -59,22 +60,18 @@ class ProductResource extends Resource
                     ->required()
                     ->reactive()
                     ->disabled(fn(callable $get) => !$get('category_id')),
-                CheckboxList::make('features')
+                CheckboxList::make('feature_ids')
                     ->label('Features')
-                    ->options([
-                        '2fa_certified' => '2FA Certified',
-                        'mail_verified' => 'Mail Verified',
-                        'aged' => 'Aged',
-                        'brand_new' => 'Brand New',
-                        'eva' => 'EVA',
-                        'pva' => 'PVA',
-                    ])
+                    ->options(ProductFeature::pluck('name', 'id'))
                     ->columns(2),
                 FileUpload::make('product_image')
                     ->image()
                     ->directory('product-images')
                     ->nullable(),
-                TextInput::make('price')
+                TextInput::make('purchase_price')
+                    ->numeric()
+                    ->required(),
+                TextInput::make('selling_price')
                     ->numeric()
                     ->required(),
                 TextInput::make('stock')
@@ -107,32 +104,20 @@ class ProductResource extends Resource
                 TextColumn::make('slug'),
                 TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
                 TextColumn::make('subcategory.name')->label('Sub-Category')->sortable()->searchable(),
-                BadgeColumn::make('features')
+                BadgeColumn::make('feature_ids')
                     ->label('Features')
                     ->getStateUsing(function ($record) {
-                        $labels = [
-                            '2fa_certified' => '2FA Certified',
-                            'mail_verified' => 'Mail Verified',
-                            'aged' => 'Aged',
-                            'brand_new' => 'Brand New',
-                            'eva' => 'EVA',
-                            'pva' => 'PVA',
-                        ];
-
-                        $features = is_array($record->features) ? $record->features : json_decode($record->features, true) ?? [];
-
-                        return array_map(fn($key) => $labels[$key] ?? $key, $features);
+                        $features = $record->feature_ids ?? [];
+                        return \App\Models\ProductFeature::whereIn('id', $features)->pluck('name')->toArray();
                     })
-                    ->colors([
-                        'success'
-                    ])
-                    ->sortable(),
-
+                    ->colors(['success']),
                 TextColumn::make('price')
                     ->money('USD'),
                 TextColumn::make('stock'),
-                TextColumn::make('min_order_qty'),
+                TextColumn::make('min_order_qty')
+                    ->label('Minimum'),
                 TextColumn::make('created_at')
+                    ->label('Created')
                     ->date(),
 
             ])

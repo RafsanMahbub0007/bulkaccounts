@@ -66,7 +66,10 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
-                ImageColumn::make('image')->label('Image'),
+                ImageColumn::make('image')
+                ->label('Image')
+                ->getStateUsing(fn ($record) => $record->image ? asset('storage/' . $record->image) : null)
+                ->square(),
                 TextColumn::make('order')->sortable()->label('Order'),
                 IconColumn::make('is_active')
                     ->label('Status')
