@@ -10,11 +10,11 @@ class ProductDetails extends Component
 {
     public $product;
     public $relatedProducts;
-    public $quantity = 1;
-
+    public $quantity;
     public function mount(Product $product)
     {
         $this->product = $product;
+        $this->quantity = $product->min_order_qty;
         $this->relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->limit(5)
@@ -33,10 +33,10 @@ class ProductDetails extends Component
         $cart[$this->product->id] = [
             'id' => $this->product->id,
             'name' => $this->product->name,
-            'price' => $this->product->price,
+            'image' => $this->product->product_image,
+            'price' => $this->product->selling_price,
             'quantity' => $this->quantity,
             'stock' => $this->product->stock,
-            'image' => $this->product->image,
         ];
 
         session()->put('cart', $cart);
@@ -55,10 +55,10 @@ class ProductDetails extends Component
         $cart[$this->product->id] = [
             'id' => $this->product->id,
             'name' => $this->product->name,
-            'price' => $this->product->price,
+            'image' => $this->product->product_image,
+            'price' => $this->product->selling_price,
             'quantity' => $this->quantity,
             'stock' => $this->product->stock,
-            'image' => $this->product->image,
         ];
 
         session()->put('cart', $cart);

@@ -9,7 +9,7 @@
                     @foreach ($cartItems as $item)
                         <li class="flex items-center justify-between text-white">
                             <div class="flex items-center">
-                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}"
+                                <img src="{{ asset('/storage/' . $item['image']) }}" alt="{{ $item['name'] }}"
                                     class="w-16 h-16 object-cover rounded-lg mr-4">
                                 <div>
                                     <p class="font-medium">{{ $item['name'] }}</p>
