@@ -45,47 +45,51 @@
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
                         <i class="fas fa-envelope text-sm"></i>
                     </div>
-                    <a href="mailto:support@yourwebsite.com"
-                        class="ml-3 hover:text-red-400 transition">support@yourwebsite.com</a>
+                    <a href="mailto:{{ $system->email }}"
+                        class="ml-3 hover:text-red-400 transition">{{ $system->email }}</a>
                 </li>
                 <li class="flex items-center">
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
                         <i class="fas fa-phone-alt text-sm"></i>
                     </div>
-                    <a href="tel:+1234567890" class="ml-3 hover:text-red-400 transition">+1 234 567 890</a>
+                    <a href="tel:{{ $system->phone }}" class="ml-3 hover:text-red-400 transition">{{ $system->phone }}</a>
                 </li>
                 <li class="flex items-center">
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
                         <i class="fas fa-map-marker-alt text-sm"></i>
                     </div>
-                    <span class="ml-3 text-gray-300">123 Main Street, City, Country</span>
+                    <span class="ml-3 text-gray-300">{{ $system->address }}</span>
                 </li>
             </ul>
         </div>
     </div>
 
     <!-- Social Media Section -->
+    @php
+        $socialLinks = [
+            'facebook' => ['url' => $system->f_link, 'icon' => 'facebook-f', 'colors' => 'from-red-500 to-red-400'],
+            'twitter' => ['url' => $system->tw_link, 'icon' => 'twitter', 'colors' => 'from-blue-700 to-blue-600'],
+            'instagram' => ['url' => $system->i_link, 'icon' => 'instagram', 'colors' => 'from-pink-500 to-pink-400'],
+            'telegram' => ['url' => $system->t_link, 'icon' => 'telegram', 'colors' => 'from-blue-500 to-blue-400'],
+            'youtube' => ['url' => $system->y_link, 'icon' => 'youtube', 'colors' => 'from-red-500 to-red-400'],
+            'linkedin' => ['url' => $system->lnkd_link, 'icon' => 'linkedin', 'colors' => 'from-blue-600 to-blue-800'],
+        ];
+    @endphp
+
     <div class="mt-12 text-center">
         <h3 class="text-2xl font-bold mb-4 text-red-500">Follow Us</h3>
         <div class="flex justify-center space-x-6">
-            <a href="#"
-                class="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-400 text-white rounded-full shadow-lg hover:scale-110 transition">
-                <i class="fab fa-facebook-f text-lg"></i>
-            </a>
-            <a href="#"
-                class="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-full shadow-lg hover:scale-110 transition">
-                <i class="fab fa-instagram text-lg"></i>
-            </a>
-            <a href="#"
-                class="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-blue-400 to-blue-300 text-white rounded-full shadow-lg hover:scale-110 transition">
-                <i class="fab fa-twitter text-lg"></i>
-            </a>
-            <a href="#"
-                class="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-400 text-white rounded-full shadow-lg hover:scale-110 transition">
-                <i class="fab fa-youtube text-lg"></i>
-            </a>
+            @foreach ($socialLinks as $platform)
+                @if (!empty($platform['url']))
+                    <a href="{{ $platform['url'] }}" target="_blank"
+                        class="w-12 h-12 flex items-center justify-center bg-gradient-to-r {{ $platform['colors'] }} text-white rounded-full shadow-lg hover:scale-110 transition">
+                        <i class="fab fa-{{ $platform['icon'] }} text-lg"></i>
+                    </a>
+                @endif
+            @endforeach
         </div>
     </div>
+
 
     <!-- Footer Bottom -->
     <div class="mt-12 border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
