@@ -51,25 +51,15 @@
                             <p class="text-xl text-red-500">${{ number_format($total, 2) }}</p>
                         </div>
                     </div>
-
-                    <!-- Place Order Button -->
-                    <div class="mt-8 flex justify-center">
-                        <button wire:click.prevent="placeOrder"
-                            class="bg-red-600 px-8 py-3 rounded-lg shadow-lg text-white hover:bg-red-700 w-full lg:w-auto">
-                            Place Order
-                        </button>
-                    </div>
-
-                    <!-- Additional Actions -->
                     <div class="mt-6 flex justify-center space-x-4">
                         <a href="{{ route('home') }}"
                             class="bg-gray-700 px-6 py-3 rounded-lg shadow-lg text-white hover:bg-gray-800">
                             Continue Shopping
                         </a>
-                        <a href="{{ route('user.orders') }}"
-                            class="bg-gray-700 px-6 py-3 rounded-lg shadow-lg text-white hover:bg-gray-800">
-                            View Your Orders
-                        </a>
+                        <button wire:click.prevent="placeOrder"
+                            class="bg-red-600 px-8 py-3 rounded-lg shadow-lg text-white hover:bg-red-700 w-full lg:w-auto">
+                            Place Order
+                        </button>
                     </div>
                 </div>
             </div>

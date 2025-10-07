@@ -24,11 +24,11 @@
 
         <!-- Call-to-Action Buttons -->
         <div class="flex flex-wrap justify-center space-x-6 animate-slide-in-delay">
-            <a href="/shop"
+            <a href="{{ route('pricing') }}"
                 class="bg-red-600 text-white px-10 py-5 rounded-lg font-bold shadow-lg hover:bg-red-700 transition transform hover:scale-105">
                 Shop Now
             </a>
-            <a href="/contact"
+            <a href="{{ route('contact') }}"
                 class="bg-gray-700 text-white px-10 py-5 rounded-lg font-bold shadow-lg hover:bg-gray-800 transition transform hover:scale-105">
                 Contact Us
             </a>

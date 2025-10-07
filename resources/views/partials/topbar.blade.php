@@ -15,29 +15,27 @@
                 </a>
             </div>
         </div>
+@php
+    $socialLinks = [
+        'facebook' => ['url' => $system->f_link ?? null, 'icon' => 'facebook-f'],
+        'telegram' => ['url' => $system->t_link ?? null, 'icon' => 'telegram'],
+        'twitter' => ['url' => $system->tw_link ?? null, 'icon' => 'twitter'],
+        'instagram' => ['url' => $system->i_link?? null,'icon' => 'instagram'],
+        'linkedin' => ['url' => $system->lnkd_link ?? null, 'icon' => 'linkedin-in'],
+        'youtube' => ['url' => $system->y_link  ?? null, 'icon' => 'youtube'],
+    ];
+@endphp
 
-        <!-- Right Section: Social Media Icons -->
-        <div class="flex items-center space-x-4">
-            <a href="#"
-                class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
-                <i class="fab fa-facebook-f text-sm"></i>
+<div class="flex items-center space-x-4">
+    @foreach ($socialLinks as $platform)
+        @if (!empty($platform['url']))
+            <a href="{{ $platform['url'] }}" target="_blank"
+               class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
+                <i class="fab fa-{{ $platform['icon'] }} text-sm"></i>
             </a>
-            <a href="#"
-                class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
-                <i class="fab fa-twitter text-sm"></i>
-            </a>
-            <a href="#"
-                class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
-                <i class="fab fa-instagram text-sm"></i>
-            </a>
-            <a href="#"
-                class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
-                <i class="fab fa-linkedin-in text-sm"></i>
-            </a>
-            <a href="#"
-                class="w-8 h-8 flex items-center justify-center text-red-600 rounded-full bg-transparent border-2 border-red-600 hover:bg-red-600 hover:text-white transition">
-                <i class="fab fa-youtube text-sm"></i>
-            </a>
-        </div>
+        @endif
+    @endforeach
+</div>
+
     </div>
 </div>

@@ -13,10 +13,16 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique(); // Unique key column
-            $table->string('type'); // Field type for the UI (e.g., text, dropdown)
-            $table->string('group'); // Group the setting belongs to (e.g., general, display)
-            $table->text('value'); // Value of the setting (as text)
+            $table->string('website_name'); 
+            $table->string('phone'); 
+            $table->string('email'); 
+            $table->string('f_link')->nullable(); 
+            $table->string('i_link')->nullable(); 
+            $table->string('t_link')->nullable(); 
+            $table->string('y_link')->nullable(); 
+            $table->string('tw_link')->nullable(); 
+            $table->string('lnkd_link')->nullable(); 
+            $table->text('address'); 
             $table->timestamps();
         });
     }

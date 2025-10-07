@@ -13,7 +13,9 @@
         </div>
     </section>
 
-
+@php
+    $system =App\Models\Setting::find(1);
+@endphp
     <section class="bg-gradient-to-br from-gray-900 to-gray-800 py-28">
         <!-- Main Contact Section -->
         <div class="container mx-auto px-4 mt-12">
@@ -27,21 +29,21 @@
                                 class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-red-300 text-white rounded-full shadow-lg">
                                 <i class="fas fa-phone-alt text-lg"></i>
                             </div>
-                            <span class="ml-4 text-gray-300 text-lg">+1 234 567 890</span>
+                            <span class="ml-4 text-gray-300 text-lg">{{ $system->phone }}</span>
                         </li>
                         <li class="flex items-center">
                             <div
                                 class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-green-300 text-white rounded-full shadow-lg">
                                 <i class="fas fa-envelope text-lg"></i>
                             </div>
-                            <span class="ml-4 text-gray-300 text-lg">support@yourwebsite.com</span>
+                            <span class="ml-4 text-gray-300 text-lg">{{ $system->email }}</span>
                         </li>
                         <li class="flex items-center">
                             <div
                                 class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-red-300 text-white rounded-full shadow-lg">
                                 <i class="fas fa-map-marker-alt text-lg"></i>
                             </div>
-                            <span class="ml-4 text-gray-300 text-lg">123 Main Street, Your City, Your Country</span>
+                            <span class="ml-4 text-gray-300 text-lg">{{ $system->address }}</span>
                         </li>
                     </ul>
                     <div class="mt-8">

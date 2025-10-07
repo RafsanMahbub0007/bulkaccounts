@@ -29,46 +29,39 @@ class SettingResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('key')
-                    ->label('Key')
+                TextInput::make('website_name')
                     ->required()
-                    ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
-                Select::make('type')
-                    ->label('Field Type')
-                    ->options([
-                        'text' => 'Text',
-                        'dropdown' => 'Dropdown',
-                        'textarea' => 'Textarea',
-                        'boolean' => 'Boolean',
-                    ])
+                TextInput::make('phone')
+                    ->label('Mobile No')
                     ->required(),
 
-                Select::make('group')
-                    ->columnSpanFull()
-                    ->label('Group')
-                    ->options([
-                        'general' => 'General',
-                        'display' => 'Display',
-                        'seo' => 'SEO',
-                        'security' => 'Security',
-                        'email' => 'Email',
-                        'social_media' => 'Social Media',
-                        'integration' => 'Integration',
-                        'notifications' => 'Notifications',
-                        'payment' => 'Payment',
-                        'analytics' => 'Analytics',
-                        'other' => 'Other',
-                    ])
-                    ->searchable() // Allows searching through options
-                    ->required()
-                    ->placeholder('Select a group'),
+                TextInput::make('email')
+                    ->label('Email Address')
+                    ->required(),
 
-                Textarea::make('value')
+                TextInput::make('f_link')
+                    ->label('Facebook Link'),
+                TextInput::make('i_link')
+                    ->label('Instagram Link'),
+
+                TextInput::make('t_link')
+                    ->label('Telegram Link'),
+
+                TextInput::make('y_link')
+                    ->label('Youtube Link'),
+
+                TextInput::make('tw_link')
+                    ->label('Twitter Link'),
+
+                TextInput::make('lnkd_link')
+                    ->label('Linked In Link'),
+                    
+                Textarea::make('address')
                     ->columnSpanFull()
                     ->rows(5)
-                    ->label('Value')
+                    ->label('Address')
                     ->required(),
             ]);
     }
@@ -77,35 +70,48 @@ class SettingResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('key')
-                    ->label('Key')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('website_name')
+                    ->label('website name'),
 
-                TextColumn::make('type')
-                    ->label('Type')
-                    ->sortable(),
+                TextColumn::make('phone')
+                    ->label('Mobile No'),
 
-                TextColumn::make('group')
-                    ->label('Group')
-                    ->sortable()
-                    ->searchable(),
+                TextColumn::make('email')
+                    ->label('Email Address'),
 
-                TextColumn::make('value')
-                    ->label('Value')
-                    ->limit(50)
-                    ->searchable(),
+                TextColumn::make('f_link')
+                    ->label('Facebook Link'),
 
-                TextColumn::make('updated_at')
-                    ->label('Last Updated')
-                    ->dateTime()
-                    ->sortable(),
+                TextColumn::make('i_link')
+                    ->label('Instagram Link'),
+
+                TextColumn::make('t_link')
+                    ->label('Telegram Link'),
+
+                TextColumn::make('tw_link')
+                    ->label('Twitter Link'),
+
+                TextColumn::make('lnkd_link')
+                    ->label('Linked In Link'),
+
+                TextColumn::make('y_link')
+                    ->label('Youtube Link'),
+
+                TextColumn::make('address')
+                    ->label('Address'),
+
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
