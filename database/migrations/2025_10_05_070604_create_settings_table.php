@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('website_name'); 
             $table->string('phone'); 
             $table->string('email'); 
+            $table->string('favicon')->nullable(); 
+            $table->string('logo')->nullable(); 
             $table->string('f_link')->nullable(); 
             $table->string('i_link')->nullable(); 
             $table->string('t_link')->nullable(); 

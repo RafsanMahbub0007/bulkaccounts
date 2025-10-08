@@ -17,12 +17,14 @@ use App\Livewire\SubCategoryDetails;
 use App\Livewire\UserPayments;
 use App\Livewire\Categories;
 use App\Livewire\FaqDetails;
+use App\Livewire\Guidelinedetails;
 
 // Public Routes
 Route::get('/', Home::class)->name('home');
 Route::get('/pricing', Products::class)->name('pricing');
 Route::get('/faq', FaqDetails::class)->name('faq');
 Route::get('/about', AboutDetails::class)->name('about');
+Route::get('/guidlines', Guidelinedetails::class)->name('guidlines');
 Route::get('/blog', Posts::class)->name('blog');
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');
 

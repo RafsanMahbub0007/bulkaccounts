@@ -6,6 +6,7 @@ use App\Filament\Resources\SettingResource\Pages;
 use App\Filament\Resources\SettingResource\RelationManagers;
 use App\Models\Setting;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -36,6 +37,16 @@ class SettingResource extends Resource
                 TextInput::make('phone')
                     ->label('Mobile No')
                     ->required(),
+
+                    FileUpload::make('favicon')
+                    ->image()
+                    ->directory('fabicon')
+                    ->nullable(),
+
+                    FileUpload::make('logo')
+                    ->image()
+                    ->directory('logo')
+                    ->nullable(),
 
                 TextInput::make('email')
                     ->label('Email Address')

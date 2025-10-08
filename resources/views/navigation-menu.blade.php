@@ -36,6 +36,10 @@
                 </x-nav-link>
 
                 <!-- Blog -->
+                <x-nav-link href="{{ route('guidlines') }}" :active="request()->routeIs('guidlines')">
+                    {{ __('Guideline') }}
+                </x-nav-link>
+                <!-- Blog -->
                 <x-nav-link href="{{ route('blog') }}" :active="request()->routeIs('blog')">
                     {{ __('Blog') }}
                 </x-nav-link>
