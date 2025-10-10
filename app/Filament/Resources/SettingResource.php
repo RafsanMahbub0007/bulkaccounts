@@ -13,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,12 +39,12 @@ class SettingResource extends Resource
                     ->label('Mobile No')
                     ->required(),
 
-                    FileUpload::make('favicon')
+                FileUpload::make('favicon')
                     ->image()
                     ->directory('fabicon')
                     ->nullable(),
 
-                    FileUpload::make('logo')
+                FileUpload::make('logo')
                     ->image()
                     ->directory('logo')
                     ->nullable(),
@@ -68,7 +69,7 @@ class SettingResource extends Resource
 
                 TextInput::make('lnkd_link')
                     ->label('Linked In Link'),
-                    
+
                 Textarea::make('address')
                     ->columnSpanFull()
                     ->rows(5)
@@ -87,6 +88,14 @@ class SettingResource extends Resource
                 TextColumn::make('phone')
                     ->label('Mobile No'),
 
+                ImageColumn::make('favicon')
+                    ->label('Favicon')
+                    ->getStateUsing(fn($record) => $record->favicon ? asset('storage/' . $record->favicon) : null)
+                    ->square(),
+                ImageColumn::make('logo')
+                    ->label('Logo')
+                    ->getStateUsing(fn($record) => $record->logo ? asset('storage/' . $record->logo) : null)
+                    ->square(),
                 TextColumn::make('email')
                     ->label('Email Address'),
 
