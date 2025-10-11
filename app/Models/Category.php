@@ -23,6 +23,11 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+    public function offers()
+{
+    return $this->belongsToMany(Offer::class, 'offer_category');
+}
+
     public function subcategories()
     {
         return $this->hasMany(SubCategory::class, 'category_id');

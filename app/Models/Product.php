@@ -49,4 +49,8 @@ class Product extends Model
     {
         return $this->belongsToMany(ProductFeature::class, 'product_feature');
     }
+    public function offers()
+    {
+        return $this->belongsToMany(offer::class, 'offer_product');
+    }
 }
