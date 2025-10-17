@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-       'name',
+        'name',
         'slug',
         'category_id',
         'subcategory_id',
@@ -52,5 +52,22 @@ class Product extends Model
     public function offers()
     {
         return $this->belongsToMany(offer::class, 'offer_product');
+    }
+    public function accounts()
+    {
+        return $this->hasMany(ProductAccount::class);
+    }
+    protected static function booted()
+    {
+        static::deleting(function ($product) {
+            $product->accounts()->delete();
+
+            if ($product->accounts_excel) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->accounts_excel);
+            }
+            if ($product->product_image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->product_image);
+            }
+        });
     }
 }

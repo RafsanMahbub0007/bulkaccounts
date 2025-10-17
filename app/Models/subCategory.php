@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class subCategory extends Model
+class SubCategory extends Model
 {
-    protected $fillable = [
+   protected $fillable = [
         'name',
         'category_id',
         'slug',

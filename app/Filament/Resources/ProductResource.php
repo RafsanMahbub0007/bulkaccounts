@@ -3,10 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use App\Models\ProductFeature;
-use App\Models\subCategory;
+use App\Models\SubCategory;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
@@ -19,10 +18,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Validation\Rule;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
 
@@ -38,11 +33,8 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('slug')
-                    ->unique(Product::class, 'slug', ignoreRecord: true)
-                    ->maxLength(255),
+                TextInput::make('name')->required(),
+                TextInput::make('slug')->unique(Product::class, 'slug', ignoreRecord: true)->maxLength(255),
                 Select::make('category_id')
                     ->label('Category')
                     ->relationship('category', 'name')
@@ -50,86 +42,80 @@ class ProductResource extends Resource
                     ->reactive(),
                 Select::make('subcategory_id')
                     ->label('Sub Category')
-                    ->options(function (callable $get) {
-                        $categoryId = $get('category_id');
-                        if (!$categoryId) {
-                            return [];
-                        }
-                        return subCategory::where('category_id', $categoryId)
-                            ->pluck('name', 'id');
-                    })
+                    ->options(fn(callable $get) => $get('category_id') ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id') : [])
                     ->required()
                     ->reactive()
                     ->disabled(fn(callable $get) => !$get('category_id')),
                 CheckboxList::make('feature_ids')
-                    ->label('Features')
-                    ->options(ProductFeature::pluck('name', 'id'))
-                    ->columns(2),
+                ->label('Features')
+                ->options(ProductFeature::pluck('name', 'id'))
+                ->columns(2),
                 FileUpload::make('product_image')
-                    ->image()
-                    ->directory('product-images')
-                    ->nullable(),
+                ->image()
+                ->directory('product-images')
+                ->nullable(),
                 TextInput::make('purchase_price')
-                    ->numeric()
-                    ->required(),
+                ->numeric()
+                ->required(),
                 TextInput::make('selling_price')
-                    ->numeric()
-                    ->required(),
+                ->numeric()
+                ->required(),
                 TextInput::make('stock')
-                    ->numeric()
-                    ->default(0),
+                ->numeric()
+                ->default(0)
+                ->disabled(),
                 TextInput::make('min_order_qty')
-                    ->numeric()
-                    ->default(10),
-
+                ->numeric()
+                ->default(10),
                 TagsInput::make('keywords')
-                    ->placeholder('Add keywords...')
-                    ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
-                    ->nullable(),
+                ->placeholder('Add keywords...')
+                ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)->nullable(),
                 Textarea::make('description')
-                    ->label('Product Description')
-                    ->nullable(),
+                ->label('Product Description')
+                ->nullable(),
                 RichEditor::make('content')
-                    ->label('Product Content')
-                    ->columnSpanFull()
+                ->label('Product Content')
+                ->columnSpanFull()
+                ->nullable(),
+                FileUpload::make('accounts_excel')
+                    ->label('Upload Accounts Excel/CSV')
+                    ->acceptedFileTypes([
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        'text/csv',
+                        'application/vnd.ms-excel'
+                    ])
+                    ->directory('account-excels')
                     ->nullable(),
             ]);
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
+                TextColumn::make('name')->searchable(),
                 TextColumn::make('slug'),
-                TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
-                TextColumn::make('subcategory.name')->label('Sub-Category')->sortable()->searchable(),
+                TextColumn::make('category.name')
+                ->label('Category')
+                ->sortable()
+                ->searchable(),
+                TextColumn::make('subcategory.name')
+                ->label('Sub-Category')
+                ->sortable()
+                ->searchable(),
                 ImageColumn::make('image')
-                ->label('Image')
-                ->getStateUsing(fn ($record) => $record->product_image ? asset('storage/' . $record->product_image) : null)
-                ->square(),
+                    ->label('Image')
+                    ->getStateUsing(fn($record) => $record->product_image ? asset('storage/' . $record->product_image) : null)
+                    ->square(),
                 BadgeColumn::make('feature_ids')
                     ->label('Features')
-                    ->getStateUsing(function ($record) {
-                        $features = $record->feature_ids ?? [];
-                        return \App\Models\ProductFeature::whereIn('id', $features)->pluck('name')->toArray();
-                    })
+                    ->getStateUsing(fn($record) => ProductFeature::whereIn('id', $record->feature_ids ?? [])->pluck('name')->toArray())
                     ->colors(['success']),
-                TextColumn::make('purchase_price')
-                    ->money('USD'),
-                TextColumn::make('selling_price')
-                    ->money('USD'),
+                TextColumn::make('purchase_price')->money('USD'),
+                TextColumn::make('selling_price')->money('USD'),
                 TextColumn::make('stock'),
-                TextColumn::make('min_order_qty')
-                    ->label('Minimum'),
-                TextColumn::make('created_at')
-                    ->label('Created')
-                    ->date(),
-
-            ])
-            ->filters([
-                //
+                TextColumn::make('min_order_qty')->label('Minimum'),
+                TextColumn::make('created_at')->label('Created')->date(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -146,9 +132,7 @@ class ProductResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
