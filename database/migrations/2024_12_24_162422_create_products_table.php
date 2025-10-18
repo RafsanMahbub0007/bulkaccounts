@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->integer('min_order_qty')->default(10);
             $table->string('product_image')->nullable();
+            $table->string('accounts_excel');
             $table->text('keywords')->nullable();
             $table->text('description')->nullable();
             $table->longText('content')->nullable();

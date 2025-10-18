@@ -21,6 +21,7 @@ class Product extends Model
         'min_order_qty',
         'product_icon',
         'product_image',
+        'accounts_excel',
         'keywords',
         'description',
         'content',

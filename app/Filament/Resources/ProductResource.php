@@ -63,7 +63,8 @@ class ProductResource extends Resource
                 TextInput::make('stock')
                 ->numeric()
                 ->default(0)
-                ->disabled(),
+                ->disabled()
+                ->dehydrated(false),
                 TextInput::make('min_order_qty')
                 ->numeric()
                 ->default(10),

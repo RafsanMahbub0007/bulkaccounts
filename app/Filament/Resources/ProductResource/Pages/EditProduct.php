@@ -12,37 +12,34 @@ class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
 
-    protected function afterSave(): void
-    {
-        $product = $this->record;
+protected function afterSave(): void
+{
+    $product = $this->record;
 
-        $uploaded = $this->form->getState()['accounts_excel'] ?? null;
+    $uploaded = $this->form->getState()['accounts_excel'] ?? null;
 
-        if ($uploaded) {
-            $filePath = is_array($uploaded)
-                ? storage_path('app/public/' . $uploaded[0]['path'])
-                : storage_path('app/public/' . $uploaded);
-
-            try {
-                $import = new ProductAccountsImport($product->id);
-                Excel::import($import, $filePath);
-
-                // Update stock
-                $product->stock = $import->getRowCount();
-                $product->save();
-
-                Notification::make()
-                    ->title('Accounts Imported')
-                    ->success()
-                    ->body("Imported {$product->stock} unique accounts. Duplicates removed automatically.")
-                    ->send();
-            } catch (\Exception $e) {
-                Notification::make()
-                    ->title('Import Failed')
-                    ->danger()
-                    ->body($e->getMessage())
-                    ->send();
-            }
-        }
+    // If no new file uploaded or just the existing file is present, do nothing
+    if (!$uploaded || is_string($uploaded)) {
+        return;
     }
+
+    // $uploaded is a new file upload (array)
+    $filePath = storage_path('app/public/' . $uploaded[0]['path']);
+
+    // Import accounts
+    $import = new ProductAccountsImport($product->id);
+    Excel::import($import, $filePath);
+
+    // Update stock
+    $product->stock = $import->getRowCount();
+    $product->save();
+
+    Notification::make()
+        ->title('Accounts Imported')
+        ->success()
+        ->body("Imported {$product->stock} unique accounts. Duplicates removed automatically.")
+        ->send();
+}
+
+
 }
