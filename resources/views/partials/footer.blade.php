@@ -22,6 +22,8 @@
                 <li><a href="/about" class="hover:text-red-400 transition">About</a></li>
                 <li><a href="/contact" class="hover:text-red-400 transition">Contact</a></li>
                 <li><a href="/faq" class="hover:text-red-400 transition">FAQ</a></li>
+                <li><a href="/faq" class="hover:text-red-400 transition">Privacy Policy</a></li>
+                <li><a href="/faq" class="hover:text-red-400 transition">Refund Policy</a></li>
                 <li><a href="/terms" class="hover:text-red-400 transition">Terms & Conditions</a></li>
             </ul>
         </div>

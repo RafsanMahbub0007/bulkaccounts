@@ -1,5 +1,5 @@
 <?php
-
+use App\Models\Order;
 use App\Livewire\AboutDetails;
 use App\Livewire\Cart;
 use App\Livewire\Categorydetails;
@@ -43,6 +43,17 @@ Route::get('/category/{category:slug}/{subcategory:slug}', SubCategoryDetails::c
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy-policy');
 Route::view('/terms-and-conditions', 'terms-and-conditions')->name('terms-and-conditions');
 Route::view('/refund-policy', 'refund-policy')->name('refund-policy');
+
+
+Route::get('/payment/success/{order}', function (Order $order) {
+    $order->update(['payment_status' => 'paid', 'order_status' => 'confirmed']);
+    return view('payment.success', compact('order'));
+})->name('payment.success');
+
+Route::get('/payment/cancel/{order}', function (Order $order) {
+    $order->update(['payment_status' => 'failed']);
+    return view('payment.cancel', compact('order'));
+})->name('payment.cancel');
 
 // Protected Routes
 Route::middleware([

@@ -14,7 +14,7 @@
 
             </div>
 
-            <div class="hidden sm:flex space-x-4">
+            <div class="hidden sm:flex space-x-6">
                 <!-- Home -->
                 <x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
                     {{ __('Home') }}
@@ -56,7 +56,13 @@
                 <!-- Settings Dropdown -->
                 <div class="ms-3 relative">
                     @guest
-                    <x-nav-link href="/login">Login</x-nav-link>
+                    <div class="hidden sm:flex space-x-6">
+                        <x-link-button href="#">
+                            {{ __('Become a Sellar') }}
+                        </x-link-button>
+
+                        <x-nav-link href="/login">Login</x-nav-link>
+                    </div>
                     @endguest
 
                     @auth
