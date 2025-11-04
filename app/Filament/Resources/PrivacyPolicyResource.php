@@ -2,38 +2,34 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\GuideLineResource\Pages;
-use App\Filament\Resources\GuideLineResource\RelationManagers;
-use App\Models\GuideLine;
+use App\Filament\Resources\PrivacyPolicyResource\Pages;
+use App\Filament\Resources\PrivacyPolicyResource\RelationManagers;
+use App\Models\privacy;
+use App\Models\PrivacyPolicy;
 use Filament\Forms;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class GuideLineResource extends Resource
+class PrivacyPolicyResource extends Resource
 {
-    protected static ?string $model = GuideLine::class;
+    protected static ?string $model = privacy::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
-
+    protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
+protected static ?string $navigationLabel = 'Privacy Policy';
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('title')
-                ->required(),
-                TextInput::make('youtube_link')
-                ->required(),
-                RichEditor::make('details')
-                ->label('Instructions')
-                ->required()
+               RichEditor::make('desctiption')
+                    ->columnSpanFull()
+                    ->label('Write Your Full Privacy Policy')
+                    ->required(),
             ]);
     }
 
@@ -41,18 +37,16 @@ class GuideLineResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('title'),
-                TextColumn::make('youtube_link')
-                ->label('Youtube Link'),
+                TextColumn::make('desctiption')->label('Policy')->limit(50)->html(),
                 TextColumn::make('created_at')
-                    ->label('Created')
-                    ->date()
+                    ->dateTime('d/m/Y H:i:A')
+                    ->label('Policy Created'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                 Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -72,9 +66,9 @@ class GuideLineResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGuideLines::route('/'),
-            'create' => Pages\CreateGuideLine::route('/create'),
-            'edit' => Pages\EditGuideLine::route('/{record}/edit'),
+            'index' => Pages\ListPrivacyPolicies::route('/'),
+            'create' => Pages\CreatePrivacyPolicy::route('/create'),
+            'edit' => Pages\EditPrivacyPolicy::route('/{record}/edit'),
         ];
     }
 }
