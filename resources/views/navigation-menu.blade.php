@@ -60,7 +60,6 @@
                         <x-link-button href="#">
                             {{ __('Become a Sellar') }}
                         </x-link-button>
-
                         <x-nav-link href="/login">Login</x-nav-link>
                     </div>
                     @endguest
