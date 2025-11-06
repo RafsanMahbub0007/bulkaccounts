@@ -33,6 +33,7 @@
 
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         @include('partials.topbar')
+        @include('partials.offer')
         @livewire('navigation-menu')
 
         <!-- Page Heading -->
