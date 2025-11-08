@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\banner as ModelsBanner;
+use App\Models\Banner as ModelsBanner;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 

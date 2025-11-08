@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TermsConditionsResource\Pages;
 use App\Filament\Resources\TermsConditionsResource\RelationManagers;
-use App\Models\terms;
+use App\Models\Terms;
 use Filament\Forms;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Form;
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TermsConditionsResource extends Resource
 {
-    protected static ?string $model = terms::class;
+    protected static ?string $model = Terms::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Terms & Condition';

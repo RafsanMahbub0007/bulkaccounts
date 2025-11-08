@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PrivacyPolicyResource\Pages;
 use App\Filament\Resources\PrivacyPolicyResource\RelationManagers;
-use App\Models\privacy;
+use App\Models\Privacy;
 use App\Models\PrivacyPolicy;
 use Filament\Forms;
 use Filament\Forms\Components\RichEditor;
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PrivacyPolicyResource extends Resource
 {
-    protected static ?string $model = privacy::class;
+    protected static ?string $model = Privacy::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
 protected static ?string $navigationLabel = 'Privacy Policy';

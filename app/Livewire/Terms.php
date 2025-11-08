@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\terms as ModelsTerms;
+use App\Models\Terms as ModelsTerms;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 

@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Category;
-use App\Models\subCategory;
+use App\Models\SubCategory;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -13,11 +13,11 @@ class SubCategoryDetails extends Component
          use WithPagination;
 
     #[Layout('layouts.app')]
-    public $search = ''; 
+    public $search = '';
     public $category;
     public $subcategory;
     public $slug;
-    public function mount(Category $category, subCategory $subcategory)
+    public function mount(Category $category, SubCategory $subcategory)
     {
         $this->category = $category;
         $this->subcategory = $subcategory;
