@@ -8,23 +8,27 @@
             Empowering your business with secure and verified bulk accounts for seamless growth and enhanced online
             presence.
         </p>
-@foreach ($about_details as $about)
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-16 {{ $loop->iteration % 2 === 0 ? 'md:flex md:flex-row-reverse' : '' }}">
-        <!-- Text Column -->
-        <div data-aos="{{ $loop->iteration % 2 === 1 ? 'fade-right' : 'fade-left' }}">
-            <h2 class="text-4xl font-bold text-white mb-6 glow-effect">{{ $about->title }}</h2>
-            <p class="text-gray-400 leading-relaxed mb-6">
-                {!! $about->desctiption !!}
-            </p>
-        </div>
+        @foreach ($about_details as $about)
+            <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-16 {{ $loop->iteration % 2 === 0 ? 'md:flex md:flex-row-reverse' : '' }}">
+                <!-- Text Column -->
+                <div data-aos="{{ $loop->iteration % 2 === 1 ? 'fade-right' : 'fade-left' }}">
+                    <h2 class="text-4xl font-bold text-white mb-6 glow-effect">{{ $about->title }}</h2>
+                    <p class="text-gray-400 leading-relaxed mb-6">
+                        {!! $about->desctiption !!}
+                    </p>
+                </div>
 
-        <!-- Image Column -->
-        <div class="relative" data-aos="{{ $loop->iteration % 2 === 1 ? 'fade-left' : 'fade-right' }}">
-            <img src="{{ asset('/storage/' . $about->about_image) }}" alt="Who We Are" class="rounded-lg shadow-lg z-10 relative">
-            <div class="absolute inset-0 bg-gray-800 rounded-lg transform scale-105 -translate-x-4 translate-y-4"></div>
-        </div>
-    </div>
-@endforeach
+                <!-- Image Column -->
+                <div class="relative" data-aos="{{ $loop->iteration % 2 === 1 ? 'fade-left' : 'fade-right' }}">
+                    <img src="{{ asset('/storage/' . $about->about_image) }}" alt="Who We Are"
+                        class="rounded-lg shadow-lg z-10 relative">
+                    <div
+                        class="absolute inset-0 bg-gray-800 rounded-lg transform scale-105 -translate-x-4 translate-y-4">
+                    </div>
+                </div>
+            </div>
+        @endforeach
 
 
 

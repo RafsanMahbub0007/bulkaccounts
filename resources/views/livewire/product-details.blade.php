@@ -5,7 +5,7 @@
                 <div class="bg-gray-800 p-8 rounded-xl shadow-xl space-y-6" x-data="{ quantity: @entangle('quantity') }">
                     <div class="flex items-center space-x-4">
                         <div class="relative">
-                            <img src="{{ asset('/storage/' . $product->product_image) }}" alt="{{ $product->name }}"
+                            <img src="{{ asset('/storage/' . $product->subcategory->image) }}" alt="{{ $product->name }}"
                                 class="w-16 h-16  rounded-full shadow-md">
                         </div>
                         <div>

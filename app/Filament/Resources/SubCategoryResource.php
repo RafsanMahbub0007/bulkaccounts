@@ -47,6 +47,7 @@ class SubCategoryResource extends Resource
                     ->placeholder('Enter Sub-Category slug'),
                 TagsInput::make('keywords')
                     ->placeholder('Add keywords...')
+                    ->splitKeys([','])
                     ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
                     ->nullable(),
                 Textarea::make('description')

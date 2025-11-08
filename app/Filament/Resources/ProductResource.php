@@ -47,37 +47,34 @@ class ProductResource extends Resource
                     ->reactive()
                     ->disabled(fn(callable $get) => !$get('category_id')),
                 CheckboxList::make('feature_ids')
-                ->label('Features')
-                ->options(ProductFeature::pluck('name', 'id'))
-                ->columns(2),
-                FileUpload::make('product_image')
-                ->image()
-                ->directory('product-images')
-                ->nullable(),
+                    ->label('Features')
+                    ->options(ProductFeature::pluck('name', 'id'))
+                    ->columns(2),
                 TextInput::make('purchase_price')
-                ->numeric()
-                ->required(),
+                    ->numeric()
+                    ->required(),
                 TextInput::make('selling_price')
-                ->numeric()
-                ->required(),
+                    ->numeric()
+                    ->required(),
                 TextInput::make('stock')
-                ->numeric()
-                ->default(0)
-                ->disabled()
-                ->dehydrated(false),
+                    ->numeric()
+                    ->default(0)
+                    ->disabled()
+                    ->dehydrated(false),
                 TextInput::make('min_order_qty')
-                ->numeric()
-                ->default(10),
+                    ->numeric()
+                    ->default(10),
                 TagsInput::make('keywords')
-                ->placeholder('Add keywords...')
-                ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)->nullable(),
+                    ->placeholder('Add keywords...')
+                    ->splitKeys([','])
+                    ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)->nullable(),
                 Textarea::make('description')
-                ->label('Product Description')
-                ->nullable(),
+                    ->label('Product Description')
+                    ->nullable(),
                 RichEditor::make('content')
-                ->label('Product Content')
-                ->columnSpanFull()
-                ->nullable(),
+                    ->label('Product Content')
+                    ->columnSpanFull()
+                    ->nullable(),
                 FileUpload::make('accounts_excel')
                     ->label('Upload Accounts Excel/CSV')
                     ->acceptedFileTypes([
@@ -97,17 +94,13 @@ class ProductResource extends Resource
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('slug'),
                 TextColumn::make('category.name')
-                ->label('Category')
-                ->sortable()
-                ->searchable(),
+                    ->label('Category')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('subcategory.name')
-                ->label('Sub-Category')
-                ->sortable()
-                ->searchable(),
-                ImageColumn::make('image')
-                    ->label('Image')
-                    ->getStateUsing(fn($record) => $record->product_image ? asset('storage/' . $record->product_image) : null)
-                    ->square(),
+                    ->label('Sub-Category')
+                    ->sortable()
+                    ->searchable(),
                 BadgeColumn::make('feature_ids')
                     ->label('Features')
                     ->getStateUsing(fn($record) => ProductFeature::whereIn('id', $record->feature_ids ?? [])->pluck('name')->toArray())
@@ -129,6 +122,29 @@ class ProductResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+    protected static function mutateFormDataBeforeCreate(array $data): array
+    {
+
+        if (empty($data['product_image']) && !empty($data['subcategory_id'])) {
+            $subcategory = SubCategory::find($data['subcategory_id']);
+            if ($subcategory && $subcategory->image) {
+                $data['product_image'] = $subcategory->image;
+            }
+        }
+        return $data;
+    }
+
+    protected static function mutateFormDataBeforeSave(array $data): array
+    {
+
+        if (empty($data['product_image']) && !empty($data['subcategory_id'])) {
+            $subcategory = SubCategory::find($data['subcategory_id']);
+            if ($subcategory && $subcategory->image) {
+                $data['product_image'] = $subcategory->image;
+            }
+        }
+        return $data;
     }
 
     public static function getRelations(): array

@@ -37,27 +37,27 @@ class FaqResource extends Resource
     {
         return $table
             ->columns([
-TextColumn::make('question')
-    ->label('Featured Question')
-    ->formatStateUsing(function ($state) {
-        $words = explode(' ', $state);
-        if (count($words) > 8) {
-            $words = array_slice($words, 0, 8);
-            return implode(' ', $words) . '...';
-        }
-        return $state;
-    }),
+                TextColumn::make('question')
+                    ->label('Featured Question')
+                    ->formatStateUsing(function ($state) {
+                        $words = explode(' ', $state);
+                        if (count($words) > 8) {
+                            $words = array_slice($words, 0, 8);
+                            return implode(' ', $words) . '...';
+                        }
+                        return $state;
+                    }),
 
-TextColumn::make('answer')
-    ->label('Featured Answer')
-    ->formatStateUsing(function ($state) {
-        $words = explode(' ', $state);
-        if (count($words) > 8) {
-            $words = array_slice($words, 0, 8);
-            return implode(' ', $words) . '...';
-        }
-        return $state;
-    }),
+                TextColumn::make('answer')
+                    ->label('Featured Answer')
+                    ->formatStateUsing(function ($state) {
+                        $words = explode(' ', $state);
+                        if (count($words) > 8) {
+                            $words = array_slice($words, 0, 8);
+                            return implode(' ', $words) . '...';
+                        }
+                        return $state;
+                    }),
             ])
             ->filters([
                 //

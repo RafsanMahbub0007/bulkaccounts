@@ -49,7 +49,7 @@
                             class="border border-gray-700 rounded-2xl bg-gray-800 p-4 shadow-lg hover:shadow-2xl transition-all flex flex-col">
 
                             <div class="relative">
-                                <img src="{{ asset('/storage/' . $product->product_image) }}" alt="{{ $product->name }}"
+                                <img src="{{ asset('/storage/' . $product->subcategory->image) }}" alt="{{ $product->name }}"
                                     class="w-full h-48 object-cover rounded-lg shadow-md">
                             </div>
 

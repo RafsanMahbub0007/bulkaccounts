@@ -28,12 +28,12 @@ class GuideLineResource extends Resource
         return $form
             ->schema([
                 TextInput::make('title')
-                ->required(),
+                    ->required(),
                 TextInput::make('youtube_link')
-                ->required(),
+                    ->required(),
                 RichEditor::make('details')
-                ->label('Instructions')
-                ->required()
+                    ->label('Instructions')
+                    ->required()
             ]);
     }
 
@@ -43,7 +43,7 @@ class GuideLineResource extends Resource
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('youtube_link')
-                ->label('Youtube Link'),
+                    ->label('Youtube Link'),
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->date()
@@ -52,7 +52,7 @@ class GuideLineResource extends Resource
                 //
             ])
             ->actions([
-                 Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

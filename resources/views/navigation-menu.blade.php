@@ -1,227 +1,115 @@
-<nav x-data="{ open: false }" class="sticky top-0 z-30 bg-gray-800">
-    <!-- Primary Navigation Menu -->
+<nav x-data="{ open: false, catOpen: false }" class="sticky top-0 z-50 bg-gray-900/90 backdrop-blur-md shadow border-b border-white/10">
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="text-lg font-bold">
-                        <span
-                            class="bg-gradient-to-r from-red-500 to-rose-500 text-transparent bg-clip-text text-4xl font-poppins">Pva</span><br>
-                        <span class="text-white text-2xl font-poppins">ProSeller</span>
-                    </a>
-                </div>
-            </div>
-            <div class="hidden  sm:flex space-x-7">
-                <!-- Home -->
-                <x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
-                    {{ __('Home') }}
-                </x-nav-link>
+        <div class="flex justify-between items-center h-20">
 
-                <!-- About -->
-                <x-nav-link href="{{ route('about') }}" :active="request()->routeIs('about')">
-                    {{ __('About') }}
-                </x-nav-link>
-
-                <!-- Pricing -->
-                <x-nav-link href="{{ route('pricing') }}" :active="request()->routeIs('pricing')">
-                    {{ __('Pricing') }}
-                </x-nav-link>
-
-                <!-- FAQ -->
-                <x-nav-link href="{{ route('faq') }}" :active="request()->routeIs('faq')">
-                    {{ __('FAQ') }}
-                </x-nav-link>
-
-                <!-- Blog -->
-                <x-nav-link href="{{ route('guidlines') }}" :active="request()->routeIs('guidlines')">
-                    {{ __('Guideline') }}
-                </x-nav-link>
-                <!-- Blog -->
-                <x-nav-link href="{{ route('blog') }}" :active="request()->routeIs('blog')">
-                    {{ __('Blog') }}
-                </x-nav-link>
-
-                <!-- Contact -->
-                <x-nav-link href="{{ route('contact') }}" :active="request()->routeIs('contact')">
-                    {{ __('Contact') }}
-                </x-nav-link>
+            <!-- Left: Logo -->
+            <div class="flex-shrink-0">
+                <a href="{{ route('dashboard') }}" class="flex flex-col leading-tight">
+                    <span class="bg-gradient-to-r from-red-500 to-rose-500 text-transparent bg-clip-text text-3xl font-bold">Pva</span>
+                    <span class="text-white text-2xl font-semibold tracking-wide">ProSeller</span>
+                </a>
             </div>
 
+            <!-- Center: Main Links -->
+            <div class="hidden lg:flex flex-1 justify-center">
+                <ul class="flex items-center space-x-8 text-gray-300 font-medium">
+                    <x-nav-link href="{{ route('home') }}">Home</x-nav-link>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+                    <!-- Categories Dropdown -->
+                    @livewire('category-menu')
 
-                <!-- Settings Dropdown -->
-                <div class="ms-3 relative">
-                    @guest
-                        <div class="hidden sm:flex space-x-6">
-                            <x-link-button href="#">
-                                {{ __('Become a Sellar') }}
-                            </x-link-button>
-                            <x-nav-link href="/login">Login</x-nav-link>
-                        </div>
-                    @endguest
-
-                    @auth
-                        <x-dropdown align="right" width="48">
-                            <x-slot name="trigger">
-                                @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                    <button
-                                        class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                        <img class="size-8 rounded-full object-cover"
-                                            src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                    </button>
-                                @else
-                                    <span class="inline-flex rounded-md">
-                                        <button type="button"
-                                            class="flex items-center justify-center w-10 h-10 text-white bg-red-500 rounded-full hover:bg-red-400">
-                                            <i class="fas fa-user text-lg"></i>
-                                        </button>
-                                    </span>
-                                @endif
-                            </x-slot>
-
-                            <x-slot name="content">
-                                <!-- Account Management -->
-                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                    {{ __('Manage Account') }}
-                                </div>
-
-                                <x-dropdown-link href="{{ route('user.orders') }}">
-                                    {{ __('Orders') }}
-                                </x-dropdown-link>
-
-                                <x-dropdown-link href="{{ route('user.payments') }}">
-                                    {{ __('Payments') }}
-                                </x-dropdown-link>
-
-                                <x-dropdown-link href="{{ route('profile.show') }}">
-                                    {{ __('Profile') }}
-                                </x-dropdown-link>
-
-                                @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                                    <x-dropdown-link href="{{ route('api-tokens.index') }}">
-                                        {{ __('API Tokens') }}
-                                    </x-dropdown-link>
-                                @endif
-
-                                <div class="border-t border-gray-200"></div>
-
-                                <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}" x-data>
-                                    @csrf
-
-                                    <x-dropdown-link href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                                        {{ __('Log Out') }}
-                                    </x-dropdown-link>
-                                </form>
-                            </x-slot>
-                        </x-dropdown>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Hamburger -->
-                <div class="-me-2 flex items-center sm:hidden">
-                    <button @click="open = ! open"
-                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                        <svg class="size-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                            <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
-                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                            <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
-                                stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Responsive Navigation Menu -->
-        <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-            <div class="pt-2 pb-3 space-y-1">
-                <!-- Home -->
-                <x-responsive-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
-                    {{ __('Home') }}
-                </x-responsive-nav-link>
-
-                <!-- About -->
-                <x-responsive-nav-link href="{{ route('about') }}" :active="request()->routeIs('about')">
-                    {{ __('About') }}
-                </x-responsive-nav-link>
-
-                <!-- Pricing -->
-                <x-responsive-nav-link href="{{ route('pricing') }}" :active="request()->routeIs('pricing')">
-                    {{ __('Pricing') }}
-                </x-responsive-nav-link>
-
-                <!-- FAQ -->
-                <x-responsive-nav-link href="{{ route('faq') }}" :active="request()->routeIs('faq')">
-                    {{ __('FAQ') }}
-                </x-responsive-nav-link>
-
-                <!-- Blog -->
-                <x-responsive-nav-link href="{{ route('blog') }}" :active="request()->routeIs('blog')">
-                    {{ __('Blog') }}
-                </x-responsive-nav-link>
-
-                <!-- Contact -->
-                <x-responsive-nav-link href="{{ route('contact') }}" :active="request()->routeIs('contact')">
-                    {{ __('Contact') }}
-                </x-responsive-nav-link>
+                    <x-nav-link href="{{ route('pricing') }}">Pricing</x-nav-link>
+                    <x-nav-link href="{{ route('guidlines') }}">Guideline</x-nav-link>
+                    <x-nav-link href="{{ route('about') }}">About</x-nav-link>
+                    <x-nav-link href="{{ route('contact') }}">Contact</x-nav-link>
+                </ul>
             </div>
 
-            <!-- Responsive Settings Options -->
-            <div class="pt-4 pb-1 border-t border-gray-200">
+            <!-- Right: Login/Register or User -->
+            <div class="hidden lg:flex items-center space-x-2 text-sm font-medium">
                 @guest
-                    <x-responsive-nav-link href="/login">Login</x-responsive-nav-link>
+                    <a href="{{ route('login') }}"
+                       class="px-4 py-2 rounded-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition duration-300 ease-in-out shadow-sm">
+                       Login
+                    </a>
+                    <span class="text-gray-400 select-none">|</span>
+                    <a href="{{ route('register') }}"
+                       class="px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-300 ease-in-out shadow-sm">
+                       Register
+                    </a>
                 @endguest
 
                 @auth
-                    <div class="flex items-center px-4">
-                        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                            <div class="shrink-0 me-3">
-                                <img class="size-10 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}"
-                                    alt="{{ Auth::user()->name }}" />
-                            </div>
-                        @endif
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button
+                                class="flex items-center rounded-full border border-white/20 p-1 hover:border-red-400 transition">
+                                @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                                    <img class="size-9 rounded-full object-cover"
+                                        src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                                @else
+                                    <div class="w-10 h-10 bg-red-600 flex items-center justify-center rounded-full text-white">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                @endif
+                            </button>
+                        </x-slot>
 
-                        <div>
-                            <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                            <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 space-y-1">
-                        <x-responsive-nav-link href="{{ route('user.orders') }}" :active="request()->routeIs('user.orders')">
-                            {{ __('Orders') }}
-                        </x-responsive-nav-link>
-
-                        <x-responsive-nav-link href="{{ route('user.payments') }}" :active="request()->routeIs('user.payments')">
-                            {{ __('Payments') }}
-                        </x-responsive-nav-link>
-
-                        <!-- Account Management -->
-                        <x-responsive-nav-link href="{{ route('profile.show') }}" :active="request()->routeIs('profile.show')">
-                            {{ __('Profile') }}
-                        </x-responsive-nav-link>
-
-                        @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                            <x-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
-                                {{ __('API Tokens') }}
-                            </x-responsive-nav-link>
-                        @endif
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}" x-data>
-                            @csrf
-
-                            <x-responsive-nav-link href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                                {{ __('Log Out') }}
-                            </x-responsive-nav-link>
-                        </form>
-                    </div>
+                        <x-slot name="content">
+                            <x-dropdown-link href="{{ route('user.orders') }}">Orders</x-dropdown-link>
+                            <x-dropdown-link href="{{ route('user.payments') }}">Payments</x-dropdown-link>
+                            <x-dropdown-link href="{{ route('profile.show') }}">Profile</x-dropdown-link>
+                            <form method="POST" action="{{ route('logout') }}" x-data>
+                                @csrf
+                                <x-dropdown-link href="{{ route('logout') }}" @click.prevent="$root.submit();">Log Out</x-dropdown-link>
+                            </form>
+                        </x-slot>
+                    </x-dropdown>
                 @endauth
             </div>
+
+            <!-- Hamburger Menu -->
+            <button @click="open = !open" class="lg:hidden p-2 text-gray-300 hover:text-white transition">
+                <i :class="open ? 'fas fa-times' : 'fas fa-bars'" class="text-xl"></i>
+            </button>
+
         </div>
-    </nav>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="open" x-transition class="lg:hidden bg-gray-800 border-t border-white/10">
+        <div class="px-4 pt-4 pb-6 space-y-3 text-gray-300">
+            <x-responsive-nav-link href="{{ route('home') }}">Home</x-responsive-nav-link>
+
+            <!-- Mobile Categories -->
+            <div x-data="{ mc: false }">
+                <button @click="mc = !mc" class="w-full flex justify-between items-center px-2 py-2 hover:text-white">
+                    Categories
+                    <i :class="mc ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-xs"></i>
+                </button>
+                <div x-show="mc" x-transition class="pl-4 space-y-1 mt-2">
+                    <a href="#" class="block hover:text-white">Gmail Accounts</a>
+                    <a href="#" class="block hover:text-white">Facebook Accounts</a>
+                    <a href="#" class="block hover:text-white">Instagram Accounts</a>
+                    <a href="#" class="block hover:text-white">Yahoo Accounts</a>
+                    <a href="#" class="block hover:text-white">Custom Niche</a>
+                </div>
+            </div>
+
+            <x-responsive-nav-link href="{{ route('pricing') }}">Pricing</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('guidlines') }}">Guideline</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('about') }}">About</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('contact') }}">Contact</x-responsive-nav-link>
+
+            @guest
+                <div class="pt-3 space-y-2">
+                    <a href="{{ route('login') }}"
+                        class="block w-full text-center px-4 py-2 rounded-full border border-red-500 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition">Login</a>
+                    <a href="{{ route('register') }}"
+                        class="block w-full text-center px-4 py-2 rounded-full bg-red-500 text-white font-semibold hover:bg-red-600 transition">Register</a>
+                </div>
+            @endguest
+        </div>
+    </div>
+</nav>
