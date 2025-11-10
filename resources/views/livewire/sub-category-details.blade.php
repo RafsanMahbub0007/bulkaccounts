@@ -4,7 +4,7 @@
             @foreach ($products as $product)
                 <div class="lg:col-span-1 bg-gray-800 rounded-lg p-4 shadow hover:shadow-lg transition">
                     <!-- Product Image -->
-                    <img src="{{ asset('/storage/' . $product->product_image) }}" alt="{{ $product->name }}"
+                    <img src="{{ asset('/storage/' . $product->subCategory->image) }}" alt="{{ $product->name }}"
                         class="w-full h-48 object-cover mb-4 rounded-lg">
 
                     <!-- Product Name -->

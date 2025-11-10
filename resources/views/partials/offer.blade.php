@@ -100,12 +100,12 @@
                     Shop Now →
                 </a>
 
-                @guest
+                
                 <!-- Become a Seller -->
                  <x-link-button href="#">
                                 {{ __('Become a Sellar') }}
                             </x-link-button>
-                @endguest
+
             </div>
         </div>
     </div>

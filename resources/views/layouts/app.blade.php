@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $system = \App\Models\Setting::find(1);
+        $banners = \App\Models\Banner::all();
     @endphp
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>

@@ -83,19 +83,8 @@
             <x-responsive-nav-link href="{{ route('home') }}">Home</x-responsive-nav-link>
 
             <!-- Mobile Categories -->
-            <div x-data="{ mc: false }">
-                <button @click="mc = !mc" class="w-full flex justify-between items-center px-2 py-2 hover:text-white">
-                    Categories
-                    <i :class="mc ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-xs"></i>
-                </button>
-                <div x-show="mc" x-transition class="pl-4 space-y-1 mt-2">
-                    <a href="#" class="block hover:text-white">Gmail Accounts</a>
-                    <a href="#" class="block hover:text-white">Facebook Accounts</a>
-                    <a href="#" class="block hover:text-white">Instagram Accounts</a>
-                    <a href="#" class="block hover:text-white">Yahoo Accounts</a>
-                    <a href="#" class="block hover:text-white">Custom Niche</a>
-                </div>
-            </div>
+           <!-- Categories Dropdown -->
+                    @livewire('category-menu')
 
             <x-responsive-nav-link href="{{ route('pricing') }}">Pricing</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('guidlines') }}">Guideline</x-responsive-nav-link>

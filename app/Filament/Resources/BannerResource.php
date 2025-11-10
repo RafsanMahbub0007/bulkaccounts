@@ -7,6 +7,8 @@ use App\Filament\Resources\BannerResource\RelationManagers;
 use App\Models\Banner;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -26,10 +28,13 @@ class BannerResource extends Resource
     {
         return $form
             ->schema([
-                FileUpload::make('banner')
-                ->image()
-                ->directory('banner')
-                ->nullable(),
+                TextInput::make('main_title'),
+                TextInput::make('sub_title'),
+                Textarea::make('title_details')->rows(3),
+                FileUpload::make('banner_image')
+                    ->image()
+                    ->directory('banner')
+                    ->nullable(),
             ]);
     }
 
@@ -37,13 +42,22 @@ class BannerResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('banner')
-                    ->label('Banner')
-                    ->getStateUsing(fn($record) => $record->banner ? asset('storage/' . $record->banner) : null)
+                TextColumn::make('main_title'),
+                TextColumn::make('sub_title'),
+                TextColumn::make('title_details')
+                ->formatStateUsing(function ($state) {
+                        $words = explode(' ', $state);
+                        if (count($words) > 7) {
+                            $words = array_slice($words, 0, 7);
+                            return implode(' ', $words) . '...';
+                        }
+                        return $state;
+                    }),
+                ImageColumn::make('banner_image')
+                    ->label('Banner Image')
+                    ->getStateUsing(fn($record) => $record->banner_image ? asset('storage/' . $record->banner_image) : null)
                     ->square(),
-                    TextColumn::make('created_at')
-                    ->dateTime('d/m/Y H:i:A')
-                    ->label('Banner Created'),
+
             ])
             ->filters([
                 //
