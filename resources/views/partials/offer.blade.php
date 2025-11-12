@@ -1,113 +1,74 @@
 @if ($system->offer_status ?? true)
-<div class="w-full relative overflow-hidden text-white shadow-xl">
+<section class="relative overflow-hidden text-white py-4">
+  <!-- Background Gradient -->
+  <div class="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 animate-[gradientMove_10s_linear_infinite] opacity-90"></div>
 
-    <!-- Inline CSS for animations and effects -->
-    <style>
-        /* Gradient background flow */
-        @keyframes gradientFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animated-bg {
-            background: linear-gradient(90deg, #ff3d5a, #ff6f91, #ff9671, #ff3d5a);
-            background-size: 300% 300%;
-            animation: gradientFlow 8s ease infinite;
-        }
+  <!-- Soft Light Orbs -->
+  <div class="absolute -top-20 left-10 w-64 h-64 bg-pink-400/30 rounded-full blur-3xl"></div>
+  <div class="absolute top-10 right-0 w-96 h-96 bg-cyan-400/30 rounded-full blur-3xl"></div>
 
-        /* Smooth fade-in */
-        @keyframes fadeInSmooth {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
 
-        /* Floating particles */
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.7); opacity: 0.8; }
-            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
-        }
-        .particle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: rgba(255,255,255,0.6);
-            border-radius: 50%;
-            filter: blur(4px);
-            animation: floatUp 4.5s linear infinite;
-        }
+  <!-- Content -->
+  <div class="relative z-10 container mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-5">
 
-        /* Marquee */
-        @keyframes slideText {
-            0% { transform: translateX(120%); }
-            100% { transform: translateX(-120%); }
-        }
-        .marquee {
-            white-space: nowrap;
-            display: inline-block;
-            animation: slideText 12s linear infinite;
-        }
-
-        /* Shimmer effect */
-        .shimmer {
-            background: linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.9), rgba(255,255,255,0.15));
-            background-size: 180%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmerMove 2s linear infinite;
-        }
-        @keyframes shimmerMove { 0% { background-position: 180%; } 100% { background-position: -180%; } }
-
-        /* Neon pulse button */
-        @keyframes neonPulse {
-            0% { box-shadow: 0 0 8px rgba(255,255,255,0.6); }
-            50% { box-shadow: 0 0 20px rgba(255,255,255,1); }
-            100% { box-shadow: 0 0 8px rgba(255,255,255,0.6); }
-        }
-        .neon-btn {
-            animation: neonPulse 1.8s ease-in-out infinite;
-        }
-    </style>
-
-    <!-- Animated gradient background -->
-    <div class="animated-bg w-full h-full absolute inset-0 opacity-95"></div>
-
-    <!-- Floating particles -->
-    <span class="particle" style="left:12%; top:60%; animation-delay:0s;"></span>
-    <span class="particle" style="left:32%; top:70%; animation-delay:0.8s;"></span>
-    <span class="particle" style="left:55%; top:65%; animation-delay:1.4s;"></span>
-    <span class="particle" style="left:78%; top:55%; animation-delay:0.4s;"></span>
-
-    <!-- Content -->
-    <div class="relative backdrop-blur-md bg-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 animate-[fadeInSmooth_0.7s_ease-out] flex flex-col sm:flex-row items-center justify-between gap-4">
-
-            <!-- Marquee / Offer Text -->
-            <div class="w-full sm:flex-1 overflow-hidden">
-                <div class="marquee flex items-center gap-3 text-lg font-semibold">
-                    <span class="text-yellow-300 text-2xl drop-shadow-xl">🔥</span>
-                    <span class="shimmer tracking-wide">
-                        {{ $system->offer_text ?? 'Get 20% OFF all accounts! Use code: PVAPRO20' }}
-                    </span>
-                    <span class="text-yellow-300 text-2xl drop-shadow-xl">🔥</span>
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex flex-col sm:flex-row items-center gap-3">
-                <!-- Shop Now -->
-                <a href="{{ route('pricing') }}"
-                   class="neon-btn bg-white text-red-600 font-bold px-6 py-2 rounded-full shadow-xl hover:bg-gray-100 transition-all duration-300">
-                    Shop Now →
-                </a>
-
-                
-                <!-- Become a Seller -->
-                 <x-link-button href="#">
-                                {{ __('Become a Sellar') }}
-                            </x-link-button>
-
-            </div>
-        </div>
+    <!-- Offer Text -->
+    <div class="flex items-center justify-center sm:justify-start gap-3 overflow-hidden w-full sm:flex-1">
+      <div class="animate-[slide_14s_linear_infinite] whitespace-nowrap">
+        <span class="text-yellow-300 text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">⚡</span>
+        <span class="bg-gradient-to-r from-yellow-200 via-white to-yellow-200 bg-clip-text text-transparent font-extrabold text-lg md:text-xl tracking-wide shimmer">
+          {{ $system->offer_text ?? '⚡ Flash Deal: 20% OFF all accounts! Use code: PVAPRO20 ⚡' }}
+        </span>
+        <span class="text-yellow-300 text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">⚡</span>
+      </div>
     </div>
-</div>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row items-center gap-3">
+      <a href="{{ route('pricing') }}"
+        class="px-6 py-2 rounded-full text-sm md:text-base font-bold text-white bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-400 hover:to-cyan-400 shadow-lg shadow-pink-500/30 transition-all duration-300">
+        Shop Now →
+      </a>
+      <a href="#"
+        class="px-6 py-2 rounded-full text-sm md:text-base font-bold text-white bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 hover:from-cyan-300 hover:to-violet-400 shadow-lg shadow-cyan-500/30 transition-all duration-300">
+        Become a Seller
+      </a>
+    </div>
+  </div>
+
+  <!-- Floating Particles -->
+  <span class="absolute w-3 h-3 bg-white/60 rounded-full blur-sm animate-[float_6s_ease-in-out_infinite]" style="left:20%; top:80%; animation-delay:0s;"></span>
+  <span class="absolute w-2 h-2 bg-white/60 rounded-full blur-sm animate-[float_5s_ease-in-out_infinite]" style="left:50%; top:75%; animation-delay:1s;"></span>
+  <span class="absolute w-3 h-3 bg-white/60 rounded-full blur-sm animate-[float_7s_ease-in-out_infinite]" style="left:80%; top:70%; animation-delay:0.5s;"></span>
+
+  <!-- Animations -->
+  <style>
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes slide {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200%; }
+      100% { background-position: -200%; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); opacity: 0.8; }
+      50% { transform: translateY(-25px); opacity: 1; }
+    }
+
+    .shimmer {
+      animation: shimmer 2s linear infinite;
+      background-size: 150%;
+    }
+  </style>
+</section>
 @endif

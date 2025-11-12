@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Category;
+use App\Models\Product;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -11,9 +11,9 @@ class Home extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $categories = Category::all();
+        $products = Product::all();
         return view('livewire.home', [
-            'categories' => $categories,
+            'products' => $products,
         ]);
     }
 }
