@@ -58,6 +58,16 @@ class Product extends Model
     {
         return $this->hasMany(ProductAccount::class);
     }
+
+    public function featureList()
+{
+    if (!$this->feature_ids) {
+        return [];
+    }
+
+    return ProductFeature::whereIn('id', $this->feature_ids)->pluck('name')->toArray();
+}
+
     protected static function booted()
     {
         static::deleting(function ($product) {

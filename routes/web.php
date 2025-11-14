@@ -18,6 +18,8 @@ use App\Livewire\UserPayments;
 use App\Livewire\Categories;
 use App\Livewire\FaqDetails;
 use App\Livewire\Guidelinedetails;
+use App\Livewire\PrivacyPolicy;
+use App\Livewire\Terms;
 
 // Public Routes
 Route::get('/', Home::class)->name('home');
@@ -26,11 +28,14 @@ Route::get('/faq', FaqDetails::class)->name('faq');
 Route::get('/about', AboutDetails::class)->name('about');
 Route::get('/guidlines', Guidelinedetails::class)->name('guidlines');
 Route::get('/blog', Posts::class)->name('blog');
+Route::get('/terms', Terms::class)->name('terms');
+
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');
 
 Route::get('/cart', Cart::class)->name('cart');
 Route::get('/checkout', Checkout::class)->name('checkout');
 Route::get('/contact', Contact::class)->name('contact');
+Route::view('/privacy-policy', PrivacyPolicy::class)->name('privacy');
 
 // Product Route FIRST to avoid slug conflicts
 Route::get('/product/{product:slug}', ProductDetails::class)->name('product.details');
@@ -40,9 +45,7 @@ Route::get('/{category:slug}', Categorydetails::class)->name('category.details')
 Route::get('/{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
 
 // Static Pages
-Route::view('/privacy-policy', 'privacy-policy')->name('privacy-policy');
-Route::view('/terms-and-conditions', 'terms-and-conditions')->name('terms-and-conditions');
-Route::view('/refund-policy', 'refund-policy')->name('refund-policy');
+// Route::view('/refund-policy', 'refund-policy')->name('refund-policy');
 
 
 Route::get('/payment/success/{order}', function (Order $order) {

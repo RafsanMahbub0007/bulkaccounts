@@ -76,16 +76,15 @@ class ProductResource extends Resource
                     ->columnSpanFull()
                     ->nullable(),
                 FileUpload::make('accounts_excel')
-                    ->label('Upload Accounts Excel/CSV')
+                    ->label('Upload Excel (.xls)')
                     ->acceptedFileTypes([
-                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        'text/csv',
-                        'application/vnd.ms-excel'
-                    ])
+    'application/vnd.ms-excel', // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+])
                     ->directory('account-excels')
                     ->nullable(),
-            ]);
-    }
+                            ]);
+                    }
 
     public static function table(Tables\Table $table): Tables\Table
     {
@@ -160,4 +159,63 @@ class ProductResource extends Resource
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
+    public static function processExcelUpload(Product $product)
+{
+    if (!$product->accounts_excel) {
+        return;
+    }
+
+    $filePath = storage_path('app/public/' . $product->accounts_excel);
+
+    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+    $sheet = $spreadsheet->getActiveSheet();
+    $rows = $sheet->toArray(null, true, true, true);
+
+    // Remove headers
+    $headers = array_shift($rows);
+
+    foreach ($rows as $row) {
+
+        $data = array_combine($headers, array_values($row));
+
+        if (!isset($data['email_account'])) {
+            continue; // Skip blank rows
+        }
+
+        \App\Models\ProductAccount::create([
+            'product_id' => $product->id,
+            'email' => $data['email_account'],
+
+            // Encrypted fields
+            'password_encrypted' => encrypt($data['email_password'] ?? ''),
+            'two_fa_secret_encrypted' => encrypt($data['2fa_code'] ?? ''),
+
+            // Everything else goes in JSON
+            'meta' => [
+                'full_name' => $data['full_name'] ?? '',
+                'account_password' => $data['account_password'] ?? '',
+                'uid' => $data['uid'] ?? '',
+                'recovery_email' => $data['recovery_email'] ?? '',
+                'profile_link' => $data['profile_link'] ?? '',
+                'create_date' => $data['create_date'] ?? '',
+                'download_link' => $data['download_link'] ?? '',
+                'username' => $data['username'] ?? '',
+                'location' => $data['location'] ?? '',
+                'connection' => $data['connection'] ?? '',
+                'karma' => $data['karma'] ?? '',
+                'followers' => $data['followers'] ?? '',
+                'friends' => $data['friends'] ?? '',
+                'phone_number' => $data['phone_number'] ?? '',
+                'plan_type' => $data['plan_type'] ?? '',
+                'card_number' => $data['card_number'] ?? '',
+                'expiry_date' => $data['expiry_date'] ?? '',
+                'cvv_code' => $data['cvv_code'] ?? '',
+                'card_type' => $data['card_type'] ?? '',
+                'balance' => $data['balance'] ?? '',
+                'storage_capacity' => $data['storage_capacity'] ?? '',
+            ],
+        ]);
+    }
+}
+
 }

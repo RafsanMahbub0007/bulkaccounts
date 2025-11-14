@@ -9,7 +9,7 @@
             </p>
             <div class="mt-6">
                 <a href="/about"
-                    class="inline-block bg-red-500 text-white py-2 px-6 rounded-full hover:bg-red-400 transition">
+                    class="inline-block bg-red-500 text-white py-2 px-6 rounded-full hover:bg-red-400 transition-all duration-300 shadow hover:shadow-lg">
                     Learn More
                 </a>
             </div>
@@ -19,25 +19,31 @@
         <div>
             <h3 class="text-2xl font-bold mb-6 text-red-500">Quick Links</h3>
             <ul class="space-y-4 text-gray-300">
-                <li><a href="/about" class="hover:text-red-400 transition">About</a></li>
-                <li><a href="/contact" class="hover:text-red-400 transition">Contact</a></li>
-                <li><a href="/faq" class="hover:text-red-400 transition">FAQ</a></li>
-                <li><a href="/faq" class="hover:text-red-400 transition">Privacy Policy</a></li>
-                <li><a href="/faq" class="hover:text-red-400 transition">Refund Policy</a></li>
-                <li><a href="/terms" class="hover:text-red-400 transition">Terms & Conditions</a></li>
+                <li><a href="{{route('blog')}}" class="hover:text-red-400 transition-colors duration-300">Blog</a></li>
+                <li><a href="{{route('about')}}" class="hover:text-red-400 transition-colors duration-300">About</a></li>
+                <li><a href="{{route('contact')}}" class="hover:text-red-400 transition-colors duration-300">Contact</a></li>
+                <li><a href="{{route('faq')}}" class="hover:text-red-400 transition-colors duration-300">FAQ</a></li>
+                <li><a href="{{route('privacy')}}" class="hover:text-red-400 transition-colors duration-300">Privacy Policy</a></li>
+                <li><a href="{{route('terms')}}" class="hover:text-red-400 transition-colors duration-300">Terms & Conditions</a></li>
             </ul>
         </div>
-@php
-    $cats= \App\Models\Category::where('is_active',1)->orderBy('order','ASC')->get();
-@endphp
+
         <!-- Column 3: Categories -->
+        @php
+            $cats = \App\Models\Category::where('is_active',1)->orderBy('order','ASC')->get();
+        @endphp
         <div>
             <h3 class="text-2xl font-bold mb-6 text-red-500">Categories</h3>
             <ul class="space-y-4 text-gray-300">
-                @forelse ($cats as $cat )
-                    <li><a href="{{route('category.details',$cat->slug)}}" class="hover:text-red-400 transition">{{$cat->name}}</a></li>
+                @forelse ($cats as $cat)
+                    <li>
+                        <a href="{{route('category.details',$cat->slug)}}"
+                           class="hover:text-red-400 transition-colors duration-300">
+                           {{$cat->name}}
+                        </a>
+                    </li>
                 @empty
-                    <li><a href="#" class="hover:text-red-400 transition">No Categories Yet</a></li>
+                    <li><a href="#" class="hover:text-red-400 transition-colors duration-300">No Categories Yet</a></li>
                 @endforelse
             </ul>
         </div>
@@ -50,14 +56,17 @@
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
                         <i class="fas fa-envelope text-sm"></i>
                     </div>
-                    <a href="mailto:{{ $system->email }}"
-                        class="ml-3 hover:text-red-400 transition">{{ $system->email }}</a>
+                    <a href="mailto:{{ $system->email }}" class="ml-3 hover:text-red-400 transition-colors duration-300">
+                        {{ $system->email }}
+                    </a>
                 </li>
                 <li class="flex items-center">
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
                         <i class="fas fa-phone-alt text-sm"></i>
                     </div>
-                    <a href="tel:{{ $system->phone }}" class="ml-3 hover:text-red-400 transition">{{ $system->phone }}</a>
+                    <a href="tel:{{ $system->phone }}" class="ml-3 hover:text-red-400 transition-colors duration-300">
+                        {{ $system->phone }}
+                    </a>
                 </li>
                 <li class="flex items-center">
                     <div class="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full">
@@ -87,7 +96,7 @@
             @foreach ($socialLinks as $platform)
                 @if (!empty($platform['url']))
                     <a href="{{ $platform['url'] }}" target="_blank"
-                        class="w-12 h-12 flex items-center justify-center bg-gradient-to-r {{ $platform['colors'] }} text-white rounded-full shadow-lg hover:scale-110 transition">
+                       class="w-12 h-12 flex items-center justify-center bg-gradient-to-r {{ $platform['colors'] }} text-white rounded-full shadow-lg transform hover:scale-110 transition-all duration-300">
                         <i class="fab fa-{{ $platform['icon'] }} text-lg"></i>
                     </a>
                 @endif
@@ -95,10 +104,10 @@
         </div>
     </div>
 
-
     <!-- Footer Bottom -->
-    <div class="mt-12 border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
-        &copy; {{ date('Y') }} YourWebsite. All rights reserved. | <a href="/privacy"
-            class="hover:text-red-400 transition">Privacy Policy</a>
+    <div class="mt-12 border-t border-gray-700 pt-6 text-center text-sm text-gray-400 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
+        <span>&copy; {{ date('Y') }} YourWebsite. All rights reserved.</span>
+        <span>|</span>
+        <a href="{{route('privacy')}}" class="hover:text-red-400 transition-colors duration-300">Privacy Policy</a>
     </div>
 </footer>

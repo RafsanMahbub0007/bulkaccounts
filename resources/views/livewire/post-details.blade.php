@@ -1,62 +1,70 @@
 <div class="bg-gray-900 text-gray-300 min-h-screen py-12">
 
-    <!-- Post Detail Section -->
-    <div class="container mx-auto px-6 lg:px-16 py-8">
-        <!-- Post Header with Title and Meta Information -->
-        <div class="mb-8">
-            <!-- Title -->
-            <h1 class="text-4xl font-bold text-red-500 mb-4">{{ $post->title }}</h1>
+    <div class="container mx-auto px-6 lg:px-16 flex flex-col lg:flex-row gap-12">
 
-            <!-- Meta Information -->
-            <div class="flex items-center text-sm text-gray-400 space-x-4 mb-6">
-                <span class="flex items-center">
-                    <i class="fas fa-user mr-1"></i> {{ $post->author->name }}
-                </span>
-                <span class="flex items-center">
-                    <i class="fas fa-calendar-alt mr-1"></i> {{ $post->created_at->format('M d, Y') }}
-                </span>
-                @if ($post->categories)
-                    <span class="flex items-center">
-                        <i class="fas fa-tags mr-1"></i>
-                        @foreach ($post->categories as $category)
-                            <span class="mr-2">{{ $category->name }}</span>
-                        @endforeach
+        <!-- Main Content (Left) -->
+        <div class="lg:w-2/3 space-y-8">
+
+            <!-- Post Header -->
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-red-500 mb-4">
+                    {{ $post->title }}
+                </h1>
+
+                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-user"></i> {{ $post->author->name }}
                     </span>
-                @endif
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-calendar-alt"></i> {{ $post->created_at->format('M d, Y') }}
+                    </span>
+                    @if ($post->categories)
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-tags"></i>
+                            @foreach ($post->categories as $category)
+                                <span class="bg-gray-700 px-2 py-0.5 rounded text-gray-300 text-xs">{{ $category->name }}</span>
+                            @endforeach
+                        </span>
+                    @endif
+                </div>
             </div>
-        </div>
 
-        <!-- Post Image -->
-        <div class="mb-8">
+            <!-- Post Image -->
             @if ($post->image)
-                <img src="{{ asset('/storage/' . $post->image) }}" alt="{{ $post->title }}"
-                    class="mx-auto object-contain max-w-full h-auto">
+            <div class="text-center">
+                <img src="{{ image_path($post->image) }}" alt="{{ $post->title }}" class="mx-auto rounded-lg shadow-lg max-w-full h-auto">
+            </div>
             @endif
+
+            <!-- Post Content -->
+            <div class="prose prose-red max-w-none">
+                {!! $post->content !!}
+            </div>
+
         </div>
 
-        <!-- Post Content -->
-        <div class="prose prose-red max-w-none mb-8">
-            {!! $post->content !!}
-        </div>
-
-        <!-- Related Posts Section -->
-        <div class="bg-gray-700 py-6 px-8 mt-6">
-            <h2 class="text-2xl font-bold text-gray-200 mb-4">Related Posts</h2>
-            <div class="flex flex-wrap -mx-4">
-                @foreach ($relatedPosts as $relatedPost)
-                    <a href="{{ route('blog.post', $relatedPost->slug) }}" class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-4">
-                        <div class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition">
-                            <h3 class="text-lg font-semibold text-gray-200 truncate">{{ $relatedPost->title }}</h3>
-                            <p class="text-sm text-gray-400 truncate">{{ $relatedPost->description }}</p>
-                        </div>
-                    </a>
-                @endforeach
+        <!-- Sidebar (Right) -->
+        <div class="lg:w-1/3 space-y-6">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-24">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4">Related Posts</h2>
+                <div class="space-y-4">
+                    @foreach ($relatedPosts as $relatedPost)
+                        <a href="{{ route('post.show', $relatedPost->slug) }}">
+                            <div class="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-shadow duration-300 shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-200 truncate">{{ $relatedPost->title }}</h3>
+                                <p class="text-sm text-gray-400 line-clamp-2">{{ $relatedPost->description }}</p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
             </div>
         </div>
+
     </div>
 
-    <!-- Footer (from Bulk Account Seller theme) -->
-    <footer>
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-700 py-8 mt-12">
         <!-- Include your existing footer here -->
     </footer>
+
 </div>

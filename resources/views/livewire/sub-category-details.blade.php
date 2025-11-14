@@ -33,7 +33,19 @@
                             </h3>
                             <span class="text-xl font-bold text-pink-400">${{ number_format($product->selling_price ?? 49.99, 2) }}</span>
                             <p class="text-gray-400 text-sm leading-relaxed mt-2">
-                                {{ \Illuminate\Support\Str::words($product->description, 10, '...') }}
+                               @foreach ($product->featureList() as $feature)
+                                <span
+                                    class="relative text-xs px-3 py-1 rounded-full font-semibold text-white
+               bg-gray-900/30 border border-white/20
+               shadow-[0_0_10px_rgba(255,255,255,0.2)]
+               before:absolute before:inset-0 before:rounded-full
+               before:bg-gradient-to-r before:from-pink-500 before:to-purple-500
+               before:blur-lg before:opacity-50 before:z-[-1]
+               hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]
+               transition-all duration-300">
+                                    {{ $feature }}
+                                </span>
+                            @endforeach
                             </p>
                         </div>
 

@@ -34,7 +34,7 @@
                     <div
                         class="bg-gray-800 p-6 rounded-lg shadow-lg hover:bg-gray-700 transition duration-300 ease-in-out">
                         <!-- Post Image -->
-                        <img src="{{ '/storage/' . $post->image }}" alt="{{ $post->title }}"
+                        <img src="{{image_path( $post->image) }}" alt="{{ $post->title }}"
                             class="w-full h-56 object-cover rounded-t-lg mb-6">
 
                         <!-- Post Title -->
