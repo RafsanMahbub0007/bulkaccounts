@@ -78,6 +78,7 @@
                     </x-slot>
                 </x-dropdown>
             @endauth
+            @livewire('cart-sidebar')
         </div>
 
         <!-- Mobile Hamburger -->

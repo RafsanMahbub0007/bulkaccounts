@@ -41,11 +41,11 @@
           <div class="p-6 flex flex-col justify-between gap-4 text-gray-200">
             <div>
               <h3 class="text-2xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                {{ $product->description }}
+                {{ $product->name }}
               </h3>
-              <span class="text-xl font-bold text-pink-400">${{ number_format($product->price ?? 49.99, 2) }}</span>
+              <span class="text-xl font-bold text-pink-400">${{ number_format($product->selling_price ?? 49.99, 2) }}</span>
               <p class="text-gray-400 text-sm leading-relaxed mt-2">
-                {{ \Illuminate\Support\Str::words($product->description, 18, '...') }}
+                {{ \Illuminate\Support\Str::words($product->description, 10, '...') }}
               </p>
             </div>
 

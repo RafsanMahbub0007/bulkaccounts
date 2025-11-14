@@ -36,8 +36,8 @@ Route::get('/contact', Contact::class)->name('contact');
 Route::get('/product/{product:slug}', ProductDetails::class)->name('product.details');
 
 // Category Routes (consistent prefix)
-Route::get('/category/{category:slug}', Categorydetails::class)->name('category.details');
-Route::get('/category/{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
+Route::get('/{category:slug}', Categorydetails::class)->name('category.details');
+Route::get('/{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
 
 // Static Pages
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy-policy');

@@ -13,11 +13,11 @@ class Categorydetails extends Component
 
     #[Layout('layouts.app')]
 
-    public $search = ''; 
+    public $search = '';
     public $category;
     public $slug;
 
-    protected $queryString = ['search']; 
+    protected $queryString = ['search'];
 
     public function mount(Category $category)
 {
@@ -27,13 +27,17 @@ class Categorydetails extends Component
 
     public function render()
     {
+        $popularCategories = Category::where('id', '!=', $this->category->id)
+        ->take(10)
+        ->get();
         $subcategories = $this->category->subcategories()
             ->where('name', 'like', "%{$this->search}%")
-            ->paginate(10);
+            ->paginate(12);
 
         return view('livewire.categorydetails', [
             'category' => $this->category,
             'subcategories' => $subcategories,
+            'popularCategories' => $popularCategories,
         ]);
     }
 }

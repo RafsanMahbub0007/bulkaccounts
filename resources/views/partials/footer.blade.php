@@ -27,15 +27,18 @@
                 <li><a href="/terms" class="hover:text-red-400 transition">Terms & Conditions</a></li>
             </ul>
         </div>
-
+@php
+    $cats= \App\Models\Category::where('is_active',1)->orderBy('order','ASC')->get();
+@endphp
         <!-- Column 3: Categories -->
         <div>
             <h3 class="text-2xl font-bold mb-6 text-red-500">Categories</h3>
             <ul class="space-y-4 text-gray-300">
-                <li><a href="/facebook-accounts" class="hover:text-red-400 transition">Facebook Accounts</a></li>
-                <li><a href="/instagram-accounts" class="hover:text-red-400 transition">Instagram Accounts</a></li>
-                <li><a href="/twitter-accounts" class="hover:text-red-400 transition">Twitter Accounts</a></li>
-                <li><a href="/gmail-accounts" class="hover:text-red-400 transition">Gmail Accounts</a></li>
+                @forelse ($cats as $cat )
+                    <li><a href="{{route('category.details',$cat->slug)}}" class="hover:text-red-400 transition">{{$cat->name}}</a></li>
+                @empty
+                    <li><a href="#" class="hover:text-red-400 transition">No Categories Yet</a></li>
+                @endforelse
             </ul>
         </div>
 
