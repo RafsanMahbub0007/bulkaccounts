@@ -29,7 +29,7 @@
 
           <!-- Product Image -->
           <div class="relative w-full h-48 overflow-hidden rounded-t-3xl">
-            <img src="{{ asset('storage/' . $product->subcategory->image) }}" alt="{{ $product->name }}"
+            <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
             <span
               class="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">

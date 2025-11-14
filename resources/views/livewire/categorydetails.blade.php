@@ -25,7 +25,7 @@
 
                             <!-- Image -->
                             <div class="relative">
-                                <img src="{{ asset('storage/' . $subcategory->image) }}"
+                                <img src="{{ image_path($subcategory->image) }}"
                                      alt="{{ $subcategory->name }}"
                                      class="w-full h-48 object-cover rounded-t-3xl transition duration-500
                                             group-hover:opacity-90">

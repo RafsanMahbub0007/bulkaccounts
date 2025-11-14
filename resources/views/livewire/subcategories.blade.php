@@ -2,7 +2,7 @@
     <div class="container mx-auto py-10">
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <!-- Left Sidebar: Category Filter -->
-           
+
 
             <!-- Right Side: Search, Sorting, and Product Listings -->
             <div class="lg:col-span-4">
@@ -26,7 +26,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach ($subcategories as $product)
                         <div class="border border-gray-700 rounded-lg bg-gray-800 p-4">
-                            <img src="{{ asset('/storage/' . $product->product_image) }}" alt="{{ $product->name }}"
+                            <img src="{{ image_path( $product->product_image) }}" alt="{{ $product->name }}"
                                 class="w-full h-48 object-cover mb-4 rounded-lg">
                             <h3 class="text-xl font-semibold text-white">{{ $product->name }}</h3>
                             <p class="text-lg font-bold text-red-500">324 BDT</p>

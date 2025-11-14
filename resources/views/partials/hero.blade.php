@@ -66,7 +66,7 @@
         <!-- Hero Image -->
         <div class="relative flex justify-center lg:justify-end opacity-0 scale-90" id="hero-image">
             <div class="rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-white/5 backdrop-blur-2xl w-full max-w-3xl transform transition-transform duration-500">
-                <img src="{{asset('storage/'.$banner->banner_image)}}" alt="Product Preview" class="w-full h-full object-cover" />
+                <img src="{{image_path($banner->banner_image)}}" alt="Product Preview" class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-[#0b1120]/70 to-transparent"></div>
             </div>
             <div class="absolute -z-10 w-80 h-80 bg-blue-500/20 blur-3xl rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>

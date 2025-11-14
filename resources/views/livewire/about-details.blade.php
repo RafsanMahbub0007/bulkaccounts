@@ -21,7 +21,7 @@
 
                 <!-- Image Column -->
                 <div class="relative" data-aos="{{ $loop->iteration % 2 === 1 ? 'fade-left' : 'fade-right' }}">
-                    <img src="{{ asset('/storage/' . $about->about_image) }}" alt="Who We Are"
+                    <img src="{{ image_path($about->about_image) }}" alt="Who We Are"
                         class="rounded-lg shadow-lg z-10 relative">
                     <div
                         class="absolute inset-0 bg-gray-800 rounded-lg transform scale-105 -translate-x-4 translate-y-4">
