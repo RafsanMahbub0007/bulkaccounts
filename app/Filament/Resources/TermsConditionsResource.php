@@ -21,6 +21,7 @@ class TermsConditionsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Terms & Condition';
+protected static ?string $navigationGroup = 'Page Setups';
 
     public static function form(Form $form): Form
     {

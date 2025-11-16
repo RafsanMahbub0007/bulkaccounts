@@ -12,7 +12,7 @@
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>
     <!-- FavIcon -->
-    <link rel="shortcut icon" href="{{image_path($system->favicon)}}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{image_path($system->favicon)}}" type="image/x-icon" class="rounded-pill">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

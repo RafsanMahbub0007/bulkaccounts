@@ -22,6 +22,8 @@ class PrivacyPolicyResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
 protected static ?string $navigationLabel = 'Privacy Policy';
+protected static ?string $navigationGroup = 'Page Setups';
+
     public static function form(Form $form): Form
     {
         return $form

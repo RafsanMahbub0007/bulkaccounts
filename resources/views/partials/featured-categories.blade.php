@@ -22,11 +22,10 @@
             </p>
         </header>
 
-        <!-- Products Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
             @foreach ($products as $product)
-                <article
-                    class="relative group rounded-3xl overflow-hidden shadow-xl backdrop-blur-md border border-white/10 bg-gradient-to-br from-gray-800/60 to-gray-900/80 transition-transform duration-500 hover:scale-[1.03] hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                <a href="{{ route('product.details', $product->slug) }}"
+                    class="group block rounded-3xl overflow-hidden shadow-xl backdrop-blur-md border border-white/10 bg-gradient-to-br from-gray-800/60 to-gray-900/80 transition-transform duration-500 hover:scale-[1.03] hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
 
                     <!-- Floating Gradient Lights -->
                     <div
@@ -41,9 +40,7 @@
                         <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         <span
-                            class="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            Featured
-                        </span>
+                            class="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Featured</span>
                     </div>
 
                     <!-- Content -->
@@ -56,39 +53,31 @@
                             <span
                                 class="text-lg font-bold text-pink-400">${{ number_format($product->selling_price ?? 49.99, 2) }}</span>
                         </div>
+
                         <!-- Tags -->
-                        <div class="flex flex-wrap gap-2 mt-3 ">
+                        <div class="flex flex-wrap gap-2 mt-3">
                             @foreach ($product->featureList() as $feature)
                                 <span
-                                    class="relative text-xs px-3 py-1 rounded-full font-semibold text-white
-               bg-gray-900/30 border border-white/20
-               shadow-[0_0_10px_rgba(255,255,255,0.2)]
-               before:absolute before:inset-0 before:rounded-full
-               before:bg-gradient-to-r before:from-pink-500 before:to-purple-500
-               before:blur-lg before:opacity-50 before:z-[-1]
-               hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]
-               transition-all duration-300">
+                                    class="relative text-xs px-3 py-1 rounded-full font-semibold text-white bg-gray-900/30 border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.2)] before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r before:from-pink-500 before:to-purple-500 before:blur-lg before:opacity-50 before:z-[-1] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-300">
                                     {{ $feature }}
                                 </span>
                             @endforeach
-
                         </div>
+
+                        <!-- Buttons (optional, can remove since whole card is clickable) -->
                         <div class="flex flex-col sm:flex-row gap-3 mt-4">
-                            <a href="#"
-                                class="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white shadow-lg shadow-pink-500/30 transition duration-300">
-                                Add to Cart
-                            </a>
-                            <a href="#"
-                                class="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg shadow-cyan-500/30 transition duration-300">
-                                Buy Now
-                            </a>
+                            <span
+                                class="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/30 transition duration-300 cursor-pointer">Add
+                                to Cart</span>
+                            <span
+                                class="flex-1 text-center px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 transition duration-300 cursor-pointer">Buy
+                                Now</span>
                         </div>
-
-
                     </div>
-                </article>
+                </a>
             @endforeach
         </div>
+
     </div>
 </section>
 
