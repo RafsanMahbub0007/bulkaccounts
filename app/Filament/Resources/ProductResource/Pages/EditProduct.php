@@ -5,64 +5,86 @@ namespace App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource;
 use Filament\Resources\Pages\EditRecord;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ProductAccountsImport;
-use Filament\Notifications\Notification;
+use App\Models\ProductAccount;
 use Illuminate\Support\Facades\Storage;
 
 class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
- protected function afterCreate(): void
+
+    protected function afterSave(): void
     {
         $this->processExcelUpload($this->record);
     }
 
     protected function processExcelUpload($product)
     {
-        $file = $product->accounts_excel;
-
-        if (!$file) {
+        if (!$product->accounts_excel) {
             return;
         }
 
-        $path = Storage::disk('public')->path($file);
+        $filePath = Storage::disk('public')->path($product->accounts_excel);
 
-        $rows = Excel::toArray([], $path)[0];
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+        $sheet = $spreadsheet->getActiveSheet();
 
-        foreach ($rows as $index => $row) {
+        $rows = $sheet->toArray(null, true, true, true);
+        if (empty($rows)) return;
 
-            if ($index === 0) continue; // skip header row
+        // Headers (first row)
+        $headers = array_map('strtolower', array_map('trim', array_shift($rows)));
 
-            ProductAccount::create([
-                'product_id'   => $product->id,
-                'email'        => $row[1] ?? '',
-                'password_encrypted' => encrypt($row[2] ?? ''),
-                'two_fa_secret_encrypted' => encrypt($row[10] ?? ''),
-                'meta' => [
-                    'full_name' => $row[0] ?? '',
-                    'account_password' => $row[3] ?? '',
-                    'uid' => $row[4] ?? '',
-                    'recovery_email' => $row[5] ?? '',
-                    'profile_link' => $row[6] ?? '',
-                    'create_date' => $row[7] ?? '',
-                    'download_link' => $row[8] ?? '',
-                    'username' => $row[11] ?? '',
-                    'location' => $row[12] ?? '',
-                    'connection' => $row[13] ?? '',
-                    'karma' => $row[14] ?? '',
-                    'followers' => $row[15] ?? '',
-                    'friends' => $row[16] ?? '',
-                    'phone_number' => $row[17] ?? '',
-                    'plan_type' => $row[18] ?? '',
-                    'card_number' => $row[19] ?? '',
-                    'expiry_date' => $row[20] ?? '',
-                    'cvv_code' => $row[21] ?? '',
-                    'card_type' => $row[22] ?? '',
-                    'balance' => $row[23] ?? '',
-                    'storage_capacity' => $row[24] ?? '',
+        $validRowsCount = 0;
+
+        foreach ($rows as $row) {
+            // Stop at first completely empty row
+            if (count(array_filter($row, fn($cell) => trim((string)$cell) !== '')) === 0) {
+                break;
+            }
+
+            $data = array_combine($headers, array_map('trim', array_values($row)));
+
+            $email = $data['email_account'] ?? '';
+            if (empty($email)) continue;
+
+            // Update existing account or create new one
+            ProductAccount::updateOrCreate(
+                [
+                    'product_id' => $product->id,
+                    'email' => $email,
+                ],
+                [
+                    'password_encrypted' => $data['email_password'] ?? null,
+                    'two_fa_secret_encrypted' => $data['2fa_code'] ?? null,
+                    'meta' => [
+                        'full_name' => $data['full_name'] ?? '',
+                        'account_password' => $data['account_password'] ?? '',
+                        'uid' => $data['uid'] ?? '',
+                        'recovery_email' => $data['recovery_email'] ?? '',
+                        'profile_link' => $data['profile_link'] ?? '',
+                        'create_date' => $data['create_date'] ?? '',
+                        'download_link' => $data['download_link'] ?? '',
+                        'username' => $data['username'] ?? '',
+                        'location' => $data['location'] ?? '',
+                        'connection' => $data['connection'] ?? '',
+                        'karma' => $data['karma'] ?? '',
+                        'followers' => $data['followers'] ?? '',
+                        'friends' => $data['friends'] ?? '',
+                        'phone_number' => $data['phone_number'] ?? '',
+                        'plan_type' => $data['plan_type'] ?? '',
+                        'card_number' => $data['card_number'] ?? '',
+                        'expiry_date' => $data['expiry_date'] ?? '',
+                        'cvv_code' => $data['cvv_code'] ?? '',
+                        'card_type' => $data['card_type'] ?? '',
+                        'balance' => $data['balance'] ?? '',
+                        'storage_capacity' => $data['storage_capacity'] ?? '',
+                    ],
                 ]
-            ]);
+            );
+
+            $validRowsCount++;
         }
+        $product->stock = $validRowsCount;
+        $product->save();
     }
 }
-

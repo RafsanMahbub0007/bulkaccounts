@@ -5,70 +5,91 @@ namespace App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource;
 use Filament\Resources\Pages\CreateRecord;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ProductAccountsImport;
 use App\Models\ProductAccount;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class CreateProduct extends CreateRecord
 {
     protected static string $resource = ProductResource::class;
 
+    /**
+     * Run after the product is created
+     */
     protected function afterCreate(): void
     {
         $this->processExcelUpload($this->record);
     }
 
-protected function processExcelUpload($product)
-{
-    $file = $product->accounts_excel;
+    /**
+     * Process uploaded Excel file for product accounts
+     */
+    protected function processExcelUpload($product)
+    {
+        $file = $product->accounts_excel;
 
-    if (!$file) {
-        return;
+        if (!$file) {
+            return; // no Excel uploaded
+        }
+
+        // Get full path to the file
+        $path = Storage::disk('public')->path($file);
+
+        // Read the first sheet
+        $rows = Excel::toArray([], $path)[0];
+
+        if (empty($rows) || count($rows) < 2) {
+            return; // no data
+        }
+
+        // Use first row as header (normalized)
+        $headers = array_map('strtolower', array_map('trim', $rows[0]));
+
+        // Remaining rows are data
+        $dataRows = array_slice($rows, 1);
+
+        // Update stock as the number of data rows
+        $product->stock = count($dataRows);
+        $product->save();
+
+        foreach ($dataRows as $row) {
+            // Map row values to header keys
+            $rowData = array_combine($headers, $row);
+
+            // Skip rows without an email
+            if (empty($rowData['email_account'])) {
+                continue;
+            }
+
+            // Create ProductAccount
+            ProductAccount::create([
+                'product_id' => $product->id,
+                'email' => $rowData['email_account'] ?? '',
+                'password_encrypted' => $rowData['email_password'] ? encrypt($rowData['email_password']) : null,
+                'two_fa_secret_encrypted' => $rowData['2fa_code'] ? encrypt($rowData['2fa_code']) : null,
+                'meta' => [
+                    'full_name' => $rowData['full_name'] ?? '',
+                    'account_password' => $rowData['account_password'] ?? '',
+                    'uid' => $rowData['uid'] ?? '',
+                    'recovery_email' => $rowData['recovery_email'] ?? '',
+                    'profile_link' => $rowData['profile_link'] ?? '',
+                    'create_date' => $rowData['create_date'] ?? '',
+                    'download_link' => $rowData['download_link'] ?? '',
+                    'username' => $rowData['username'] ?? '',
+                    'location' => $rowData['location'] ?? '',
+                    'connection' => $rowData['connection'] ?? '',
+                    'karma' => $rowData['karma'] ?? '',
+                    'followers' => $rowData['followers'] ?? '',
+                    'friends' => $rowData['friends'] ?? '',
+                    'phone_number' => $rowData['phone_number'] ?? '',
+                    'plan_type' => $rowData['plan_type'] ?? '',
+                    'card_number' => $rowData['card_number'] ?? '',
+                    'expiry_date' => $rowData['expiry_date'] ?? '',
+                    'cvv_code' => $rowData['cvv_code'] ?? '',
+                    'card_type' => $rowData['card_type'] ?? '',
+                    'balance' => $rowData['balance'] ?? '',
+                    'storage_capacity' => $rowData['storage_capacity'] ?? '',
+                ],
+            ]);
+        }
     }
-
-    $path = Storage::disk('public')->path($file);
-
-    $rows = Excel::toArray([], $path)[0];
-
-    // Skip header row for counting
-    $dataRows = array_slice($rows, 1);
-
-    // Store the count as stock
-    $product->stock = count($dataRows);
-    $product->save();
-
-    foreach ($dataRows as $row) { // loop only the data rows
-        ProductAccount::create([
-            'product_id'   => $product->id,
-            'email'        => $row[1] ?? '',
-            'password_encrypted' => encrypt($row[2] ?? ''),
-            'two_fa_secret_encrypted' => encrypt($row[10] ?? ''),
-            'meta' => [
-                'full_name' => $row[0] ?? '',
-                'account_password' => $row[3] ?? '',
-                'uid' => $row[4] ?? '',
-                'recovery_email' => $row[5] ?? '',
-                'profile_link' => $row[6] ?? '',
-                'create_date' => $row[7] ?? '',
-                'download_link' => $row[8] ?? '',
-                'username' => $row[11] ?? '',
-                'location' => $row[12] ?? '',
-                'connection' => $row[13] ?? '',
-                'karma' => $row[14] ?? '',
-                'followers' => $row[15] ?? '',
-                'friends' => $row[16] ?? '',
-                'phone_number' => $row[17] ?? '',
-                'plan_type' => $row[18] ?? '',
-                'card_number' => $row[19] ?? '',
-                'expiry_date' => $row[20] ?? '',
-                'cvv_code' => $row[21] ?? '',
-                'card_type' => $row[22] ?? '',
-                'balance' => $row[23] ?? '',
-                'storage_capacity' => $row[24] ?? '',
-            ]
-        ]);
-    }
-}
-
 }
