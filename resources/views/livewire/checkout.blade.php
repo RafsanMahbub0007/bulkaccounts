@@ -54,7 +54,7 @@
                             class="w-5 h-5 mt-1 rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500">
                         <label class="text-gray-300 leading-6">
                             I accept the
-                            <a href="#" class="text-red-400 underline hover:text-red-300">
+                            <a href="{{route('terms')}}" class="text-red-400 underline hover:text-red-300">
                                 Terms & Conditions
                             </a>
                         </label>

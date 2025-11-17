@@ -5,8 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    @php
+        $system = \App\Models\Setting::find(1);
+        $banners = \App\Models\Banner::all();
+    @endphp
+   <title>{{ $system->website_name ?? 'PvaProseller' }}</title>
+    <!-- FavIcon -->
+    <link rel="shortcut icon" href="{{image_path($system->favicon)}}" type="image/x-icon" >
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
