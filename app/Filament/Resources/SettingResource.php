@@ -24,7 +24,7 @@ class SettingResource extends Resource
     protected static ?string $model = Setting::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog';
-protected static ?string $navigationGroup = 'Page Setups';
+    protected static ?string $navigationGroup = 'Page Setups';
 
     protected static ?int $navigationSort = 5;
 
@@ -91,11 +91,11 @@ protected static ?string $navigationGroup = 'Page Setups';
 
                 ImageColumn::make('favicon')
                     ->label('Favicon')
-                    ->getStateUsing(fn($record) => $record->favicon ? asset('storage/' . $record->favicon) : null)
+                    ->getStateUsing(fn($record) => $record->favicon ? image_path( $record->favicon) : null)
                     ->square(),
                 ImageColumn::make('logo')
                     ->label('Logo')
-                    ->getStateUsing(fn($record) => $record->logo ? asset('storage/' . $record->logo) : null)
+                    ->getStateUsing(fn($record) => $record->logo ? image_path( $record->logo) : null)
                     ->square(),
                 TextColumn::make('email')
                     ->label('Email Address'),

@@ -55,7 +55,7 @@ class BannerResource extends Resource
                     }),
                 ImageColumn::make('banner_image')
                     ->label('Banner Image')
-                    ->getStateUsing(fn($record) => $record->banner_image ? asset('storage/' . $record->banner_image) : null)
+                    ->getStateUsing(fn($record) => $record->banner_image ? image_path($record->banner_image) : null)
                     ->square(),
 
             ])

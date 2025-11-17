@@ -21,13 +21,13 @@ class TermsConditionsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Terms & Condition';
-protected static ?string $navigationGroup = 'Page Setups';
+    protected static ?string $navigationGroup = 'Page Setups';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-               RichEditor::make('terms')
+                RichEditor::make('terms')
                     ->columnSpanFull()
                     ->label('Write Your Full Terms & Conditions')
                     ->required(),

@@ -69,7 +69,7 @@ class CategoryResource extends Resource
                 TextColumn::make('name')->sortable()->searchable(),
                 ImageColumn::make('image')
                 ->label('Image')
-                ->getStateUsing(fn ($record) => $record->image ? asset('storage/' . $record->image) : null)
+                ->getStateUsing(fn ($record) => $record->image ? image_path($record->image) : null)
                 ->square(),
                 TextColumn::make('order')->sortable()->label('Order'),
                 IconColumn::make('is_active')

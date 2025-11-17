@@ -87,4 +87,10 @@ class EditProduct extends EditRecord
         $product->stock = $validRowsCount;
         $product->save();
     }
+
+
+     protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

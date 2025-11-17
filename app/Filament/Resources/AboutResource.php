@@ -24,7 +24,7 @@ class AboutResource extends Resource
     protected static ?string $model = About::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-information-circle';
-protected static ?string $navigationGroup = 'Page Setups';
+    protected static ?string $navigationGroup = 'Page Setups';
     public static function form(Form $form): Form
     {
         return $form
@@ -49,7 +49,7 @@ protected static ?string $navigationGroup = 'Page Setups';
                 TextColumn::make('title')->label('Title'),
                 ImageColumn::make('about_image')
                     ->label('Image')
-                    ->getStateUsing(fn($record) => $record->about_image ? asset('storage/' . $record->about_image) : null)
+                    ->getStateUsing(fn($record) => $record->about_image ? image_path($record->about_image) : null)
                     ->square(),
                 TextColumn::make('desctiption')
                     ->label('Description')

@@ -21,14 +21,14 @@ class PrivacyPolicyResource extends Resource
     protected static ?string $model = Privacy::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
-protected static ?string $navigationLabel = 'Privacy Policy';
-protected static ?string $navigationGroup = 'Page Setups';
+    protected static ?string $navigationLabel = 'Privacy Policy';
+    protected static ?string $navigationGroup = 'Page Setups';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-               RichEditor::make('desctiption')
+                RichEditor::make('desctiption')
                     ->columnSpanFull()
                     ->label('Write Your Full Privacy Policy')
                     ->required(),
