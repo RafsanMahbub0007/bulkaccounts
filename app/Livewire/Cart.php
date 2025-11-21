@@ -47,7 +47,6 @@ class Cart extends Component
 
         if (isset($cart[$productId])) {
             $product = $cart[$productId];
-
             // Check if the requested quantity is within the available stock stored in the cart
             if ($quantity > $product['stock']) {
                 session()->flash('error', 'Not enough stock available.');

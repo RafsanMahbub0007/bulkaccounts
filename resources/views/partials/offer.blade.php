@@ -1,4 +1,5 @@
-@if ($system->offer_status ?? true)
+
+@if ($offer == true)
 <section class="relative overflow-hidden text-white py-4">
   <!-- Background Gradient -->
   <div class="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 animate-[gradientMove_10s_linear_infinite] opacity-90"></div>
@@ -18,7 +19,7 @@
       <div class="animate-[slide_14s_linear_infinite] whitespace-nowrap">
         <span class="text-yellow-300 text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">⚡</span>
         <span class="bg-gradient-to-r from-yellow-200 via-white to-yellow-200 bg-clip-text text-transparent font-extrabold text-lg md:text-xl tracking-wide shimmer">
-          {{ $system->offer_text ?? '⚡ Flash Deal: 20% OFF all accounts! Use code: PVAPRO20 ⚡' }}
+          {{ $offer->title ?? '⚡ Flash Deal: 20% OFF all accounts! Use code: PVAPRO20 ⚡' }}!! {{ $offer->description ?? '' }}
         </span>
         <span class="text-yellow-300 text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">⚡</span>
       </div>
@@ -30,7 +31,7 @@
         class="px-6 py-2 rounded-full text-sm md:text-base font-bold text-white bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-400 hover:to-cyan-400 shadow-lg shadow-pink-500/30 transition-all duration-300">
         Shop Now →
       </a>
-      <a href="#"
+      <a href="{{ route('register') }}"
         class="px-6 py-2 rounded-full text-sm md:text-base font-bold text-white bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 hover:from-cyan-300 hover:to-violet-400 shadow-lg shadow-cyan-500/30 transition-all duration-300">
         Become a Seller
       </a>

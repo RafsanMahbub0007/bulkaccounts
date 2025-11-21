@@ -93,7 +93,7 @@
                 <div class="inline-flex items-center justify-center w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-blue-500 via-indigo-400 to-cyan-400 text-white shadow-lg group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-user-check text-3xl"></i>
                 </div>
-                <h3 class="text-5xl font-extrabold text-white counter" data-count="10000">0</h3>
+                <h3 class="text-5xl font-extrabold text-white counter" data-count="88500">0</h3>
                 <p class="text-gray-400 mt-3 text-lg">Accounts Verified</p>
             </div>
 
@@ -102,7 +102,7 @@
                 <div class="inline-flex items-center justify-center w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-blue-500 text-white shadow-lg group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-calendar-alt text-3xl"></i>
                 </div>
-                <h3 class="text-5xl font-extrabold text-white counter" data-count="5">0</h3>
+                <h3 class="text-5xl font-extrabold text-white counter" data-count="11">0</h3>
                 <p class="text-gray-400 mt-3 text-lg">Years of Experience</p>
             </div>
 
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
             innerText: target, duration: 2.5, ease: "power2.out", snap: { innerText: 1 },
             scrollTrigger: { trigger: counter, start: "top 85%" },
             onUpdate() {
-                counter.innerText = Math.floor(counter.innerText) + (target >= 99 ? "+" : (target === 24 ? "/7" : ""));
+                counter.innerText = Math.floor(counter.innerText) + (target >= 88500 ? "+" : target >= 99 ? "%" : (target === 24 ? "/7" : ""));
             }
         });
     });

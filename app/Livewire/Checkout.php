@@ -20,6 +20,11 @@ class Checkout extends Component
 
     public function mount()
     {
+        if (auth()->check()) {
+            $this->name = auth()->user()->name;
+            $this->email = auth()->user()->email;
+            $this->number = auth()->user()->phone ?? '';
+        }
         $this->cartItems = Session::get('cart', []);
         $this->calculateTotal();
     }
@@ -105,7 +110,6 @@ class Checkout extends Component
 
             DB::rollBack();
             session()->flash('error', 'Unable to process payment. Please try again.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Something went wrong: ' . $e->getMessage());

@@ -8,6 +8,7 @@
     @php
         $system = \App\Models\Setting::find(1);
         $banners = \App\Models\Banner::all();
+        $offer = \App\Models\Offer::find(1);
     @endphp
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>
