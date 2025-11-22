@@ -52,21 +52,70 @@ class Product extends Model
     }
     public function offers()
     {
-        return $this->belongsToMany(offer::class, 'offer_product');
+        return $this->belongsToMany(Offer::class, 'offer_product');
     }
+
+    /* ACTIVE OFFER (only valid by date) */
+    public function activeOffer()
+    {
+        return $this->offers()
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+    }
+
+    public function hasOffer()
+    {
+        return $this->activeOffer() !== null;
+    }
+
+    /* DISCOUNTED PRICE LOGIC */
+    public function discountedPrice()
+    {
+        $offer = $this->activeOffer();
+        if (!$offer) return $this->selling_price;
+
+        if ($offer->discount_type === 'percent') {
+            return $this->selling_price - ($this->selling_price * ($offer->discount_value / 100));
+        }
+
+        if ($offer->discount_type === 'amount') {
+            return max(0, $this->selling_price - $offer->discount_value);
+        }
+
+        return $this->selling_price;
+    }
+
+    /* DISCOUNT PERCENT FOR BADGE */
+    public function discountPercent()
+    {
+        $offer = $this->activeOffer();
+        if (!$offer) return 0;
+
+        return $offer->discount_type === 'percent'
+            ? $offer->discount_value
+            : round(($offer->discount_value / $this->selling_price) * 100);
+    }
+
+    /* STOCK CHECK */
+    public function outOfStock()
+    {
+        return $this->stock <= 0;
+    }
+
     public function accounts()
     {
         return $this->hasMany(ProductAccount::class);
     }
 
     public function featureList()
-{
-    if (!$this->feature_ids) {
-        return [];
-    }
+    {
+        if (!$this->feature_ids) {
+            return [];
+        }
 
-    return ProductFeature::whereIn('id', $this->feature_ids)->pluck('name')->toArray();
-}
+        return ProductFeature::whereIn('id', $this->feature_ids)->pluck('name')->toArray();
+    }
 
     protected static function booted()
     {

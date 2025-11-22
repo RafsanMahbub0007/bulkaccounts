@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- PRODUCT GRID -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8">
 
                     @foreach ($products as $product)
                         <div class="group backdrop-blur-xl bg-white/10 border border-white/10
@@ -86,13 +86,7 @@
                             </div>
 
                             <!-- Buttons -->
-                            <a href="{{ route('product.details', $product->slug) }}"
-                                class="mt-4 w-full text-center bg-gradient-to-r from-pink-500 to-purple-600
-                                       hover:from-pink-600 hover:to-purple-700 text-white py-2
-                                       rounded-full font-medium transition shadow-lg">
-                                <i class="fas fa-shopping-cart mr-1"></i>
-                                Add to Cart
-                            </a>
+                            @livewire('add-to-cart', ['productId' => $product->id], key('product-' . $product->id))
 
                             <a href="{{ route('product.details', $product->slug) }}"
                                 class="mt-2 w-full text-center bg-white/10 hover:bg-white/20
