@@ -1,4 +1,5 @@
 <?php
+
 use App\Models\Order;
 use App\Livewire\AboutDetails;
 use App\Livewire\Cart;
@@ -37,17 +38,18 @@ Route::get('/checkout', Checkout::class)->name('checkout');
 Route::get('/contact', Contact::class)->name('contact');
 Route::view('/privacy-policy', PrivacyPolicy::class)->name('privacy');
 
-// Product Route FIRST to avoid slug conflicts
+// Protected Routes
+Route::middleware(['auth','verified'])->group(function () {
+    Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/user/orders', UserOrders::class)->name('user.orders');
+    Route::get('/user/orders/{order:order_number}', UserOrderDetails::class)->name('user.orders.details');
+    Route::get('/user/payments', UserPayments::class)->name('user.payments');
+});
+
+// Product Route
 Route::get('/product/{product:slug}', ProductDetails::class)->name('product.details');
 
-// Category Routes (consistent prefix)
-Route::get('/{category:slug}', Categorydetails::class)->name('category.details');
-Route::get('/{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
-
-// Static Pages
-// Route::view('/refund-policy', 'refund-policy')->name('refund-policy');
-
-
+// Payment Routes
 Route::get('/payment/success/{order}', function (Order $order) {
     $order->update(['payment_status' => 'paid', 'order_status' => 'confirmed']);
     return view('payment.success', compact('order'));
@@ -58,14 +60,6 @@ Route::get('/payment/cancel/{order}', function (Order $order) {
     return view('payment.cancel', compact('order'));
 })->name('payment.cancel');
 
-// Protected Routes
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
-    Route::get('/user/orders', UserOrders::class)->name('user.orders');
-    Route::get('/user/orders/{order:order_number}', UserOrderDetails::class)->name('user.orders.details');
-    Route::get('/user/payments', UserPayments::class)->name('user.payments');
-});
+// Dynamic Category Routes — ALWAYS LAST
+Route::get('/{category:slug}/{subcategory:slug}', SubCategoryDetails::class)->name('subcategory.details');
+Route::get('/{category:slug}', Categorydetails::class)->name('category.details');
