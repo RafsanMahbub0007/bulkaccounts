@@ -86,39 +86,60 @@
 
                 <!-- Order Items Tab -->
                 <div x-show="activeTab === 'items'" class="space-y-6">
+
                     @foreach ($order->orderItems as $orderItem)
                         <div class="bg-gray-700 rounded-lg p-6 shadow-md space-y-4">
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">Product:</span>
                                 <span class="text-gray-300">{{ $orderItem->product->name }}</span>
                             </div>
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">Quantity:</span>
                                 <span class="text-gray-300">{{ $orderItem->quantity }}</span>
                             </div>
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">Unit Price:</span>
                                 <span class="text-gray-300">${{ number_format($orderItem->unit_price, 2) }}</span>
                             </div>
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">Total Price:</span>
                                 <span class="text-gray-300">${{ number_format($orderItem->total_price, 2) }}</span>
                             </div>
+
                             <div class="flex justify-between">
-                                <span class="font-semibold">Accounts:</span>
+                                <span class="font-semibold">Accounts Assigned:</span>
                                 <span class="text-gray-300">
                                     @if ($orderItem->deliveries->isNotEmpty())
                                         @foreach ($orderItem->deliveries as $delivery)
                                             {{ $delivery->accounts ?? 'N/A' }}<br>
                                         @endforeach
                                     @else
-                                        N/A
+                                        Not Delivered Yet
                                     @endif
                                 </span>
                             </div>
+
+                            <!-- 🔥 Download Button -->
+                            @if ($orderItem->download_file)
+                                <a href="{{ route('order.download', $orderItem->id) }}"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center block mt-4">
+                                    <i class="fas fa-download mr-2"></i> Download Accounts File
+                                </a>
+                            @else
+                                <span class="block text-center text-yellow-400 mt-4">
+                                    File Not Generated Yet
+                                </span>
+                            @endif
+
                         </div>
                     @endforeach
+
                 </div>
+
 
                 <!-- Payments Tab -->
                 <div x-show="activeTab === 'payments'" class="space-y-6">

@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('email');
-            $table->text('password_encrypted')->nullable();   // encrypted, reversible
-            $table->text('two_fa_secret_encrypted')->nullable(); // encrypted
-            $table->json('meta')->nullable(); // extra fields (note, country, notes...)
-
+            $table->json('meta')->nullable(); 
             $table->unique(['product_id', 'email']);
 
             $table->timestamps();

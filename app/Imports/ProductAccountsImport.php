@@ -38,8 +38,6 @@ class ProductAccountsImport implements ToCollection, WithHeadingRow
                 ProductAccount::create([
                     'product_id' => $this->productId,
                     'email' => $email,
-                    'password_encrypted' => $row['password'] ?? null,
-                    'two_fa_secret_encrypted' => $row['two_fa'] ?? null,
                 ]);
 
                 $this->rowCount++;
