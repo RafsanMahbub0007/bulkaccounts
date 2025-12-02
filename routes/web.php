@@ -99,17 +99,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 */
 
 Route::get('/payment/success/{order}', function (Order $order) {
-    $order->update([
-        'payment_status' => 'paid',
-        'order_status'   => 'confirmed'
-    ]);
-
     return view('payment.success', compact('order'));
 })->name('payment.success');
 
 Route::get('/payment/cancel/{order}', function (Order $order) {
-    $order->update(['payment_status' => 'failed']);
-
     return view('payment.cancel', compact('order'));
 })->name('payment.cancel');
 
