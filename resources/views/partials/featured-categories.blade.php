@@ -64,20 +64,21 @@
                         </a>
 
                         <!-- PRICE SECTION -->
-                        <div class="flex items-center gap-3">
-                            @if ($product->hasOffer())
-                                <span class="text-lg font-extrabold text-green-400">
-                                    ${{ number_format($product->discountedPrice(), 2) }}
-                                </span>
-                                <span class="text-sm line-through text-gray-400">
-                                    ${{ number_format($product->selling_price, 2) }}
-                                </span>
-                            @else
-                                <span class="text-lg font-bold text-pink-400">
-                                    ${{ number_format($product->selling_price, 2) }}
-                                </span>
-                            @endif
-                        </div>
+                       <div class="flex items-center gap-3">
+    @if ($product->activeOffer())
+        <span class="text-lg font-extrabold text-green-400">
+            ${{ number_format($product->discountedPrice(), 2) }}
+        </span>
+        <span class="text-sm line-through text-gray-400">
+           ${{ number_format($product->selling_price, 2) }}
+        </span>
+    @else
+        <span class="text-lg font-bold text-pink-400">
+            ${{ number_format($product->selling_price, 2) }}
+        </span>
+    @endif
+</div>
+
 
                         {{-- OFFER COUNTDOWN --}}
                         @if ($product->hasOffer())

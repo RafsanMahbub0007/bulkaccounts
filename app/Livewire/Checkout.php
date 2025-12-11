@@ -16,15 +16,21 @@ use App\Exports\AccountsExport;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 
-#[Layout('layouts.app')] // ✅ Move this here, on the class
+#[Layout('layouts.app')]
 class Checkout extends Component
 {
     public $cartItems = [];
     public $total = 0;
+
     public $name;
     public $email;
     public $number;
     public $acceptedTerms = false;
+
+    // Popup fields
+    public $showPaymentModal = false;
+    public $orderIdInput;
+    public $transactionIdInput;
 
     public function mount()
     {
@@ -48,6 +54,7 @@ class Checkout extends Component
         ];
     }
 
+    // STEP 1 → User clicks "Proceed to Pay" → Show popup only
     public function proceedToPayment()
     {
         $this->validate();
@@ -57,15 +64,21 @@ class Checkout extends Component
             return;
         }
 
-        session()->put('checkout_data', [
-            'name'   => $this->name,
-            'email'  => $this->email,
-            'number' => $this->number,
+        // Just open popup – do NOT create order here
+        $this->showPaymentModal = true;
+    }
+
+    // STEP 2 → User clicks "Confirm Payment" → Create order here
+    public function confirmPayment()
+    {
+        $this->validate([
+            'transactionIdInput' => 'required',
         ]);
 
         DB::beginTransaction();
 
         try {
+            // CREATE ORDER
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'order_number' => strtoupper(uniqid('ORD-')),
@@ -76,15 +89,17 @@ class Checkout extends Component
                 'name' => $this->name,
                 'email' => $this->email,
                 'phone' => $this->number,
+                'transaction_reference' => $this->transactionIdInput,
             ]);
 
+            // ORDER ITEMS AND STOCK CONTROL
             foreach ($this->cartItems as $item) {
                 $product = Product::findOrFail($item['id']);
+
                 $accounts = ProductAccount::where('product_id', $product->id)
                     ->where('is_sold', 0)
                     ->limit($item['quantity'])
                     ->get();
-
                 if ($accounts->count() < $item['quantity']) {
                     DB::rollBack();
                     $this->addError('stock', "Not enough stock for {$product->name}");
@@ -102,29 +117,37 @@ class Checkout extends Component
                 foreach ($accounts as $acc) {
                     $acc->update([
                         'is_sold' => 1,
-                        'order_item_id' => $orderItem->id,
                     ]);
                 }
 
-                Storage::disk('public')->makeDirectory('downloads');
-                $file = "downloads/order_item_{$orderItem->id}.xlsx";
-                Excel::store(new AccountsExport($accounts), $file, 'public');
-                $orderItem->update(['download_file' => $file]);
+                // Make folder in protected storage
+                Storage::makeDirectory('orders');
 
+                // Save the file in storage/app/orders
+                $file = "orders/order_item_{$orderItem->id}.xlsx";
+                Excel::store(new AccountsExport($accounts), $file); // default disk
+                $order->update(['download_file' => $file]);
+
+                // STOCK REDUCE
                 $product->decrement('stock', $item['quantity']);
             }
 
+            // TEST MODE → AUTO COMPLETE ORDER
             if (config('services.payment.test_mode')) {
+
                 DB::commit();
                 Session::forget('cart');
-                 $this->dispatch('order-success', [
-                'message' => 'Order placed in test mode!',
-                'redirect' => route('user.orders')
-            ]);
+
+                $this->showPaymentModal = false;
+
+                $this->dispatch('order-success', message: 'Order placed successfully!', redirect: route('user.orders'));
+
                 return;
             }
 
+            // REAL PAYMENT → NOWPAYMENTS
             $ngrokUrl = config('app.ngrok_url') ?? 'https://your-ngrok-url.ngrok-free.app';
+
             $response = Http::withHeaders([
                 'x-api-key' => config('services.payment.api_key'),
                 'Content-Type' => 'application/json',
@@ -150,13 +173,19 @@ class Checkout extends Component
 
             DB::commit();
             Session::forget('cart');
+
+            $this->showPaymentModal = false;
+
             $this->dispatchBrowserEvent('redirect-to-payment', [
                 'url' => $data['invoice_url']
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Checkout error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Checkout error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             $this->addError('checkout', "Error: {$e->getMessage()}");
         }
     }

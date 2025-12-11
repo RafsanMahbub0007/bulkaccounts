@@ -36,7 +36,7 @@
                 ];
             @endphp
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 mt-4">
                 @foreach ($socialLinks as $platform)
                     @if (!empty($platform['url']))
                         <a href="{{ $platform['url'] }}" target="_blank"

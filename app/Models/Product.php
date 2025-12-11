@@ -73,13 +73,12 @@ class Product extends Model
     public function discountedPrice()
     {
         $offer = $this->activeOffer();
-        if (!$offer) return $this->selling_price;
 
-        if ($offer->discount_type === 'percent') {
+        if ($offer->discount_type === 'percentage') {
             return $this->selling_price - ($this->selling_price * ($offer->discount_value / 100));
         }
 
-        if ($offer->discount_type === 'amount') {
+        if ($offer->discount_type === 'fixed') {
             return max(0, $this->selling_price - $offer->discount_value);
         }
 
@@ -92,8 +91,8 @@ class Product extends Model
         $offer = $this->activeOffer();
         if (!$offer) return 0;
 
-        return $offer->discount_type === 'percent'
-            ? $offer->discount_value
+        return $offer->discount_type === 'percentage'
+            ? round($offer->discount_value)
             : round(($offer->discount_value / $this->selling_price) * 100);
     }
 

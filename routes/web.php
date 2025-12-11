@@ -46,7 +46,7 @@ Route::get('/blog', Posts::class)->name('blog');
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');
 
 Route::get('/terms', Terms::class)->name('terms');
-Route::view('/privacy-policy', PrivacyPolicy::class)->name('privacy');
+Route::get('/privacy-policy', PrivacyPolicy::class)->name('privacy');
 
 Route::get('/cart', Cart::class)->name('cart');
 
@@ -80,15 +80,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('checkout.process');
 
     // Protected download route
-    Route::get('/download/{orderItem}', function (OrderItem $orderItem) {
+    Route::get('/download/{order}', function (Order $order) {
 
-        abort_unless($orderItem->order->user_id === auth()->id(), 403);
-        abort_unless($orderItem->download_file, 404);
+        // Only the order owner can download
+        abort_unless($order->user_id === auth()->id(), 403);
 
-        return Storage::disk('public')->download($orderItem->download_file);
+        // Check file exists
+        if (!$order->download_file || !Storage::exists($order->download_file)) {
+            abort(404);
+        }
 
+        // Serve securely with a friendly name
+        $fileName = 'accounts_' . $order->order_number . '.xlsx';
+        return Storage::download($order->download_file, $fileName);
     })->name('order.download');
-
 });
 
 

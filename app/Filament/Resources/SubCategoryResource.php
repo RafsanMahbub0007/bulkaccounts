@@ -69,6 +69,15 @@ class SubCategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('category.name', 'asc')
+            ->defaultSort('order', 'asc')
+
+            // Group by category
+            ->groups([
+                Tables\Grouping\Group::make('category.name')
+                    ->label('Category Name => ')
+                    ->collapsible(),
+            ])
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('category.name') // ← This is the fix
@@ -76,9 +85,9 @@ class SubCategoryResource extends Resource
                     ->sortable()
                     ->searchable(),
                 ImageColumn::make('image')
-                ->label('Image')
-                ->getStateUsing(fn ($record) => $record->image ? image_path( $record->image) : null)
-                ->square(),
+                    ->label('Image')
+                    ->getStateUsing(fn($record) => $record->image ? image_path($record->image) : null)
+                    ->square(),
                 TextColumn::make('order')->sortable()->label('Order'),
                 IconColumn::make('is_active')
                     ->label('Status')
@@ -96,8 +105,8 @@ class SubCategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
                 ])->label('Actions'),
             ])
             ->bulkActions([

@@ -65,12 +65,13 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('order', 'asc')
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 ImageColumn::make('image')
-                ->label('Image')
-                ->getStateUsing(fn ($record) => $record->image ? image_path($record->image) : null)
-                ->square(),
+                    ->label('Image')
+                    ->getStateUsing(fn($record) => $record->image ? image_path($record->image) : null)
+                    ->square(),
                 TextColumn::make('order')->sortable()->label('Order'),
                 IconColumn::make('is_active')
                     ->label('Status')
@@ -88,10 +89,10 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])->label('Actions'),
-        ])
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions'),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

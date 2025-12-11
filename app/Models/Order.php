@@ -16,7 +16,8 @@ class Order extends Model
         'payment_status',
         'order_status',
         'ordered_at',
-        'completed_at'
+        'completed_at',
+        'download_file'
     ];
 
     protected $casts = [

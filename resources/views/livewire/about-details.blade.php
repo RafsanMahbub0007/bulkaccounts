@@ -34,61 +34,62 @@
 
 
 
-        <!-- Values Grid -->
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-white mb-4 glow-effect">Our Values and Commitment</h2>
-            <p class="text-lg text-gray-400 mb-12">
+       <div class="mb-20">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 mb-6 glow-effect">
+                Our Values & Commitment
+            </h2>
+            <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto">
                 Discover the principles that drive us to deliver exceptional services and ensure your success.
             </p>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+
                 <!-- Integrity -->
-                <div class="bg-gray-800 p-8 rounded-lg shadow-lg" data-aos="flip-left">
-                    <div
-                        class="flex items-center justify-center w-16 h-16 bg-red-600 text-white rounded-full mx-auto mb-6">
-                        <i class="fas fa-check-circle text-3xl"></i>
+                <div class="flex flex-col items-center text-center" data-aos="fade-up">
+                    <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-red-500 to-pink-500 rounded-full shadow-lg mb-5">
+                        <i class="fas fa-check-circle text-4xl text-white"></i>
                     </div>
-                    <h4 class="text-xl font-semibold text-white mb-4">Integrity</h4>
-                    <p class="text-gray-400 leading-relaxed">
-                        We uphold the highest standards of integrity in every aspect of our work, ensuring our clients
-                        receive honest, transparent, and dependable service.
+                    <h4 class="text-2xl font-semibold text-white mb-3">Integrity</h4>
+                    <p class="text-gray-400 leading-relaxed max-w-xs">
+                        We uphold the highest standards of integrity in every aspect of our work, ensuring our clients receive honest, transparent, and dependable service.
                     </p>
                 </div>
+
                 <!-- Security -->
-                <div class="bg-gray-800 p-8 rounded-lg shadow-lg" data-aos="flip-up">
-                    <div
-                        class="flex items-center justify-center w-16 h-16 bg-red-600 text-white rounded-full mx-auto mb-6">
-                        <i class="fas fa-shield-alt text-3xl"></i>
+                <div class="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full shadow-lg mb-5">
+                        <i class="fas fa-shield-alt text-4xl text-white"></i>
                     </div>
-                    <h4 class="text-xl font-semibold text-white mb-4">Security</h4>
-                    <p class="text-gray-400 leading-relaxed">
-                        Our clients' security is our priority. Every account we deliver is verified, reliable, and
-                        protected
-                        by the latest standards.
+                    <h4 class="text-2xl font-semibold text-white mb-3">Security</h4>
+                    <p class="text-gray-400 leading-relaxed max-w-xs">
+                        Our clients' security is our priority. Every account we deliver is verified, reliable, and protected by the latest standards.
                     </p>
                 </div>
+
                 <!-- Customer Focus -->
-                <div class="bg-gray-800 p-8 rounded-lg shadow-lg" data-aos="flip-right">
-                    <div
-                        class="flex items-center justify-center w-16 h-16 bg-red-600 text-white rounded-full mx-auto mb-6">
-                        <i class="fas fa-heart text-3xl"></i>
+                <div class="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-green-400 to-teal-500 rounded-full shadow-lg mb-5">
+                        <i class="fas fa-heart text-4xl text-white"></i>
                     </div>
-                    <h4 class="text-xl font-semibold text-white mb-4">Customer Focus</h4>
-                    <p class="text-gray-400 leading-relaxed">
-                        We are dedicated to our clients' success. Your growth is our growth, and we go the extra mile to
-                        provide exceptional support and tailored solutions.
+                    <h4 class="text-2xl font-semibold text-white mb-3">Customer Focus</h4>
+                    <p class="text-gray-400 leading-relaxed max-w-xs">
+                        We are dedicated to our clients' success. Your growth is our growth, and we go the extra mile to provide exceptional support and tailored solutions.
                     </p>
                 </div>
+
             </div>
         </div>
 
         <!-- Call to Action -->
-        <div class="text-center" data-aos="zoom-in">
-            <h2 class="text-5xl text-white font-extrabold mb-6">Boost Your Business Today</h2>
-            <p class="text-lg md:text-xl mb-12">
+        <div class="relative z-10" data-aos="zoom-in">
+            <h2 class="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-6 glow-effect">
+                Boost Your Business Today
+            </h2>
+            <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto">
                 Get premium social media accounts in bulk, verified and ready to elevate your digital presence.
             </p>
             <a href="{{ route('home') }}"
-                class="bg-red-500 text-white py-4 px-10 rounded-full font-bold shadow-lg transition-transform transform hover:scale-110">
+                class="inline-block bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-12 rounded-full font-bold shadow-xl transform hover:scale-110 hover:shadow-[0_0_40px_rgba(255,0,120,0.7)] transition-all duration-300">
                 Browse Accounts
             </a>
         </div>

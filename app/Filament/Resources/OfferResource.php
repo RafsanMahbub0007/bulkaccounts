@@ -45,7 +45,7 @@ class OfferResource extends Resource
             Forms\Components\TextInput::make('discount_value')
                 ->numeric()
                 ->required()
-                ->suffix('% or ৳'),
+                ->suffix('% or $'),
 
             Forms\Components\DatePicker::make('start_date')->required(),
             Forms\Components\DatePicker::make('end_date')->required(),
