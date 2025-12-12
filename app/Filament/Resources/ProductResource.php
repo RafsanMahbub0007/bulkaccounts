@@ -24,6 +24,10 @@ use Filament\Tables\Columns\BadgeColumn;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductResource extends Resource
 {
@@ -196,66 +200,205 @@ class ProductResource extends Resource
                 }),
         ];
     }
-    public static function processExcelUpload(Product $product)
-    {
+
+
+public static function processExcelUpload(Product $product, bool $force = false): array
+{
+    $summary = [
+        'status' => 'ok',
+        'added' => 0,
+        'updated' => 0,
+        'deleted' => 0,
+        'skipped_file_duplicate' => 0,
+        'skipped_other_product' => 0,
+        'skipped_no_email' => 0,
+        'errors' => [],
+        'skipped_rows' => [],
+    ];
+
+    try {
         if (!$product->accounts_excel) {
-            return;
+            $summary['status'] = 'no_file';
+            $summary['errors'][] = 'No Excel file attached.';
+            return $summary;
         }
 
-        $filePath = storage_path('app/public/' . $product->accounts_excel);
-        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+        $filePath = $product->accounts_excel;
+
+        if (!$force && $product->accounts_excel_processed_file === $filePath) {
+            $summary['status'] = 'already_processed';
+            $summary['errors'][] = "This file was already imported.";
+            return $summary;
+        }
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            $summary['status'] = 'file_not_found';
+            $summary['errors'][] = "File not found: {$filePath}";
+            return $summary;
+        }
+
+        $fullPath = Storage::disk('public')->path($filePath);
+
+        $spreadsheet = IOFactory::load($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, false, false);
 
-        $rows = $sheet->toArray(null, true, true, true);
-        if (empty($rows)) return;
+        if (empty($rows) || count($rows) < 2) {
+            $summary['status'] = 'empty';
+            $summary['errors'][] = 'Excel file has no data rows.';
+            return $summary;
+        }
 
-        $headers = array_map('strtolower', array_map('trim', array_shift($rows)));
+        // Headers
+        $rawHeaders = array_map('trim', array_shift($rows));
 
-        $validRowsCount = 0;
+        $headers = [];
+        foreach ($rawHeaders as $index => $h) {
+            $h = $h === '' ? 'column_' . ($index + 1) : (string) $h;
+            $base = $h;
+            $suffix = 1;
+            while (in_array($h, $headers, true)) {
+                $h = "{$base}_{$suffix}";
+                $suffix++;
+            }
+            $headers[] = $h;
+        }
+
+        // Find email column
+        $emailHeaderKey = null;
+        foreach ($headers as $h) {
+            if (stripos($h, 'email') !== false) {
+                $emailHeaderKey = $h;
+                break;
+            }
+        }
+        if (!$emailHeaderKey) {
+            $emailHeaderKey = $headers[0] ?? null;
+        }
+        if (!$emailHeaderKey) {
+            $summary['status'] = 'invalid_headers';
+            $summary['errors'][] = 'Unable to determine email column.';
+            return $summary;
+        }
+
+        $seenEmails = [];
+        $rowNumber = 2;
 
         foreach ($rows as $row) {
-            if (count(array_filter($row, fn($cell) => !is_null($cell) && $cell !== '')) === 0) {
+
+            if (count(array_filter($row, fn($c) => trim((string)$c) !== '')) === 0) {
                 break;
             }
 
-            $data = array_combine($headers, array_map('trim', array_values($row)));
-            $email = $data['email_account'] ?? '';
-            if (empty($email)) continue;
+            $values = array_values($row);
+            $values = array_map(fn($v) => trim((string)($v ?? '')), $values);
+            if (count($values) < count($headers)) {
+                $values = array_pad($values, count($headers), '');
+            }
 
-            ProductAccount::create([
-                'product_id' => $product->id,
-                'email' => $email,
-                'password_encrypted' => $data['email_password'] ?? null,
-                'two_fa_secret_encrypted' => $data['2fa_code'] ?? null,
-                'meta' => array_filter([
-                    'full_name' => $data['full_name'] ?? '',
-                    'account_password' => $data['account_password'] ?? '',
-                    'uid' => $data['uid'] ?? '',
-                    'recovery_email' => $data['recovery_email'] ?? '',
-                    'profile_link' => $data['profile_link'] ?? '',
-                    'create_date' => $data['create_date'] ?? '',
-                    'download_link' => $data['download_link'] ?? '',
-                    'username' => $data['username'] ?? '',
-                    'location' => $data['location'] ?? '',
-                    'connection' => $data['connection'] ?? '',
-                    'karma' => $data['karma'] ?? '',
-                    'followers' => $data['followers'] ?? '',
-                    'friends' => $data['friends'] ?? '',
-                    'phone_number' => $data['phone_number'] ?? '',
-                    'plan_type' => $data['plan_type'] ?? '',
-                    'card_number' => $data['card_number'] ?? '',
-                    'expiry_date' => $data['expiry_date'] ?? '',
-                    'cvv_code' => $data['cvv_code'] ?? '',
-                    'card_type' => $data['card_type'] ?? '',
-                    'balance' => $data['balance'] ?? '',
-                    'storage_capacity' => $data['storage_capacity'] ?? '',
-                ]),
-            ]);
+            $data = array_combine($headers, $values);
 
-            $validRowsCount++;
+            $email = trim($data[$emailHeaderKey] ?? '');
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $summary['skipped_no_email']++;
+                $summary['skipped_rows'][] = [
+                    'row' => $rowNumber,
+                    'reason' => 'invalid_email',
+                    'data' => $data,
+                ];
+                $rowNumber++;
+                continue;
+            }
+
+            $emailLower = strtolower($email);
+
+            if (in_array($emailLower, $seenEmails, true)) {
+                $summary['skipped_file_duplicate']++;
+                $summary['skipped_rows'][] = [
+                    'row' => $rowNumber,
+                    'reason' => 'duplicate_in_file',
+                    'email' => $email,
+                ];
+                $rowNumber++;
+                continue;
+            }
+            $seenEmails[] = $emailLower;
+
+            $existingOtherProduct = ProductAccount::where('email', $email)->first();
+            if ($existingOtherProduct && $existingOtherProduct->product_id !== $product->id) {
+                $summary['skipped_other_product']++;
+                $summary['skipped_rows'][] = [
+                    'row' => $rowNumber,
+                    'reason' => 'belongs_to_other_product',
+                    'email' => $email,
+                ];
+                $rowNumber++;
+                continue;
+            }
+
+            // Build meta
+            $meta = [];
+            foreach ($data as $k => $v) {
+                if ($k !== $emailHeaderKey && $v !== '') {
+                    $meta[$k] = $v;
+                }
+            }
+
+            // Update or create
+            $existing = ProductAccount::where('product_id', $product->id)
+                ->where('email', $email)
+                ->first();
+
+            if ($existing) {
+                $existing->update(['meta' => $meta]);
+                $summary['updated']++;
+            } else {
+                ProductAccount::create([
+                    'product_id' => $product->id,
+                    'email' => $email,
+                    'meta' => $meta,
+                ]);
+                $summary['added']++;
+            }
+
+            $rowNumber++;
         }
 
-        $product->stock = $validRowsCount;
+        // DELETE ACCOUNTS NOT IN FILE (REPLACE mode)
+        $existingAccounts = ProductAccount::where('product_id', $product->id)->get();
+
+        $idsToDelete = [];
+        foreach ($existingAccounts as $acct) {
+            if (!in_array(strtolower($acct->email), $seenEmails, true)) {
+                $idsToDelete[] = $acct->id;
+            }
+        }
+
+        if (!empty($idsToDelete)) {
+            $summary['deleted'] = count($idsToDelete);
+            ProductAccount::whereIn('id', $idsToDelete)->delete();
+        }
+
+        // Update product stock
+        $product->stock = ProductAccount::where('product_id', $product->id)->count();
+
         $product->save();
+
+        return $summary;
+
+    } catch (\Throwable $e) {
+
+        $summary['status'] = 'error';
+        $summary['errors'][] = $e->getMessage();
+
+        try {
+            $product->last_import_summary = $summary;
+            $product->accounts_excel_processed_at = now();
+            $product->save();
+        } catch (\Throwable $_) {}
+
+        return $summary;
     }
+}
+
 }
