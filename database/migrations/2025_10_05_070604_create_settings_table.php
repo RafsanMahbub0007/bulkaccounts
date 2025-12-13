@@ -24,6 +24,11 @@ return new class extends Migration
             $table->string('y_link')->nullable();
             $table->string('tw_link')->nullable();
             $table->string('lnkd_link')->nullable();
+            $table->string('pre_order_link')->nullable();
+            $table->string('sup_wa_link')->nullable();
+            $table->string('sup_tele_link')->nullable();
+            $table->string('manual_pay_qr')->nullable();
+            $table->string('manual_pay_wallet')->nullable();
             $table->text('address');
             $table->timestamps();
         });

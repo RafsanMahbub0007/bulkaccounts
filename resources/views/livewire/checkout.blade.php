@@ -146,55 +146,78 @@
     {{--          PAYMENT MODAL (LIVEWIRE + ALPINE)     --}}
     {{-- ============================================= --}}
 
-    <div x-data="{ open: @entangle('showPaymentModal') }" x-show="open" x-cloak
-        class="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+    <div x-data="{ open: @entangle('showPaymentModal') }" x-show="open" x-transition.opacity x-cloak @keydown.escape.window="open = false"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
 
-        <div class="bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-700">
+        <!-- Click outside to close -->
+        <div @click="open = false" class="absolute inset-0"></div>
 
+        <!-- Modal -->
+        <div @click.stop
+            class="relative bg-gray-800 w-full max-w-lg rounded-xl shadow-xl
+               border border-gray-700 p-6 sm:p-8
+               max-h-[90vh] overflow-y-auto">
+
+            <!-- Title -->
             <h2 class="text-2xl font-semibold text-center mb-6 text-red-400">
                 Complete Your Payment
             </h2>
 
-            <div class="text-center mb-6">
-                <img src="/images/qrcode.png" class="mx-auto w-48 h-48 rounded-lg shadow-lg">
-                <p class="text-gray-300 mt-3">Scan the QR Code to make payment With Binance</p>
-            </div>
+            <!-- QR Code -->
+            @if (!empty($system->manual_pay_qr))
+                <div class="flex justify-center mb-6">
+                    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5 w-64 sm:w-72">
+                        <img src="{{ image_path($system->manual_pay_qr) }}" alt="Payment QR Code"
+                            class="w-full h-auto rounded-lg object-contain">
+                    </div>
+                </div>
+            @endif
 
+            <!-- Form -->
             <div class="space-y-4">
                 <div>
                     <label class="text-gray-300 mb-1 block">Transaction ID</label>
-                    <input type="text" wire:model="transactionIdInput"
-                        class="w-full bg-gray-700 px-4 py-2 rounded-lg focus:ring-2 focus:ring-red-500 text-white">
+                    <input type="text" wire:model.defer="transactionIdInput" placeholder="Enter transaction hash"
+                        class="w-full bg-gray-700 px-4 py-2 rounded-lg text-white
+                           focus:ring-2 focus:ring-red-500 outline-none">
                 </div>
 
                 <div>
                     <label class="text-gray-300 mb-1 block">Amount</label>
                     <input type="text" value="{{ number_format($total, 2) }}" readonly
-                        class="w-full bg-gray-700 px-4 py-2 rounded-lg text-gray-400 border border-gray-600">
+                        class="w-full bg-gray-700 px-4 py-2 rounded-lg
+                           text-gray-400 border border-gray-600">
                 </div>
             </div>
 
-            <div class="flex justify-between mt-6">
-                <button @click="open = false" class="px-5 py-2 bg-gray-600 rounded-lg hover:bg-gray-700 text-white">
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
+                <button @click="open = false"
+                    class="w-full sm:w-auto px-5 py-2 bg-gray-600 rounded-lg
+                       hover:bg-gray-700 text-white transition">
                     Cancel
                 </button>
 
-                <button wire:click="confirmPayment"
-                    class="px-5 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-white font-semibold">
-                    Confirm Payment
+                <button wire:click="confirmPayment" wire:loading.attr="disabled"
+                    class="w-full sm:w-auto px-5 py-2 bg-red-600 rounded-lg
+                       hover:bg-red-700 text-white font-semibold transition">
+                    <span wire:loading.remove>Confirm Payment</span>
+                    <span wire:loading>Processing...</span>
                 </button>
             </div>
+
         </div>
     </div>
+
 
 </div>
 
 {{-- SUCCESS EVENT --}}
 <script>
-Livewire.on('order-success', data => {
-    alert(data.message);
-    if (data.redirect) {
-        window.location.href = data.redirect;
-    }
-});
+    Livewire.on('order-success', data => {
+        alert(data.message);
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        }
+    });
 </script>

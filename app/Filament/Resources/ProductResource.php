@@ -62,8 +62,12 @@ class ProductResource extends Resource
                 TextInput::make('selling_price')->numeric()->required(),
                 TextInput::make('stock')->numeric()->default(0)->disabled()->dehydrated(false),
                 TextInput::make('min_order_qty')->numeric()->default(10),
-                TagsInput::make('keywords')->placeholder('Add keywords...')
+                TagsInput::make('keywords')
+                    ->placeholder('Add keywords...')
                     ->splitKeys([','])
+                    ->afterStateHydrated(function (TagsInput $component, $state) {
+                        $component->state($state ? explode(',', $state) : []);
+                    })
                     ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
                     ->nullable(),
                 Textarea::make('description')->label('Product Description')->nullable(),

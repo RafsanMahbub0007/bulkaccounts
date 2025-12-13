@@ -13,6 +13,7 @@ use App\Models\OrderItem;
 use App\Models\ProductAccount;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AccountsExport;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 
@@ -192,6 +193,9 @@ class Checkout extends Component
 
     public function render()
     {
-        return view('livewire.checkout');
+         $system = Setting::find(1);
+        return view('livewire.checkout',[
+            'system'=>$system
+        ]);
     }
 }

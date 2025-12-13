@@ -48,6 +48,9 @@ class SubCategoryResource extends Resource
                 TagsInput::make('keywords')
                     ->placeholder('Add keywords...')
                     ->splitKeys([','])
+                    ->afterStateHydrated(function (TagsInput $component, $state) {
+                        $component->state($state ? explode(',', $state) : []);
+                    })
                     ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
                     ->nullable(),
                 Textarea::make('description')

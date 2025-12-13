@@ -13,7 +13,7 @@
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>
     <!-- FavIcon -->
-    <link rel="shortcut icon" href="{{image_path($system->favicon)}}" type="image/x-icon" >
+    <link rel="shortcut icon" href="{{ image_path($system->favicon) }}" type="image/x-icon">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -58,6 +58,46 @@
     @stack('modals')
 
     @livewireScripts
+    <!-- Floating Support Icons -->
+    <div
+        class="fixed
+            bottom-4 right-4
+            sm:bottom-6 sm:right-6
+            lg:bottom-8 lg:right-8
+            flex flex-col gap-3
+            z-50">
+        <!-- WhatsApp -->
+        <a href="{{ $system->sup_wa_link ? $system->sup_wa_link : '#' }}" target="_blank" aria-label="WhatsApp Support"
+            class="flex items-center justify-center
+              w-11 h-11
+              sm:w-12 sm:h-12
+              lg:w-14 lg:h-14
+              rounded-full
+              bg-green-500 text-white
+              shadow-lg
+              hover:bg-green-600
+              hover:scale-110
+              active:scale-95
+              transition">
+            <i class="fa-brands fa-whatsapp text-xl sm:text-2xl lg:text-3xl"></i>
+        </a>
+        <!-- Telegram -->
+        <a href="{{ $system->sup_tele_link ? $system->sup_tele_link : '#' }}" target="_blank"
+            aria-label="Telegram Support"
+            class="flex items-center justify-center
+              w-11 h-11
+              sm:w-12 sm:h-12
+              lg:w-14 lg:h-14
+              rounded-full
+              bg-blue-500 text-white
+              shadow-lg
+              hover:bg-blue-600
+              hover:scale-110
+              active:scale-95
+              transition">
+            <i class="fa-brands fa-telegram text-xl sm:text-2xl lg:text-3xl"></i>
+        </a>
+    </div>
 </body>
 
 </html>

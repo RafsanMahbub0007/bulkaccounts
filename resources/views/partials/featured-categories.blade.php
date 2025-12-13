@@ -64,20 +64,20 @@
                         </a>
 
                         <!-- PRICE SECTION -->
-                       <div class="flex items-center gap-3">
-    @if ($product->activeOffer())
-        <span class="text-lg font-extrabold text-green-400">
-            ${{ number_format($product->discountedPrice(), 2) }}
-        </span>
-        <span class="text-sm line-through text-gray-400">
-           ${{ number_format($product->selling_price, 2) }}
-        </span>
-    @else
-        <span class="text-lg font-bold text-pink-400">
-            ${{ number_format($product->selling_price, 2) }}
-        </span>
-    @endif
-</div>
+                        <div class="flex items-center gap-3">
+                            @if ($product->activeOffer())
+                                <span class="text-lg font-extrabold text-green-400">
+                                    ${{ number_format($product->discountedPrice(), 2) }}
+                                </span>
+                                <span class="text-sm line-through text-gray-400">
+                                    ${{ number_format($product->selling_price, 2) }}
+                                </span>
+                            @else
+                                <span class="text-lg font-bold text-pink-400">
+                                    ${{ number_format($product->selling_price, 2) }}
+                                </span>
+                            @endif
+                        </div>
 
 
                         {{-- OFFER COUNTDOWN --}}
@@ -120,7 +120,7 @@
 
                         <!-- CART OR PRE-ORDER -->
                         @if ($product->outOfStock())
-                            <a href="https://t.me/Pvaproseller"
+                            <a href="{{ $system->pre_order_link ? $system->pre_order_link : '#' }}"
                                 class="block text-center font-bold py-2.5 px-4 rounded-xl
           bg-gradient-to-r from-yellow-400 to-amber-500
           text-black shadow-[0_0_15px_rgba(255,200,0,0.4)]

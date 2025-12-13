@@ -71,6 +71,24 @@ class SettingResource extends Resource
                 TextInput::make('lnkd_link')
                     ->label('Linked In Link'),
 
+                TextInput::make('pre_order_link')
+                    ->label('Pre Order Link'),
+
+                TextInput::make('sup_wa_link')
+                    ->label('Support Whatsapp Link'),
+
+                TextInput::make('sup_tele_link')
+                    ->label('Support Telegram Link'),
+
+                FileUpload::make('manual_pay_qr')
+                    ->label('Manual Payment QR Image')
+                    ->image()
+                    ->directory('pay_qr')
+                    ->nullable(),
+
+                TextInput::make('Manual_pay_wallet')
+                    ->label('Manual Wallet Address'),
+
                 Textarea::make('address')
                     ->columnSpanFull()
                     ->rows(5)
@@ -91,11 +109,11 @@ class SettingResource extends Resource
 
                 ImageColumn::make('favicon')
                     ->label('Favicon')
-                    ->getStateUsing(fn($record) => $record->favicon ? image_path( $record->favicon) : null)
+                    ->getStateUsing(fn($record) => $record->favicon ? image_path($record->favicon) : null)
                     ->square(),
                 ImageColumn::make('logo')
                     ->label('Logo')
-                    ->getStateUsing(fn($record) => $record->logo ? image_path( $record->logo) : null)
+                    ->getStateUsing(fn($record) => $record->logo ? image_path($record->logo) : null)
                     ->square(),
                 TextColumn::make('email')
                     ->label('Email Address'),
@@ -121,9 +139,6 @@ class SettingResource extends Resource
                 TextColumn::make('address')
                     ->label('Address'),
 
-                TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime(),
             ])
             ->filters([
                 //
