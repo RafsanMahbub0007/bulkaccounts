@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -20,7 +21,7 @@ class Products extends Component
     public function render()
     {
         $categories = Category::all();
-
+        $system = Setting::find(1);
         $products = Product::query()
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
@@ -32,6 +33,6 @@ class Products extends Component
             ->orderBy('selling_price', $this->sortDirection)
             ->paginate(12);
 
-        return view('livewire.products', compact('products', 'categories'));
+        return view('livewire.products', compact('products', 'categories', 'system'));
     }
 }

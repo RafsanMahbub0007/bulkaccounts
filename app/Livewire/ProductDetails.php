@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Product;
+use App\Models\Setting;
 use Livewire\Attributes\Layout;
 
 class ProductDetails extends Component
@@ -70,10 +71,11 @@ class ProductDetails extends Component
     public function render()
     {
         $this->product->content = \Illuminate\Support\Str::markdown($this->product->content);
-
+        $system = Setting::find(1);
         return view('livewire.product-details', [
             'product' => $this->product,
             'relatedProducts' => $this->relatedProducts,
+            'system' => $system,
         ]);
     }
 }

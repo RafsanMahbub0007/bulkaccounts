@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\GuideLineResource\Pages;
 use App\Filament\Resources\GuideLineResource\RelationManagers;
-use App\Models\GuideLine;
+use App\Models\Guideline;
 use Filament\Forms;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GuideLineResource extends Resource
 {
-    protected static ?string $model = GuideLine::class;
+    protected static ?string $model = Guideline::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationGroup = 'Page Setups';

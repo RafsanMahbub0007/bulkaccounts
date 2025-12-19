@@ -1,42 +1,59 @@
-<section class="bg-gray-900 text-white relative overflow-hidden px-6 py-20">
+<section class="relative bg-gray-900 text-white overflow-hidden px-6 py-20">
 
-    <div class="container mx-auto">
+    <!-- Glow Background -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/25 rounded-full blur-[140px]"></div>
+        <div class="absolute bottom-0 right-0 w-[520px] h-[520px] bg-purple-600/25 rounded-full blur-[160px]"></div>
+    </div>
+
+    <div class="container mx-auto relative z-10">
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
 
-            <!-- 🔹 RIGHT CONTENT AREA (NOW ON LEFT SIDE) -->
+            <!-- 🔹 MAIN CONTENT -->
             <div class="lg:col-span-4">
 
-                <!-- 🔸 SEARCH + TITLE -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                    <h2 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500
+                <!-- TITLE -->
+                <div class="mb-10">
+                    <h2
+                        class="text-3xl font-bold
+                               bg-gradient-to-r from-cyan-400 to-blue-500
                                bg-clip-text text-transparent">
-                        Explore {{$category->name}}
+                        Explore {{ $category->name }}
                     </h2>
                 </div>
 
-                <!-- 🔹 PRODUCT GRID -->
+                <!-- 🔹 SUBCATEGORY GRID -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
 
                     @foreach ($subcategories as $subcategory)
                         <div
-                            class="group bg-gray-800/60 backdrop-blur-md border border-white/10 rounded-3xl
-                                   overflow-hidden shadow-xl transition-transform duration-300 hover:scale-[1.03]">
+                            class="group rounded-3xl overflow-hidden
+                                   bg-gray-900/70 backdrop-blur-xl
+                                   border border-white/10
+                                   shadow-lg transition-all duration-300
+                                   hover:scale-[1.03]
+                                   hover:shadow-cyan-500/20">
 
                             <!-- Image -->
-                            <div class="relative">
-                                <img src="{{ image_path($subcategory->image) }}"
-                                     alt="{{ $subcategory->name }}"
-                                     class="w-full h-48 object-cover rounded-t-3xl transition duration-500
-                                            group-hover:opacity-90">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="{{ image_path($subcategory->image) }}" alt="{{ $subcategory->name }}"
+                                    class="h-full w-full object-cover
+                                            transition-transform duration-700
+                                            group-hover:scale-60" />
 
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0
-                                            group-hover:opacity-80 transition"></div>
+                                <!-- Overlay -->
+                                <div
+                                    class="absolute inset-0
+                                            bg-gradient-to-t from-black/70 to-transparent
+                                            opacity-70">
+                                </div>
                             </div>
 
                             <!-- Content -->
-                            <div class="p-6">
-                                <h3 class="text-xl font-bold text-white mb-2 text-center">
+                            <div class="p-6 flex flex-col gap-4">
+
+                                <h3 class="text-lg font-semibold text-cyan-400 text-center truncate">
                                     {{ $subcategory->name }}
                                 </h3>
 
@@ -45,14 +62,17 @@
                                 </p>
 
                                 <a href="{{ route('subcategory.details', [$subcategory->category->slug, $subcategory->slug]) }}"
-                                   class="block mt-6 text-center py-3 rounded-xl font-semibold
+                                    class="mt-4 text-center py-2.5 rounded-xl font-semibold
                                           bg-gradient-to-r from-pink-500 to-purple-500
-                                          hover:from-pink-400 hover:to-purple-400 text-white
-                                          shadow-lg shadow-pink-500/30 transition duration-300">
+                                          hover:from-pink-400 hover:to-purple-400
+                                          text-white
+                                          shadow-lg shadow-pink-500/30
+                                          transition-all duration-300
+                                          hover:-translate-y-0.5">
                                     Explore Now
                                 </a>
-                            </div>
 
+                            </div>
                         </div>
                     @endforeach
 
@@ -64,41 +84,34 @@
                 </div>
             </div>
 
-            <!-- 🔹 POPULAR CATEGORIES SIDEBAR (ENHANCED VERSION) -->
-<aside class="lg:col-span-1 hidden lg:block sticky top-24
-               bg-gray-800/40 backdrop-blur-xl
-               border border-cyan-400/20 rounded-2xl p-6 h-fit
-               shadow-[0_0_20px_rgba(34,211,238,0.15)] transition">
+            <!-- 🔹 SIDEBAR -->
+            <aside
+                class="lg:col-span-1 hidden lg:block sticky top-24 h-fit
+                       backdrop-blur-2xl bg-white/10
+                       border border-white/10 rounded-2xl p-6
+                       shadow-xl">
 
-    <!-- Title -->
-    <h2 class="text-xl font-extrabold mb-5
-               bg-gradient-to-r from-cyan-400 to-blue-500
-               text-transparent bg-clip-text drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
-        Other Popular Categories
-    </h2>
+                <h2 class="text-xl font-semibold text-cyan-400 mb-5">
+                    Other Popular Categories
+                </h2>
 
-    <!-- Category Items -->
-    <div class="space-y-2">
-        @foreach ($popularCategories as $popularCategory)
-            <a href="{{ route('category.details', $popularCategory->slug) }}"
-               class="block py-2.5 px-3 rounded-xl
-                      bg-gray-700/20 border border-transparent
-                      text-gray-300
-                      hover:text-white
-                      hover:bg-gray-700/40
-                      hover:border-cyan-400/40
-                      transition-all duration-300
-                      hover:shadow-[0_0_12px_rgba(34,211,238,0.35)]">
-                {{ $popularCategory->name }}
-            </a>
-        @endforeach
-    </div>
-
-</aside>
-
-
+                <div class="space-y-2">
+                    @foreach ($popularCategories as $popularCategory)
+                        <a href="{{ route('category.details', $popularCategory->slug) }}"
+                            class="block px-4 py-2.5 rounded-xl
+                                  text-gray-300
+                                  bg-white/5
+                                  border border-transparent
+                                  transition-all duration-300
+                                  hover:text-white
+                                  hover:bg-white/10
+                                  hover:border-cyan-400/40
+                                  hover:shadow-[0_0_12px_rgba(34,211,238,0.35)]">
+                            {{ $popularCategory->name }}
+                        </a>
+                    @endforeach
+                </div>
+            </aside>
         </div>
-
     </div>
-
 </section>

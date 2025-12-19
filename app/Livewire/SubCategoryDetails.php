@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\SubCategory;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -75,8 +76,10 @@ class SubCategoryDetails extends Component
         $products = $this->subcategory->products()
             ->where('name', 'like', "%{$this->search}%")
             ->paginate(10);
+        $system = Setting::find(1);
         return view('livewire.sub-category-details', [
-            'products' => $products
+            'products' => $products,
+            'system' => $system
         ]);
     }
 }

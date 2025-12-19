@@ -1,167 +1,314 @@
-<section class="relative py-32 px-6 bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-hidden">
-    <!-- Glowing background accents -->
-    <div class="absolute inset-0">
-        <div
-            class="absolute -top-40 -left-32 w-96 h-96 bg-gradient-to-tr from-pink-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl">
-        </div>
-        <div
-            class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tl from-cyan-400/30 via-blue-500/20 to-transparent rounded-full blur-3xl">
-        </div>
+<section
+    class="relative py-20 sm:py-28 px-4 bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-hidden">
+
+    <!-- Background Glow -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-32 -left-32 w-80 h-80 bg-pink-500/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-400/25 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container mx-auto relative z-10">
-        <!-- Section Header -->
-        <header class="text-center mb-20 max-w-3xl mx-auto">
+    <div class="relative z-10 max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <header class="text-center max-w-3xl mx-auto mb-16">
             <h2
-                class="text-6xl md:text-7xl font-extrabold bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]">
+                class="text-4xl sm:text-6xl font-extrabold bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 Featured Products
             </h2>
-            <p class="text-xl md:text-2xl text-gray-300 mt-6 leading-relaxed">
-                Handpicked selections curated to elevate your digital presence.
-                <span class="text-cyan-400 font-semibold">Discover. Engage. Grow.</span>
+            <p class="mt-4 text-gray-300 text-lg sm:text-xl">
+                Handpicked products to elevate your digital presence.
             </p>
         </header>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
             @foreach ($products as $product)
                 <div
-                    class="group relative rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-gray-800/60 to-gray-900/80 border border-white/10 transition-transform duration-500 hover:scale-[1.03] hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                    class="group rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 backdrop-blur-xl transition hover:scale-[1.02] hover:shadow-xl">
 
-                    <!-- IMAGE -->
+                    <!-- Image -->
                     <a href="{{ route('product.details', $product->slug) }}">
-                        <div class="relative w-full h-48 overflow-hidden rounded-t-3xl">
+                        <div class="relative h-48 sm:h-48 overflow-hidden">
+
                             <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
-                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                class="h-full w-full object-cover transition-transform duration-700" />
 
                             {{-- Featured Badge --}}
                             @if ($product->is_featured)
-                                <span
-                                    class="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-fuchsia-500
-                          text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                                    Featured
-                                </span>
+                                <span class="badge-left">Featured</span>
                             @endif
 
-                            {{-- Offer Badge (Only if active and within date) --}}
+                            {{-- Offer Badge --}}
                             @if ($product->hasOffer())
-                                <span
-                                    class="absolute top-3 right-3 bg-gradient-to-br from-purple-600 to-indigo-600
-                          text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                                <span class="badge-right">
                                     {{ $product->discountPercent() }}% OFF
                                 </span>
                             @endif
+
+                            {{-- COUNTDOWN OVER IMAGE --}}
+                            @if ($product->hasOffer())
+                                @php $end = $product->activeOffer()->end_date; @endphp
+
+                                <div class="countdown-overlay" x-data="{ time: '' }" x-init="const end = new Date('{{ $end }}').getTime();
+                                setInterval(() => {
+                                    const diff = end - Date.now();
+                                    if (diff <= 0) return time = 'Offer ended';
+                                    const d = Math.floor(diff / 86400000);
+                                    const h = Math.floor(diff / 3600000) % 24;
+                                    const m = Math.floor(diff / 60000) % 60;
+                                    const s = Math.floor(diff / 1000) % 60;
+                                    time = `${d}d ${h}h ${m}m ${s}s`;
+                                }, 1000);"
+                                    x-text="time">
+                                </div>
+                            @endif
+
                         </div>
                     </a>
 
-                    <!-- CONTENT -->
-                    <div class="p-6 flex flex-col justify-between gap-4 text-gray-200">
-                        <a href="{{ route('product.details', $product->slug) }}">
-                            <h3
-                                class="text-xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-400
-                    bg-clip-text text-transparent">
+
+                    <!-- Content -->
+                    <div class="p-5 flex flex-col gap-2">
+
+                        <!-- NAME -->
+                        <div class="flex items-center justify-center gap-10 overflow-hidden whitespace-nowrap">
+                            <h2 class="truncate text-lg  font-semibold text-cyan-400 max-w-[100%]">
                                 {{ $product->name }}
-                            </h3>
-                        </a>
-
-                        <!-- PRICE SECTION -->
-                        <div class="flex items-center gap-3">
-                            @if ($product->activeOffer())
-                                <span class="text-lg font-extrabold text-green-400">
-                                    ${{ number_format($product->discountedPrice(), 2) }}
-                                </span>
-                                <span class="text-sm line-through text-gray-400">
-                                    ${{ number_format($product->selling_price, 2) }}
-                                </span>
-                            @else
-                                <span class="text-lg font-bold text-pink-400">
-                                    ${{ number_format($product->selling_price, 2) }}
-                                </span>
-                            @endif
+                            </h2>
                         </div>
+                        <div class="flex items-center justify-between w-full">
+                            <!-- Price (Left) -->
+                            <div class="flex items-center gap-2">
+                                @if ($product->activeOffer())
+                                    <span class="text-green-400 font-bold text-md">
+                                        Price: ${{ number_format($product->discountedPrice(), 2) }}
+                                    </span>
+                                    <span class="text-xs line-through text-gray-400">
+                                        ${{ number_format($product->selling_price, 2) }}
+                                    </span>
+                                @else
+                                    <span class="text-pink-400 font-bold text-md">
+                                        Price: ${{ number_format($product->selling_price, 2) }}
+                                    </span>
+                                @endif
+                            </div>
 
-
-                        {{-- OFFER COUNTDOWN --}}
-                        @if ($product->hasOffer())
-                            @php
-                                $end = $product->activeOffer()->end_date;
-                            @endphp
-                            <div class="text-[11px] text-gray-400" x-data="{ timeLeft: '' }" x-init="const end = new Date('{{ $end }}').getTime();
-
-                            setInterval(() => {
-                                const now = Date.now();
-                                let diff = end - now;
-
-                                if (diff <= 0) {
-                                    timeLeft = 'Offer ended';
-                                    return;
-                                }
-
-                                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                                let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                                // reverse countdown format
-                                timeLeft = `${days}d : ${hours}h : ${minutes}m : ${seconds}s`;
-                            }, 1000);"
-                                x-text="timeLeft"></div>
-                        @endif
+                            <!-- Stock (Right) -->
+                            <div class="flex items-center">
+                                @if ($product->outOfStock())
+                                    <span
+                                        class="text-red-500 font-semibold text-sm border border-red-500 px-2 py-1 rounded-full">
+                                        Out Of Stock
+                                    </span>
+                                @else
+                                    <span class="text-pink-400 font-bold text-md">
+                                        Stock: {{ $product->stock }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
                         <!-- FEATURES -->
-                        <div class="flex flex-wrap gap-2 mt-3">
-                            @foreach ($product->featureList() as $feature)
-                                <span
-                                    class="relative text-xs px-3 py-1 rounded-full font-semibold text-white
-                        bg-gray-900/30 border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-                                    {{ $feature }}
-                                </span>
-                            @endforeach
+                        @php
+                            $features = $product->featureList();
+                        @endphp
+
+                        <div class="features-box">
+                            <div class="features-grid {{ count($features) > 4 ? 'scrollable' : '' }}">
+                                @foreach ($features as $feature)
+                                    <div class="feature-pill" title="{{ $feature }}">
+                                        {{ $feature }}
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
 
-                        <!-- CART OR PRE-ORDER -->
+                        <!-- CART / PREORDER -->
                         @if ($product->outOfStock())
-                            <a href="{{ $system->pre_order_link ? $system->pre_order_link : '#' }}"
-                                class="block text-center font-bold py-2.5 px-4 rounded-xl
-          bg-gradient-to-r from-yellow-400 to-amber-500
-          text-black shadow-[0_0_15px_rgba(255,200,0,0.4)]
-          hover:scale-105 hover:shadow-[0_0_25px_rgba(255,200,0,0.7)]
-          transition-all duration-300 ease-out">
-                                Contact for Pre-Order
-                            </a>
+                            <div class="mt-4 pointer-events-auto">
+                                <a href="{{ $system->pre_order_link ?? '#' }}"
+                                    class="group relative w-full sm:w-auto
+              flex items-center justify-center gap-2
+              px-5 sm:px-6 py-2.5
+              text-sm sm:text-base font-semibold
+              whitespace-nowrap
+              rounded-full
+              bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500
+              text-white
+              shadow-lg shadow-blue-500/30
+              transition-all duration-300
+              hover:shadow-xl hover:shadow-blue-500/40
+              hover:-translate-y-0.5
+              active:translate-y-0
+              focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900">
+
+                                    <!-- Icon -->
+                                    <i class="fa-solid fa-clock-rotate-left text-sm opacity-90"></i>
+
+                                    <!-- Text -->
+                                    <span>Pre-Order Now</span>
+                                </a>
+                            </div>
                         @else
-                            @livewire('add-to-cart', ['productId' => $product->id], key('product-' . $product->id))
+                            @livewire('add-to-cart', ['productId' => $product->id], key($product->id))
                         @endif
                     </div>
                 </div>
             @endforeach
         </div>
-
     </div>
 </section>
-
 <style>
-    /* Floating blob animation */
-    @keyframes blob {
+    /* BADGES */
+    .badge-left,
+    .badge-right {
+        position: absolute;
+        top: 10px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 999px;
+        color: white;
+    }
 
-        0%,
+    .badge-left {
+        left: 10px;
+        background: linear-gradient(to right, #ec4899, #d946ef);
+    }
+
+    .badge-right {
+        right: 10px;
+        background: linear-gradient(to right, #7c3aed, #2563eb);
+    }
+
+    /* FEATURES BOX */
+    .features-box {
+        height: 68px;
+        padding: 6px;
+        border-radius: 14px;
+        position: relative;
+        background: rgba(17, 24, 39, 0.65);
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    /* Animated gradient border */
+    .features-box::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        padding: 2px;
+        border-radius: inherit;
+        background: linear-gradient(270deg,
+                #ec4899,
+                #d946ef,
+                #22d3ee,
+                #ec4899);
+        background-size: 400% 400%;
+        animation: gradient-border 6s ease infinite;
+
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    @keyframes gradient-border {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
         100% {
-            transform: translate3d(0, 0, 0) scale(1);
-        }
-
-        33% {
-            transform: translate3d(20px, -15px, 0) scale(1.1);
-        }
-
-        66% {
-            transform: translate3d(-20px, 15px, 0) scale(0.95);
+            background-position: 0% 50%;
         }
     }
 
-    .animate-blob {
-        animation: blob 8s infinite ease-in-out;
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
     }
 
-    .animation-delay-2000 {
-        animation-delay: 2s;
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    /* 2 rows × 24px pills + 1 gap = ~54px */
+    .features-grid.scrollable {
+        max-height: 54px;
+        overflow-y: auto;
+        padding-right: 4px;
+        /* space for scrollbar */
+    }
+
+    /* Optional: nicer scrollbar */
+    .features-grid.scrollable::-webkit-scrollbar {
+        width: 3px;
+    }
+
+    .features-grid.scrollable::-webkit-scrollbar-thumb {
+        background: rgba(34, 211, 238, 0.6);
+        border-radius: 999px;
+    }
+
+    .feature-pill {
+        height: 24px;
+        font-size: 11px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, .4);
+        border: 1px solid rgba(255, 255, 255, .25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (hover:hover) {
+        .feature-pill:hover {
+            box-shadow: 0 0 10px rgba(34, 211, 238, .6);
+            transform: scale(1.05);
+        }
+    }
+
+    .countdown-overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(6px);
+
+        color: #22d3ee;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    /* Slightly bigger on desktop */
+    @media (min-width: 640px) {
+        .countdown-overlay {
+            font-size: 12px;
+            padding: 5px 12px;
+        }
     }
 </style>
