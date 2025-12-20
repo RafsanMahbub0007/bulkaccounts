@@ -1,223 +1,188 @@
-<div> {{-- SINGLE ROOT WRAPPER REQUIRED --}}
-
-    {{-- Checkout Page --}}
+<div>
+    {{-- =========================
+        CHECKOUT PAGE
+    ========================= --}}
     <div class="bg-gray-900 text-white py-16">
         <div class="container mx-auto px-6 max-w-6xl">
 
-            <h1 class="text-4xl font-bold text-red-500 mb-12 text-center tracking-wide">
+            <h1 class="text-4xl font-bold text-red-500 mb-12 text-center">
                 Checkout
             </h1>
 
             @guest
-                <div class="bg-gray-800 p-10 rounded-xl text-center shadow-xl border border-gray-700">
-                    <h2 class="text-2xl font-bold mb-3">Please Login to Continue</h2>
-                    <p class="text-gray-400 mb-6">You must be logged in to complete your checkout.</p>
+                <div class="bg-gray-800 p-10 rounded-xl text-center">
+                    <h2 class="text-2xl font-bold mb-3">Login Required</h2>
+                    <p class="text-gray-400 mb-6">
+                        Please login to continue checkout.
+                    </p>
 
-                    <a href="{{ route('login') }}"
-                        class="px-6 py-3 bg-red-600 rounded-lg text-white font-semibold hover:bg-red-700">
+                    <a href="{{ route('login') }}" class="px-6 py-3 bg-red-600 rounded-lg text-white font-semibold">
                         Login
                     </a>
 
-                    <a href="{{ route('register') }}" class="px-6 py-3 bg-gray-700 rounded-lg ml-3 hover:bg-gray-600">
+                    <a href="{{ route('register') }}" class="px-6 py-3 bg-gray-700 rounded-lg ml-3">
                         Create Account
                     </a>
                 </div>
             @else
-                <form wire:submit.prevent="proceedToPayment" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <form class="grid grid-cols-1 lg:grid-cols-2 gap-12" wire:submit.prevent>
 
-                    <!-- Billing Details -->
-                    <div class="bg-gray-800/70 p-8 rounded-xl shadow-xl border border-gray-700/40">
-                        <h2 class="text-2xl font-semibold mb-6 pb-3 border-b border-gray-700">
+                    {{-- =========================
+                    BILLING INFORMATION
+                ========================= --}}
+                    <div class="bg-gray-800/70 p-8 rounded-xl border border-gray-700">
+
+                        <h2 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-3">
                             Billing Information
                         </h2>
 
-                        @if ($errors->any())
-                            <div class="mb-6 p-4 bg-red-600 rounded-lg text-white text-center">
-                                <ul class="list-disc pl-5">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
+                        @error('*')
+                            <div class="bg-red-600 p-4 rounded-lg mb-4 text-sm">
+                                {{ $message }}
                             </div>
-                        @endif
+                        @enderror
 
-                        <div class="space-y-6">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-gray-300 mb-2 font-medium">Full Name</label>
-                                <input type="text" wire:model="name"
-                                    class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white
-                                   focus:ring-2 focus:ring-red-500 outline-none"
-                                    required>
+                                <label class="text-gray-300 block mb-1">Full Name</label>
+                                <input type="text" wire:model.defer="name"
+                                    class="w-full bg-gray-700 px-4 py-3 rounded-lg focus:ring-red-500 focus:ring-2">
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 mb-2 font-medium">Phone Number</label>
-                                <input type="text" wire:model="number"
-                                    class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white
-                                   focus:ring-2 focus:ring-red-500 outline-none"
-                                    required>
+                                <label class="text-gray-300 block mb-1">Phone</label>
+                                <input type="text" wire:model.defer="number"
+                                    class="w-full bg-gray-700 px-4 py-3 rounded-lg focus:ring-red-500 focus:ring-2">
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 mb-2 font-medium">Email Address</label>
-                                <input type="email" wire:model="email"
-                                    class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white
-                                   focus:ring-2 focus:ring-red-500 outline-none"
-                                    required>
+                                <label class="text-gray-300 block mb-1">Email</label>
+                                <input type="email" wire:model.defer="email"
+                                    class="w-full bg-gray-700 px-4 py-3 rounded-lg focus:ring-red-500 focus:ring-2">
                             </div>
 
-                            <div class="flex items-start gap-3 mt-4">
-                                <input type="checkbox" wire:model="acceptedTerms" required
-                                    class="w-5 h-5 mt-1 rounded border-gray-600 bg-gray-700
-                                   text-red-500 focus:ring-red-500">
-                                <label class="text-gray-300 leading-6">
-                                    I accept the
-                                    <a href="{{ route('terms') }}" class="text-red-400 underline hover:text-red-300">
+                            <div class="flex items-start gap-3">
+                                <input type="checkbox" wire:model="acceptedTerms" class="mt-1 text-red-600 rounded">
+                                <p class="text-gray-300 text-sm">
+                                    I agree to the
+                                    <a href="{{ route('terms') }}" class="text-red-400 underline">
                                         Terms & Conditions
                                     </a>
-                                </label>
+                                </p>
                             </div>
 
-                            <button type="submit"
-                                class="w-full py-3 mt-4 bg-red-600 rounded-lg text-white font-semibold
-                                       hover:bg-red-700 transition shadow-lg">
-                                Proceed to Pay
-                            </button>
+                            {{-- =========================
+                            PAYMENT BUTTONS
+                        ========================= --}}
+
+                            <div class="flex gap-3 pt-3">
+                                {{-- Pay Online (Live Mode only) --}}
+                                @if ($isTestMode == true)
+                                    <button type="button" wire:click="proceedToPayment(false)"
+                                        class="flex-1 bg-red-600 py-3 rounded-lg font-semibold">
+                                        Pay Online
+                                    </button>
+                                @else
+                                    <button type="button" wire:click="proceedToPayment(true)"
+                                        class="flex-1 bg-gray-700 py-3 rounded-lg font-semibold">
+                                        Manual Payment
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Order Summary -->
-                    <div class="bg-gray-800/70 p-8 rounded-xl shadow-xl border border-gray-700/40 lg:sticky lg:top-20">
-                        <h3 class="text-2xl font-semibold mb-6 pb-3 border-b border-gray-700">
+                    {{-- =========================
+                    ORDER SUMMARY
+                ========================= --}}
+                    <div class="bg-gray-800/70 p-8 rounded-xl border border-gray-700 lg:sticky lg:top-20">
+
+                        <h3 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-3">
                             Order Summary
                         </h3>
 
-                        <div class="space-y-4 text-lg">
-                            <div class="flex justify-between">
-                                <p>Subtotal:</p>
-                                <p class="font-semibold text-red-500">${{ number_format($total, 2) }}</p>
-                            </div>
-
-                            <div class="flex justify-between font-bold text-xl">
-                                <p>Total:</p>
-                                <p class="text-red-500">${{ number_format($total, 2) }}</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-10 border-t border-gray-700 pt-6">
-                            <h4 class="text-xl font-semibold mb-4">Products</h4>
-
-                            <div class="space-y-4">
-                                @foreach ($cartItems as $item)
-                                    <div class="flex justify-between items-center bg-gray-900/60 p-4 rounded-lg">
-                                        <div class="flex items-center space-x-4">
-                                            <img src="{{ image_path($item['image']) }}" alt="{{ $item['name'] }}"
-                                                class="w-16 h-16 rounded-lg object-cover">
-                                            <div>
-                                                <h3 class="font-semibold text-white">{{ $item['name'] }}</h3>
-                                                <p class="text-gray-400 text-sm">Qty: {{ $item['quantity'] }}</p>
-                                            </div>
-                                        </div>
-                                        <p class="font-semibold text-red-500">
-                                            ${{ number_format($item['price'] * $item['quantity'], 2) }}
+                        <div class="space-y-4">
+                            @foreach ($cartItems as $item)
+                                <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg">
+                                    <div>
+                                        <p class="font-semibold">{{ $item['name'] }}</p>
+                                        <p class="text-sm text-gray-400">
+                                            Qty: {{ $item['quantity'] }}
                                         </p>
                                     </div>
-                                @endforeach
-                            </div>
+                                    <p class="text-red-500 font-semibold">
+                                        ${{ number_format($item['price'] * $item['quantity'], 2) }}
+                                    </p>
+                                </div>
+                            @endforeach
                         </div>
 
-                        <div class="mt-8 text-center">
-                            <a href="{{ route('home') }}"
-                                class="inline-block bg-gray-700 px-6 py-3 rounded-lg shadow-lg text-white
-                                  hover:bg-gray-800 transition">
-                                Continue Shopping
-                            </a>
+                        <div class="border-t border-gray-700 mt-6 pt-6 flex justify-between text-xl font-bold">
+                            <span>Total</span>
+                            <span class="text-red-500">
+                                ${{ number_format($total, 2) }}
+                            </span>
                         </div>
                     </div>
 
                 </form>
             @endguest
-
         </div>
     </div>
 
+    {{-- =========================
+        PAYMENT MODAL (Manual Payment Only)
+    ========================= --}}
+    <div x-data="{ open: @entangle('showPaymentModal') }" x-show="open" x-transition x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+        <div class="bg-gray-800 rounded-xl w-full max-w-md p-6" @click.outside="open = false">
 
-    {{-- ============================================= --}}
-    {{--          PAYMENT MODAL (LIVEWIRE + ALPINE)     --}}
-    {{-- ============================================= --}}
+            <h3 class="text-xl font-semibold text-center text-red-400 mb-4">
+                Confirm Payment
+            </h3>
 
-    <div x-data="{ open: @entangle('showPaymentModal') }" x-show="open" x-transition.opacity x-cloak @keydown.escape.window="open = false"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-
-        <!-- Click outside to close -->
-        <div @click="open = false" class="absolute inset-0"></div>
-
-        <!-- Modal -->
-        <div @click.stop
-            class="relative bg-gray-800 w-full max-w-lg rounded-xl shadow-xl
-               border border-gray-700 p-6 sm:p-8
-               max-h-[90vh] overflow-y-auto">
-
-            <!-- Title -->
-            <h2 class="text-2xl font-semibold text-center mb-6 text-red-400">
-                Complete Your Payment
-            </h2>
-
-            <!-- QR Code -->
-            @if (!empty($system->manual_pay_qr))
-                <div class="flex justify-center mb-6">
-                    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5 w-64 sm:w-72">
-                        <img src="{{ image_path($system->manual_pay_qr) }}" alt="Payment QR Code"
-                            class="w-full h-auto rounded-lg object-contain">
-                    </div>
+            {{-- Only show Transaction ID if manualPayment --}}
+            @if ($manualPayment)
+                <div class="mb-4">
+                    <label class="text-gray-300 block mb-1">Transaction ID</label>
+                    <input type="text" wire:model.defer="transactionIdInput"
+                        class="w-full bg-gray-700 px-4 py-2 rounded-lg">
                 </div>
             @endif
 
-            <!-- Form -->
-            <div class="space-y-4">
-                <div>
-                    <label class="text-gray-300 mb-1 block">Transaction ID</label>
-                    <input type="text" wire:model.defer="transactionIdInput" placeholder="Enter transaction hash"
-                        class="w-full bg-gray-700 px-4 py-2 rounded-lg text-white
-                           focus:ring-2 focus:ring-red-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="text-gray-300 mb-1 block">Amount</label>
-                    <input type="text" value="{{ number_format($total, 2) }}" readonly
-                        class="w-full bg-gray-700 px-4 py-2 rounded-lg
-                           text-gray-400 border border-gray-600">
-                </div>
+            <div class="mb-6">
+                <label class="text-gray-400 block mb-1">Amount</label>
+                <input type="text" readonly value="${{ number_format($total, 2) }}"
+                    class="w-full bg-gray-700 px-4 py-2 rounded-lg text-gray-400">
             </div>
 
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
-                <button @click="open = false"
-                    class="w-full sm:w-auto px-5 py-2 bg-gray-600 rounded-lg
-                       hover:bg-gray-700 text-white transition">
+            <div class="flex gap-3">
+                <button @click="open=false" class="flex-1 bg-gray-600 py-2 rounded-lg">
                     Cancel
                 </button>
 
                 <button wire:click="confirmPayment" wire:loading.attr="disabled"
-                    class="w-full sm:w-auto px-5 py-2 bg-red-600 rounded-lg
-                       hover:bg-red-700 text-white font-semibold transition">
-                    <span wire:loading.remove>Confirm Payment</span>
+                    class="flex-1 bg-red-600 py-2 rounded-lg font-semibold">
+                    <span wire:loading.remove>Confirm</span>
                     <span wire:loading>Processing...</span>
                 </button>
             </div>
-
         </div>
     </div>
 
+    {{-- =========================
+        SUCCESS EVENT
+    ========================= --}}
+    <script>
+        Livewire.on('order-success', e => {
+            alert(e.message);
+            if (e.redirect) {
+                window.location.href = e.redirect;
+            }
+        });
 
-</div>
-
-{{-- SUCCESS EVENT --}}
-<script>
-    Livewire.on('order-success', data => {
-        alert(data.message);
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
+        Livewire.on('redirect-to-payment', data => {
+        window.location.href = data.url; // Open the invoice URL
     });
-</script>
+    </script>
+</div>

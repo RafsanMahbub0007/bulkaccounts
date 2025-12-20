@@ -35,9 +35,8 @@ return [
         ],
     ],
     'payment' => [
-        'test_mode' => env('PAYMENT_TEST_MODE', true),
-        'api_key'   => env('NOWPAYMENTS_API_KEY'),
-        'ngrok_url' => env('APP_NGROK_URL'),
+        'test_mode' => env('PAYMENT_TEST_MODE',true),
+        'api_key' => env('NOWPAYMENTS_API_KEY'),
+        'secret_key' => env('NOWPAYMENTS_SECRET_KEY'),
     ],
-
 ];

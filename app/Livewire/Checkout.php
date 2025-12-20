@@ -30,8 +30,8 @@ class Checkout extends Component
 
     // Popup fields
     public $showPaymentModal = false;
-    public $orderIdInput;
     public $transactionIdInput;
+    public $manualPayment = false;
 
     public function mount()
     {
@@ -55,8 +55,15 @@ class Checkout extends Component
         ];
     }
 
-    // STEP 1 → User clicks "Proceed to Pay" → Show popup only
-    public function proceedToPayment()
+    public function getIsTestModeProperty()
+    {
+        return config('services.payment.test_mode');
+    }
+
+    /**
+     * Show the payment modal
+     */
+    public function proceedToPayment($manual = false)
     {
         $this->validate();
 
@@ -65,35 +72,43 @@ class Checkout extends Component
             return;
         }
 
-        // Just open popup – do NOT create order here
+        $this->manualPayment = $manual && $this->isTestMode; // Only allow manual in test mode
         $this->showPaymentModal = true;
     }
 
-    // STEP 2 → User clicks "Confirm Payment" → Create order here
+    /**
+     * Confirm the payment (manual or live)
+     */
     public function confirmPayment()
     {
+        // 1️⃣ Validate only if manual payment
         $this->validate([
-            'transactionIdInput' => 'required',
+            'transactionIdInput' => $this->manualPayment ? 'required|string' : 'nullable',
         ]);
+
+        if (empty($this->cartItems)) {
+            $this->addError('cart', 'Your cart is empty.');
+            return;
+        }
 
         DB::beginTransaction();
 
         try {
-            // CREATE ORDER
+            // 2️⃣ Create the order
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'order_number' => strtoupper(uniqid('ORD-')),
                 'total_price' => $this->total,
-                'payment_status' => 'unpaid',
+                'payment_status' => $this->manualPayment ? 'paid' : 'unpaid',
                 'order_status' => 'pending',
                 'ordered_at' => now(),
                 'name' => $this->name,
                 'email' => $this->email,
                 'phone' => $this->number,
-                'transaction_reference' => $this->transactionIdInput,
+                'transaction_reference' => $this->manualPayment ? $this->transactionIdInput : null,
             ]);
 
-            // ORDER ITEMS AND STOCK CONTROL
+            // 3️⃣ Handle order items and stock
             foreach ($this->cartItems as $item) {
                 $product = Product::findOrFail($item['id']);
 
@@ -101,6 +116,7 @@ class Checkout extends Component
                     ->where('is_sold', 0)
                     ->limit($item['quantity'])
                     ->get();
+
                 if ($accounts->count() < $item['quantity']) {
                     DB::rollBack();
                     $this->addError('stock', "Not enough stock for {$product->name}");
@@ -116,86 +132,79 @@ class Checkout extends Component
                 ]);
 
                 foreach ($accounts as $acc) {
-                    $acc->update([
-                        'is_sold' => 1,
-                    ]);
+                    $acc->update(['is_sold' => 1]);
                 }
 
-                // Make folder in protected storage
                 Storage::makeDirectory('orders');
-
-                // Save the file in storage/app/orders
                 $file = "orders/order_item_{$orderItem->id}.xlsx";
-                Excel::store(new AccountsExport($accounts), $file); // default disk
+                Excel::store(new AccountsExport($accounts), $file);
                 $order->update(['download_file' => $file]);
 
-                // STOCK REDUCE
                 $product->decrement('stock', $item['quantity']);
             }
 
-            // TEST MODE → AUTO COMPLETE ORDER
-            if (config('services.payment.test_mode')) {
+            // 4️⃣ Manual Payment (Test Mode)
+            if ($this->manualPayment) {
+                DB::commit();
+                Session::forget('cart');
+                $this->showPaymentModal = false;
+
+                $this->emit('order-success', [
+                    'message' => 'Manual payment recorded successfully!',
+                    'redirect' => route('user.orders')
+                ]);
+                return;
+            }
+
+            // 5️⃣ Live Payment (NowPayments)
+            if ($this->isTestMode) {
+
+                $response = Http::withHeaders([
+                    'x-api-key' => config('services.payment.api_key'),
+                    'Content-Type' => 'application/json',
+                ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [
+                    "price_amount" => number_format($order->total_price, 2, '.', ''),
+                    "price_currency" => "USD",
+                    "order_id" => $order->order_number,
+                    "order_description" => "Order {$order->order_number}",
+                    "success_url" => route('payment.success', $order->id),
+                    "cancel_url" => route('payment.cancel', $order->id),
+                    "ipn_callback_url" => route('payment.callback'),
+                    "payout_currency" => "USDTTRC20",
+                ]);
+                $data = $response->json();
+
+                if (!$response->successful() || empty($data['invoice_url'])) {
+                    DB::rollBack();
+                    Log::error('NowPayments failed', $data);
+                    $this->addError('payment', 'Payment initialization failed.');
+                    return;
+                }
 
                 DB::commit();
                 Session::forget('cart');
-
                 $this->showPaymentModal = false;
 
-                $this->dispatch('order-success', message: 'Order placed successfully!', redirect: route('user.orders'));
-
-                return;
+                // ✅ Livewire 3 compatible redirect using emit()
+                return redirect()->away($data['invoice_url']);
             }
-
-            // REAL PAYMENT → NOWPAYMENTS
-            $ngrokUrl = config('app.ngrok_url') ?? 'https://your-ngrok-url.ngrok-free.app';
-
-            $response = Http::withHeaders([
-                'x-api-key' => config('services.payment.api_key'),
-                'Content-Type' => 'application/json',
-            ])->post('https://api.nowpayments.io/v1/invoice', [
-                "price_amount" => number_format($order->total_price, 2, '.', ''),
-                "price_currency" => "usd",
-                "order_id" => $order->order_number,
-                "order_description" => "Order {$order->order_number}",
-                "success_url" => "{$ngrokUrl}/payment/success/{$order->id}",
-                "cancel_url" => "{$ngrokUrl}/payment/cancel/{$order->id}",
-                "ipn_callback_url" => "{$ngrokUrl}/api/payment/callback",
-                "payout_currency" => "usdt",
-            ]);
-
-            $data = $response->json();
-
-            if (!$response->successful() || empty($data['invoice_url'])) {
-                DB::rollBack();
-                Log::error('NowPayments failed', $data);
-                $this->addError('payment', $data['message'] ?? 'Payment initialization failed.');
-                return;
-            }
-
-            DB::commit();
-            Session::forget('cart');
-
-            $this->showPaymentModal = false;
-
-            $this->dispatchBrowserEvent('redirect-to-payment', [
-                'url' => $data['invoice_url']
-            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Checkout error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
-
-            $this->addError('checkout', "Error: {$e->getMessage()}");
+            $this->addError('checkout', $e->getMessage());
         }
     }
 
+
+
     public function render()
     {
-         $system = Setting::find(1);
-        return view('livewire.checkout',[
-            'system'=>$system
+        $system = Setting::find(1);
+        return view('livewire.checkout', [
+            'system' => $system,
+            'isTestMode' => $this->isTestMode,
         ]);
     }
 }

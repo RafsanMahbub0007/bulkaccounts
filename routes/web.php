@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-// Livewire Pages
 use App\Livewire\Home;
 use App\Livewire\Products;
 use App\Livewire\Cart;
@@ -20,11 +20,9 @@ use App\Livewire\Posts;
 use App\Livewire\PostDetails;
 use App\Livewire\FaqDetails;
 use App\Livewire\Guidelinedetails;
+use App\Livewire\PaymentStatus;
 use App\Livewire\PrivacyPolicy;
 use App\Livewire\Terms;
-
-// Controllers
-use App\Http\Controllers\CheckoutController;
 use App\Models\Order;
 use App\Models\OrderItem;
 
@@ -75,41 +73,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // User payment logs
     Route::get('/user/payments', UserPayments::class)->name('user.payments');
 
-    // Secure checkout processing
-    Route::get('/checkout/process', [CheckoutController::class, 'process'])
-        ->name('checkout.process');
-
     // Protected download route
     Route::get('/download/{order}', function (Order $order) {
-
-        // Only the order owner can download
-        abort_unless($order->user_id === auth()->id(), 403);
-
-        // Check file exists
         if (!$order->download_file || !Storage::exists($order->download_file)) {
             abort(404);
         }
-
-        // Serve securely with a friendly name
         $fileName = 'accounts_' . $order->order_number . '.xlsx';
         return Storage::download($order->download_file, $fileName);
     })->name('order.download');
+    Route::post('/payment/callback', [PaymentController::class, 'handle'])
+        ->name('payment.callback');
+    Route::get('/payment/success/{orderId}', PaymentStatus::class)->name('payment.success');
+
+    Route::get(
+        '/payment/cancel/{order}',
+        fn($order) =>
+        view('payment.failed', compact('order'))
+    )->name('payment.cancel');
 });
 
 
-/*
-|--------------------------------------------------------------------------
-| Payment Callback Routes (Safe)
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/payment/success/{order}', function (Order $order) {
-    return view('payment.success', compact('order'));
-})->name('payment.success');
-
-Route::get('/payment/cancel/{order}', function (Order $order) {
-    return view('payment.cancel', compact('order'));
-})->name('payment.cancel');
 
 
 
