@@ -81,8 +81,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $fileName = 'accounts_' . $order->order_number . '.xlsx';
         return Storage::download($order->download_file, $fileName);
     })->name('order.download');
-    Route::post('/payment/callback', [PaymentController::class, 'handle'])
-        ->name('payment.callback');
     Route::get('/payment/success/{orderId}', PaymentStatus::class)->name('payment.success');
 
     Route::get(
@@ -92,6 +90,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     )->name('payment.cancel');
 });
 
+    Route::post('/payment/callback', [PaymentController::class, 'handle']) ->name('payment.callback');
 
 
 

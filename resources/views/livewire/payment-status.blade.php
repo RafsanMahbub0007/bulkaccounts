@@ -73,35 +73,42 @@
                         </svg>
                         <span class="text-sm font-medium">Your payment has been confirmed. You can now access your order.</span>
                     </div>
+
+                    {{-- View Order Details Button --}}
+                    <div class="mt-5 text-center">
+                        <a href="{{ route('user.orders.details', ['order' => $order->order_number]) }}"
+                           class="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition duration-200">
+                            View Order Details
+                        </a>
+                    </div>
                 @endif
 
             </div>
 
             {{-- Card Footer --}}
             <div class="bg-gray-900 px-8 py-4 text-gray-400 text-xs text-center rounded-b-3xl">
-                 Thanks for your patience
+                Thanks for your patience
             </div>
 
         </div>
     @endif
+
     {{-- Floating & Confetti Animations --}}
-<style>
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-.animate-float {
-    animation: float 3s ease-in-out infinite;
-}
+    <style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
 
-@keyframes confetti-fall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(120%) rotate(360deg); opacity: 0; }
-}
-.animate-confetti {
-    animation: confetti-fall 2s ease-out forwards;
-}
-</style>
+    @keyframes confetti-fall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120%) rotate(360deg); opacity: 0; }
+    }
+    .animate-confetti {
+        animation: confetti-fall 2s ease-out forwards;
+    }
+    </style>
 </div>
-
-
