@@ -160,20 +160,22 @@ class Checkout extends Component
             if ($this->isTestMode) {
 
                 $response = Http::withOptions([
-    'verify' => false, // Disable SSL certificate validation
-])->withHeaders([
-    'x-api-key' => config('services.payment.api_key'),
-    'Content-Type' => 'application/json',
-])->post('https://api-sandbox.nowpayments.io/v1/invoice', [
-    "price_amount" => number_format($order->total_price, 2, '.', ''),
-    "price_currency" => "USD",
-    "order_id" => $order->order_number,
-    "order_description" => "Order {$order->order_number}",
-    "success_url" => route('payment.success', $order->id),
-    "cancel_url" => route('payment.cancel', $order->id),
-    "ipn_callback_url" => "https://nonconsequent-hollis-unpliant.ngrok-free.dev/payment/callback",
-    "payout_currency" => "USDTTRC20",
-]);
+                    'verify' => false, // Disable SSL certificate validation
+                ])->withHeaders([
+                    'x-api-key' => config('services.payment.api_key'),
+                    'Content-Type' => 'application/json',
+                // ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [ #for sandbox
+                ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [
+                    "price_amount" => number_format($order->total_price, 2, '.', ''),
+                    "price_currency" => "USD",
+                    "order_id" => $order->order_number,
+                    "order_description" => "Order {$order->order_number}",
+                    "success_url" => route('payment.status', $order->id),
+                    "cancel_url" => route('payment.status', $order->id),
+                    // "ipn_callback_url" => "https://nonconsequent-hollis-unpliant.ngrok-free.dev/payment/callback", #for sandbox
+                    "ipn_callback_url" => route('payment.callback'),
+                    "payout_currency" => "USDTTRC20",
+                ]);
                 $data = $response->json();
 
                 if (!$response->successful() || empty($data['invoice_url'])) {

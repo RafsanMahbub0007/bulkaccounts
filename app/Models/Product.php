@@ -25,10 +25,13 @@ class Product extends Model
         'keywords',
         'description',
         'content',
+        'google_sheet_url',
+        'sheet_meta'
     ];
 
     protected $casts = [
         'feature_ids' => 'array',
+        'sheet_meta' => 'array',
     ];
 
     public function category()
