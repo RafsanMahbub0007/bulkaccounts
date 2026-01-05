@@ -25,7 +25,6 @@ class ProductResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-
             Forms\Components\TextInput::make('name')->required(),
 
             Forms\Components\TextInput::make('slug')
@@ -38,14 +37,13 @@ class ProductResource extends Resource
                 ->reactive(),
 
             Forms\Components\Select::make('subcategory_id')
-                ->options(
-                    fn($get) =>
+                ->options(fn ($get) =>
                     $get('category_id')
                         ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
                         : []
                 )
                 ->required()
-                ->disabled(fn($get) => !$get('category_id')),
+                ->disabled(fn ($get) => !$get('category_id')),
 
             Forms\Components\CheckboxList::make('feature_ids')
                 ->options(ProductFeature::pluck('name', 'id'))
@@ -55,24 +53,11 @@ class ProductResource extends Resource
             Forms\Components\TextInput::make('selling_price')->numeric()->required(),
             Forms\Components\TextInput::make('min_order_qty')->numeric()->default(10),
 
-            Forms\Components\TagsInput::make('keywords')
-                ->splitKeys([','])
-                ->afterStateHydrated(function ($component, $state) {
-                    $component->state(
-                        is_string($state) ? explode(',', $state) : $state
-                    );
-                })
-                ->dehydrateStateUsing(function ($state) {
-                    return is_array($state)
-                        ? implode(',', $state)
-                        : $state;
-                }),
             Forms\Components\Textarea::make('description'),
             Forms\Components\RichEditor::make('content')->columnSpanFull(),
 
             Forms\Components\TextInput::make('google_sheet_url')
                 ->label('Google Sheet CSV URL')
-                ->helperText('Publish Google Sheet as CSV')
                 ->url(),
         ]);
     }
@@ -87,22 +72,21 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')->dateTime(),
             ])
             ->actions([
-
                 Tables\Actions\EditAction::make(),
 
-                Tables\Actions\Action::make('uploadSheet')
-                    ->label('Upload Sheet')
+                Tables\Actions\Action::make('openSheet')
+                    ->label('Open Sheet')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => $record->google_sheet_url)
+                    ->url(fn ($record) => $record->google_sheet_url)
                     ->openUrlInNewTab()
-                    ->visible(fn($record) => filled($record->google_sheet_url)),
+                    ->visible(fn ($record) => filled($record->google_sheet_url)),
 
                 Tables\Actions\Action::make('syncSheet')
                     ->label('Sync Sheet')
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
-                    ->action(fn($record) => static::syncSheet($record))
-                    ->disabled(fn($record) => blank($record->google_sheet_url)),
+                    ->action(fn ($record) => static::syncSheet($record))
+                    ->disabled(fn ($record) => blank($record->google_sheet_url)),
             ]);
     }
 
@@ -119,20 +103,28 @@ class ProductResource extends Resource
                 throw new \Exception('Failed to fetch Google Sheet');
             }
 
-            $rows = array_map('str_getcsv', explode("\n", trim($response->body())));
+            $csv  = trim($response->body());
+            $hash = md5($csv);
+
+            // 🚀 FAST EXIT IF UNCHANGED
+            if ($product->sheet_hash === $hash) {
+                return;
+            }
+
+            $rows = array_map('str_getcsv', explode("\n", $csv));
             if (count($rows) < 2) {
                 throw new \Exception('Sheet has no data');
             }
 
             $headers = array_map('trim', array_shift($rows));
             if (!in_array('email', $headers)) {
-                throw new \Exception('Email column is required');
+                throw new \Exception('Email column missing');
             }
 
             DB::beginTransaction();
 
             $emails = [];
-            $count = 0;
+            $count  = 0;
 
             foreach ($rows as $row) {
                 if (count(array_filter($row)) === 0) continue;
@@ -140,36 +132,57 @@ class ProductResource extends Resource
                 $data = array_combine($headers, $row);
                 if (empty($data['email'])) continue;
 
-                $emails[] = $data['email'];
+                $email = strtolower(trim($data['email']));
+                if (isset($emails[$email])) continue; // ❌ duplicate CSV row
+
+                $emails[$email] = true;
+
+                $existing = ProductAccount::where('product_id', $product->id)
+                    ->where('email', $email)
+                    ->first();
+
+                // ❌ NEVER resurrect sold/banned accounts
+                if ($existing && in_array($existing->status, ['sold', 'banned'])) {
+                    continue;
+                }
 
                 ProductAccount::updateOrCreate(
-                    ['product_id' => $product->id, 'email' => $data['email']],
-                    ['meta' => $data]
+                    ['product_id' => $product->id, 'email' => $email],
+                    [
+                        'status' => 'unsold',
+                        'meta'   => $data,
+                    ]
                 );
 
                 $count++;
             }
 
+            // ❌ Only delete UNSOLD missing accounts
             ProductAccount::where('product_id', $product->id)
-                ->whereNotIn('email', $emails)
+                ->where('status', 'unsold')
+                ->whereNotIn('email', array_keys($emails))
                 ->delete();
 
             $product->update([
-                'stock' => $count,
+                'sheet_hash' => $hash,
+                'stock' => ProductAccount::where('product_id', $product->id)
+                    ->where('status', 'unsold')
+                    ->count(),
                 'sheet_meta' => [
-                    'headers' => $headers,
-                    'row_count' => $count,
-                    'synced_at' => now(),
+                    'headers'   => $headers,
+                    'row_count'=> $count,
+                    'synced_at'=> now(),
                 ],
             ]);
 
             DB::commit();
 
             Notification::make()
-                ->title('Sync complete')
-                ->body("{$count} rows synced")
+                ->title('Sheet synced')
+                ->body("{$count} accounts synced")
                 ->success()
                 ->send();
+
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -181,7 +194,6 @@ class ProductResource extends Resource
         }
     }
 
-    /* ================= AUTO SYNC ON SAVE ================= */
     protected static function afterSave($record): void
     {
         if ($record->google_sheet_url) {
@@ -192,9 +204,9 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProducts::route('/'),
+            'index'  => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
-            'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'edit'   => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
 }

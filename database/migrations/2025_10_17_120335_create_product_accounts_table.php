@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('email');
-            $table->json('meta')->nullable(); 
+            $table->json('meta')->nullable();
             $table->unique(['product_id', 'email']);
-
+            $table->string('status')->default('unsold');
             $table->timestamps();
         });
     }

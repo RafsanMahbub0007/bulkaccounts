@@ -22,6 +22,7 @@ use App\Livewire\FaqDetails;
 use App\Livewire\Guidelinedetails;
 use App\Livewire\PaymentStatus;
 use App\Livewire\PrivacyPolicy;
+use App\Livewire\Search;
 use App\Livewire\Terms;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -39,6 +40,7 @@ Route::get('/pricing', Products::class)->name('pricing');
 Route::get('/about', AboutDetails::class)->name('about');
 Route::get('/faq', FaqDetails::class)->name('faq');
 Route::get('/guidlines', Guidelinedetails::class)->name('guidlines');
+Route::get('/search', Search::class)->name('search');
 
 Route::get('/blog', Posts::class)->name('blog');
 Route::get('/posts/{post:slug}', PostDetails::class)->name('post.show');

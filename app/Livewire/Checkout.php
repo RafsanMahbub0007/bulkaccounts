@@ -165,7 +165,7 @@ class Checkout extends Component
                     'x-api-key' => config('services.payment.api_key'),
                     'Content-Type' => 'application/json',
                 // ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [ #for sandbox
-                ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [
+                ])->post('https://api.nowpayments.io/v1/invoice', [
                     "price_amount" => number_format($order->total_price, 2, '.', ''),
                     "price_currency" => "USD",
                     "order_id" => $order->order_number,
