@@ -7,16 +7,16 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class Posts extends Component
+class SubCategory extends Component
 {
     use WithPagination;
 
     #[Layout('layouts.app')]
 
-    public $search = ''; 
+    public $search = '';
     public $slug;
 
-    protected $queryString = ['search']; 
+    protected $queryString = ['search'];
 
     public function mount($slug)
     {

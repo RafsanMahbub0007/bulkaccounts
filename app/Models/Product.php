@@ -26,6 +26,7 @@ class Product extends Model
         'description',
         'content',
         'google_sheet_url',
+        'google_sheet_id',
         'sheet_meta'
     ];
 

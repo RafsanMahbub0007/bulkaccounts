@@ -257,7 +257,7 @@
                                 <div class="flex items-center justify-between pt-4 border-t border-white/10">
                                     <span
                                         class="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 transition-transform duration-300 group-hover:translate-x-1">
-                                        Explore Now
+                                        View More
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -266,7 +266,7 @@
                                     </span>
 
                                     <!-- Price Range Indicator -->
-                                    
+
                                 </div>
                             </div>
 

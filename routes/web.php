@@ -89,6 +89,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::post('/payment/callback', [PaymentController::class, 'handle'])->name('payment.callback');
 
 
+use Google\Client;
+use Google\Service\Sheets;
+
+Route::get('/test-google-sheet', function () {
+    $client = new Client();
+    $client->setApplicationName('Test Google Sheets');
+    $client->setScopes([Sheets::SPREADSHEETS_READONLY]);
+    $client->setAuthConfig(config('services.google.credentials'));
+
+    $service = new Sheets($client);
+
+    // 🔁 Replace with your actual Google Sheet ID
+    $spreadsheetId = '1qxaTApGek07QlRsgDx2-DCOqU85wjunbWM4RaZ6sZtE';
+
+    $response = $service->spreadsheets_values->get($spreadsheetId, 'Sheet1!A1:C5');
+
+    return $response->getValues();
+});
 
 
 /*

@@ -113,7 +113,7 @@ class Checkout extends Component
                 $product = Product::findOrFail($item['id']);
 
                 $accounts = ProductAccount::where('product_id', $product->id)
-                    ->where('is_sold', 0)
+                    ->where('status', 'unsold')
                     ->limit($item['quantity'])
                     ->get();
 
@@ -132,7 +132,7 @@ class Checkout extends Component
                 ]);
 
                 foreach ($accounts as $acc) {
-                    $acc->update(['is_sold' => 1]);
+                    $acc->update(['status' => 'sold']);
                 }
 
                 Storage::makeDirectory('orders');
@@ -144,54 +144,51 @@ class Checkout extends Component
             }
 
             // 4️⃣ Manual Payment (Test Mode)
-            if ($this->manualPayment) {
+            // if ($this->manualPayment) {
                 DB::commit();
                 Session::forget('cart');
                 $this->showPaymentModal = false;
 
-                $this->emit('order-success', [
-                    'message' => 'Manual payment recorded successfully!',
-                    'redirect' => route('user.orders')
-                ]);
+                redirect()->away(route('order.success', $order->id));
                 return;
-            }
+            // }
 
             // 5️⃣ Live Payment (NowPayments)
-            if ($this->isTestMode) {
+            // if ($this->isTestMode) {
 
-                $response = Http::withOptions([
-                    'verify' => false, // Disable SSL certificate validation
-                ])->withHeaders([
-                    'x-api-key' => config('services.payment.api_key'),
-                    'Content-Type' => 'application/json',
-                // ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [ #for sandbox
-                ])->post('https://api.nowpayments.io/v1/invoice', [
-                    "price_amount" => number_format($order->total_price, 2, '.', ''),
-                    "price_currency" => "USD",
-                    "order_id" => $order->order_number,
-                    "order_description" => "Order {$order->order_number}",
-                    "success_url" => route('payment.status', $order->id),
-                    "cancel_url" => route('payment.status', $order->id),
-                    // "ipn_callback_url" => "https://nonconsequent-hollis-unpliant.ngrok-free.dev/payment/callback", #for sandbox
-                    "ipn_callback_url" => route('payment.callback'),
-                    "payout_currency" => "USDTTRC20",
-                ]);
-                $data = $response->json();
+            //     $response = Http::withOptions([
+            //         'verify' => false, // Disable SSL certificate validation
+            //     ])->withHeaders([
+            //         'x-api-key' => config('services.payment.api_key'),
+            //         'Content-Type' => 'application/json',
+            //     // ])->post('https://api-sandbox.nowpayments.io/v1/invoice', [ #for sandbox
+            //     ])->post('https://api.nowpayments.io/v1/invoice', [
+            //         "price_amount" => number_format($order->total_price, 2, '.', ''),
+            //         "price_currency" => "USD",
+            //         "order_id" => $order->order_number,
+            //         "order_description" => "Order {$order->order_number}",
+            //         "success_url" => route('payment.status', $order->id),
+            //         "cancel_url" => route('payment.status', $order->id),
+            //         // "ipn_callback_url" => "https://nonconsequent-hollis-unpliant.ngrok-free.dev/payment/callback", #for sandbox
+            //         "ipn_callback_url" => route('payment.callback'),
+            //         "payout_currency" => "USDTTRC20",
+            //     ]);
+            //     $data = $response->json();
 
-                if (!$response->successful() || empty($data['invoice_url'])) {
-                    DB::rollBack();
-                    Log::error('NowPayments failed', $data);
-                    $this->addError('payment', 'Payment initialization failed.');
-                    return;
-                }
+            //     if (!$response->successful() || empty($data['invoice_url'])) {
+            //         DB::rollBack();
+            //         Log::error('NowPayments failed', $data);
+            //         $this->addError('payment', 'Payment initialization failed.');
+            //         return;
+            //     }
 
-                DB::commit();
-                Session::forget('cart');
-                $this->showPaymentModal = false;
+            //     DB::commit();
+            //     Session::forget('cart');
+            //     $this->showPaymentModal = false;
 
-                // ✅ Livewire 3 compatible redirect using emit()
-                return redirect()->away($data['invoice_url']);
-            }
+            //     // ✅ Livewire 3 compatible redirect using emit()
+            //     return redirect()->away($data['invoice_url']);
+            // }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Checkout error', [
