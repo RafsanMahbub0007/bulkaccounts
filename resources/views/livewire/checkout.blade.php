@@ -28,8 +28,8 @@
                 <form class="grid grid-cols-1 lg:grid-cols-2 gap-12" wire:submit.prevent>
 
                     {{-- =========================
-                    BILLING INFORMATION
-                ========================= --}}
+                        BILLING INFORMATION
+                    ========================= --}}
                     <div class="bg-gray-800/70 p-8 rounded-xl border border-gray-700">
 
                         <h2 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-3">
@@ -72,20 +72,18 @@
                             </div>
 
                             {{-- =========================
-                            PAYMENT BUTTONS
-                        ========================= --}}
-
+                                PAYMENT BUTTON
+                            ========================= --}}
                             <div class="flex gap-3 pt-3">
-                                {{-- Pay Online (Live Mode only) --}}
-                                @if ($isTestMode == true)
-                                    <button type="button" wire:click="proceedToPayment(false)"
-                                        class="flex-1 bg-red-600 py-3 rounded-lg font-semibold">
-                                        Pay Online
-                                    </button>
-                                @else
+                                @if($isTestMode)
                                     <button type="button" wire:click="proceedToPayment(true)"
                                         class="flex-1 bg-gray-700 py-3 rounded-lg font-semibold">
                                         Manual Payment
+                                    </button>
+                                @else
+                                    <button type="button" wire:click="proceedToPayment(false)"
+                                        class="flex-1 bg-red-600 py-3 rounded-lg font-semibold">
+                                        Pay Online
                                     </button>
                                 @endif
                             </div>
@@ -93,8 +91,8 @@
                     </div>
 
                     {{-- =========================
-                    ORDER SUMMARY
-                ========================= --}}
+                        ORDER SUMMARY
+                    ========================= --}}
                     <div class="bg-gray-800/70 p-8 rounded-xl border border-gray-700 lg:sticky lg:top-20">
 
                         <h3 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-3">
@@ -102,25 +100,27 @@
                         </h3>
 
                         <div class="space-y-4">
-                            @foreach ($cartItems as $item)
-                                <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg">
-                                    <div>
-                                        <p class="font-semibold">{{ $item['name'] }}</p>
-                                        <p class="text-sm text-gray-400">
-                                            Qty: {{ $item['quantity'] }}
+                            @if(!empty($cartItems) && is_array($cartItems))
+                                @foreach($cartItems as $item)
+                                    <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg">
+                                        <div>
+                                            <p class="font-semibold">{{ $item['name'] }}</p>
+                                            <p class="text-sm text-gray-400">Qty: {{ $item['quantity'] }}</p>
+                                        </div>
+                                        <p class="text-red-500 font-semibold">
+                                            ${{ number_format($item['price'] * $item['quantity'], 2) }}
                                         </p>
                                     </div>
-                                    <p class="text-red-500 font-semibold">
-                                        ${{ number_format($item['price'] * $item['quantity'], 2) }}
-                                    </p>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            @else
+                                <p class="text-gray-400">Your cart is empty.</p>
+                            @endif
                         </div>
 
                         <div class="border-t border-gray-700 mt-6 pt-6 flex justify-between text-xl font-bold">
                             <span>Total</span>
                             <span class="text-red-500">
-                                ${{ number_format($total, 2) }}
+                                ${{ number_format($total ?? 0, 2) }}
                             </span>
                         </div>
                     </div>
@@ -142,7 +142,7 @@
             </h3>
 
             {{-- Only show Transaction ID if manualPayment --}}
-            @if ($manualPayment)
+            @if($isTestMode)
                 <div class="mb-4">
                     <label class="text-gray-300 block mb-1">Transaction ID</label>
                     <input type="text" wire:model.defer="transactionIdInput"
@@ -152,7 +152,7 @@
 
             <div class="mb-6">
                 <label class="text-gray-400 block mb-1">Amount</label>
-                <input type="text" readonly value="${{ number_format($total, 2) }}"
+                <input type="text" readonly value="${{ number_format($total ?? 0, 2) }}"
                     class="w-full bg-gray-700 px-4 py-2 rounded-lg text-gray-400">
             </div>
 
@@ -182,7 +182,7 @@
         });
 
         Livewire.on('redirect-to-payment', data => {
-        window.location.href = data.url; // Open the invoice URL
-    });
+            window.location.href = data.url; // Open the invoice URL
+        });
     </script>
 </div>

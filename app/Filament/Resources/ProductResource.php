@@ -28,27 +28,34 @@ class ProductResource extends Resource
         return $form->schema([
             Forms\Components\TextInput::make('name')->required(),
             Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true),
+
             Forms\Components\Select::make('category_id')
                 ->relationship('category', 'name')
                 ->required()
                 ->reactive(),
+
             Forms\Components\Select::make('subcategory_id')
-                ->options(fn($get) => $get('category_id')
-                    ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
-                    : [])
+                ->options(fn ($get) =>
+                    $get('category_id')
+                        ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
+                        : []
+                )
                 ->required()
-                ->disabled(fn($get) => !$get('category_id')),
+                ->disabled(fn ($get) => !$get('category_id')),
+
             Forms\Components\CheckboxList::make('feature_ids')
                 ->options(ProductFeature::pluck('name', 'id'))
                 ->columns(2),
+
             Forms\Components\TextInput::make('purchase_price')->numeric()->required(),
             Forms\Components\TextInput::make('selling_price')->numeric()->required(),
-            Forms\Components\TextInput::make('min_order_qty')->numeric()->default(10),
+            Forms\Components\TextInput::make('min_order_qty')->numeric()->default(1),
+
             Forms\Components\Textarea::make('description'),
             Forms\Components\RichEditor::make('content')->columnSpanFull(),
+
             Forms\Components\TextInput::make('google_sheet_id')
                 ->label('Google Sheet ID')
-                ->hint('Enter the ID from the sheet URL, e.g., 1AbCXYZ...')
                 ->required(),
         ]);
     }
@@ -68,129 +75,109 @@ class ProductResource extends Resource
                 Tables\Actions\Action::make('openSheet')
                     ->label('Open Sheet')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}")
-                    ->openUrlInNewTab()
-                    ->visible(fn($record) => filled($record->google_sheet_id)),
+                    ->url(fn ($record) => "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}")
+                    ->openUrlInNewTab(),
 
                 Tables\Actions\Action::make('syncSheet')
                     ->label('Sync Sheet')
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
-                    ->action(fn($record) => static::syncSheet($record))
-                    ->disabled(fn($record) => blank($record->google_sheet_id)),
+                    ->action(fn ($record) => static::syncSheet($record)),
             ]);
     }
 
-    /* ================= SYNC ENGINE (Multi-Tab: unsold/sold/banned) ================= */
+    /* ================= GOOGLE CLIENT ================= */
+    private static function sheets(): Sheets
+    {
+        $client = new Client();
+        $client->setApplicationName('Product Sheet Sync');
+        $client->setScopes([Sheets::SPREADSHEETS]);
+        $client->setAuthConfig(config('services.google.credentials'));
+
+        return new Sheets($client);
+    }
+
+    private static function mapStatus(string $tab): string
+    {
+        return match (strtolower(trim($tab))) {
+            'sold'   => 'sold',
+            'banned' => 'banned',
+            default  => 'unsold',
+        };
+    }
+
+    /* ================= SYNC ENGINE ================= */
     public static function syncSheet(Product $product): void
     {
         try {
-            if (!$product->google_sheet_id) {
-                throw new \Exception('Google Sheet ID missing');
-            }
+            $service = static::sheets();
 
-            $client = new \Google\Client();
-            $client->setApplicationName('Product Sheet Dynamic Multi-Tab Sync');
-            $client->setScopes([\Google\Service\Sheets::SPREADSHEETS_READONLY]);
-            $client->setAuthConfig(config('services.google.credentials'));
+            DB::transaction(function () use ($service, $product) {
 
-            $service = new \Google\Service\Sheets($client);
+                $spreadsheet = $service->spreadsheets->get($product->google_sheet_id);
+                $tabs = $spreadsheet->getSheets();
 
-            // 🔹 Step 1: Get all sheets dynamically
-            $spreadsheet = $service->spreadsheets->get($product->google_sheet_id);
-            $sheets = $spreadsheet->getSheets();
+                $seen = [];
 
-            if (empty($sheets)) {
-                throw new \Exception('No sheets found in the spreadsheet');
-            }
+                foreach ($tabs as $sheet) {
+                    $tab = $sheet->getProperties()->getTitle();
+                    $status = static::mapStatus($tab);
 
-            $processed = [];
-            $totalCount = 0;
+                    $response = $service->spreadsheets_values
+                        ->get($product->google_sheet_id, "{$tab}!A1:Z");
 
-            DB::beginTransaction();
+                    $rows = $response->getValues();
+                    if (!$rows || count($rows) < 2) continue;
 
-            foreach ($sheets as $sheet) {
-                $tabName = $sheet->getProperties()->getTitle();
-                $range = $tabName . '!A:Z';
+                    $headers = array_map(fn ($h) => strtolower(trim($h)), array_shift($rows));
+                    $emailIndex = array_search('email', $headers);
+                    if ($emailIndex === false) continue;
 
-                try {
-                    $response = $service->spreadsheets_values->get($product->google_sheet_id, $range);
-                } catch (\Throwable $e) {
-                    continue; // skip missing or empty tabs
+                    foreach ($rows as $row) {
+                        if (!isset($row[$emailIndex])) continue;
+
+                        $email = strtolower(trim($row[$emailIndex]));
+                        if (isset($seen[$email])) continue;
+                        $seen[$email] = true;
+
+                        $row = array_pad($row, count($headers), '');
+                        $data = array_combine($headers, $row);
+
+                        ProductAccount::updateOrCreate(
+                            ['product_id' => $product->id, 'email' => $email],
+                            [
+                                'status'       => $status,
+                                'meta'         => $data,
+                                'meta_headers' => $headers,
+                            ]
+                        );
+                    }
                 }
 
-                $rows = $response->getValues();
-                if (!$rows || count($rows) < 2) continue;
-
-                $headers = array_map('trim', array_shift($rows));
-                if (!in_array('email', $headers)) continue; // skip if email column missing
-
-                foreach ($rows as $row) {
-                    if (count(array_filter($row)) === 0) continue;
-
-                    $data = array_combine($headers, $row);
-                    if (empty($data['email'])) continue;
-
-                    $email = strtolower(trim($data['email']));
-                    if (isset($processed[$email])) continue;
-                    $processed[$email] = true;
-
-                    $existing = ProductAccount::where('product_id', $product->id)
-                        ->where('email', $email)
-                        ->first();
-
-                    // ❌ Never overwrite sold/banned if already marked
-                    if ($existing && in_array($existing->status, ['sold', 'banned'])) {
-                        continue;
-                    }
-
-                    if ($existing) {
-                        $existing->update([
-                            'meta' => $data,
-                            'status' => strtolower($tabName), // use tab name as status
-                        ]);
-                    } else {
-                        ProductAccount::create([
-                            'product_id' => $product->id,
-                            'email' => $email,
-                            'status' => strtolower($tabName),
-                            'meta' => $data,
-                        ]);
-                    }
-
-                    $totalCount++;
-                }
-            }
-
-            // 🔹 Update product stock (unsold only)
-            $product->update([
-                'stock' => ProductAccount::where('product_id', $product->id)
-                    ->where('status', 'unsold')
-                    ->count(),
-            ]);
-
-            DB::commit();
+                $product->update([
+                    'stock' => ProductAccount::where('product_id', $product->id)
+                        ->where('status', 'unsold')
+                        ->count(),
+                ]);
+            });
 
             Notification::make()
-                ->title('Sheet synced')
-                ->body("{$totalCount} accounts synced across all tabs")
+                ->title('Sheet synced successfully')
                 ->success()
                 ->send();
-        } catch (\Throwable $e) {
-            DB::rollBack();
 
+        } catch (\Throwable $e) {
             Notification::make()
-                ->title('Sync failed')
+                ->title('Sheet sync failed')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
         }
     }
 
-
     protected static function afterSave($record): void
     {
-        if ($record->google_sheet_id) {
+        if ($record->wasChanged('google_sheet_id')) {
             static::syncSheet($record);
         }
     }

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->integer('min_order_qty')->default(10);
             $table->string('product_image')->nullable();
             $table->string('google_sheet_url')->nullable();
+            $table->string('google_sheet_id')->nullable();
             $table->text('keywords')->nullable();
             $table->text('description')->nullable();
             $table->longText('content')->nullable();

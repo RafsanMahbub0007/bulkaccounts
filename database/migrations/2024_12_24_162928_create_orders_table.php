@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('order_status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
             $table->timestamp('ordered_at')->useCurrent();
             $table->timestamp('completed_at')->nullable();
+            $table->string('download_file')->nullable();
             $table->timestamps();
         });
     }

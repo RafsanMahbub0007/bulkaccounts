@@ -12,13 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_accounts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->string('email');
-            $table->json('meta')->nullable();
-            $table->unique(['product_id', 'email']);
-            $table->string('status')->default('unsold');
-            $table->timestamps();
+        $table->id();
+        $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+        $table->string('email')->collation('utf8mb4_unicode_ci');
+        $table->enum('status', ['unsold', 'sold', 'banned'])->default('unsold');
+        $table->json('meta')->nullable();
+        $table->json('meta_headers')->nullable();
+        $table->timestamps();
+
+        $table->unique(['product_id', 'email']);
+        $table->index(['product_id', 'status']);
+
         });
     }
 
