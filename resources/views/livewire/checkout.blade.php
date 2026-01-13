@@ -36,11 +36,15 @@
                             Billing Information
                         </h2>
 
-                        @error('*')
+                        @if ($errors->any())
                             <div class="bg-red-600 p-4 rounded-lg mb-4 text-sm">
-                                {{ $message }}
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
                             </div>
-                        @enderror
+                        @endif
 
                         <div class="space-y-5">
                             <div>
@@ -75,7 +79,7 @@
                                 PAYMENT BUTTON
                             ========================= --}}
                             <div class="flex gap-3 pt-3">
-                                @if($isTestMode)
+                                @if ($isTestMode)
                                     <button type="button" wire:click="proceedToPayment(true)"
                                         class="flex-1 bg-gray-700 py-3 rounded-lg font-semibold">
                                         Manual Payment
@@ -100,8 +104,8 @@
                         </h3>
 
                         <div class="space-y-4">
-                            @if(!empty($cartItems) && is_array($cartItems))
-                                @foreach($cartItems as $item)
+                            @if (!empty($cartItems) && is_array($cartItems))
+                                @foreach ($cartItems as $item)
                                     <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg">
                                         <div>
                                             <p class="font-semibold">{{ $item['name'] }}</p>
@@ -142,7 +146,7 @@
             </h3>
 
             {{-- Only show Transaction ID if manualPayment --}}
-            @if($isTestMode)
+            @if ($isTestMode)
                 <div class="mb-4">
                     <label class="text-gray-300 block mb-1">Transaction ID</label>
                     <input type="text" wire:model.defer="transactionIdInput"

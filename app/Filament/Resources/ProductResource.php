@@ -35,13 +35,14 @@ class ProductResource extends Resource
                 ->reactive(),
 
             Forms\Components\Select::make('subcategory_id')
-                ->options(fn ($get) =>
+                ->options(
+                    fn($get) =>
                     $get('category_id')
                         ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
                         : []
                 )
                 ->required()
-                ->disabled(fn ($get) => !$get('category_id')),
+                ->disabled(fn($get) => !$get('category_id')),
 
             Forms\Components\CheckboxList::make('feature_ids')
                 ->options(ProductFeature::pluck('name', 'id'))
@@ -75,14 +76,14 @@ class ProductResource extends Resource
                 Tables\Actions\Action::make('openSheet')
                     ->label('Open Sheet')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn ($record) => "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}")
+                    ->url(fn($record) => "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}")
                     ->openUrlInNewTab(),
 
                 Tables\Actions\Action::make('syncSheet')
                     ->label('Sync Sheet')
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
-                    ->action(fn ($record) => static::syncSheet($record)),
+                    ->action(fn($record) => static::syncSheet($record)),
             ]);
     }
 
@@ -129,7 +130,8 @@ class ProductResource extends Resource
                     $rows = $response->getValues();
                     if (!$rows || count($rows) < 2) continue;
 
-                    $headers = array_map(fn ($h) => strtolower(trim($h)), array_shift($rows));
+                    // Lowercase & trim headers
+                    $headers = array_map(fn($h) => strtolower(trim($h)), array_shift($rows));
                     $emailIndex = array_search('email', $headers);
                     if ($emailIndex === false) continue;
 
@@ -141,14 +143,25 @@ class ProductResource extends Resource
                         $seen[$email] = true;
 
                         $row = array_pad($row, count($headers), '');
-                        $data = array_combine($headers, $row);
+
+                        // Build meta excluding 'email'
+                        $data = array_values(
+                            array_filter(
+                                $row,
+                                fn($value, $index) => strtolower($headers[$index]) !== 'email',
+                                ARRAY_FILTER_USE_BOTH
+                            )
+                        );
+
+                        // Filter meta_headers: all headers except 'email' and reindex array
+                        $metaHeaders = array_values(array_filter($headers, fn($h) => $h !== 'email'));
 
                         ProductAccount::updateOrCreate(
                             ['product_id' => $product->id, 'email' => $email],
                             [
                                 'status'       => $status,
                                 'meta'         => $data,
-                                'meta_headers' => $headers,
+                                'meta_headers' => $metaHeaders,
                             ]
                         );
                     }
@@ -165,7 +178,6 @@ class ProductResource extends Resource
                 ->title('Sheet synced successfully')
                 ->success()
                 ->send();
-
         } catch (\Throwable $e) {
             Notification::make()
                 ->title('Sheet sync failed')
@@ -174,6 +186,7 @@ class ProductResource extends Resource
                 ->send();
         }
     }
+
 
     protected static function afterSave($record): void
     {

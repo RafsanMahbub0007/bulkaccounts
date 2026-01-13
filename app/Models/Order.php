@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Google\Client;
 use Google\Service\Sheets;
 
@@ -32,21 +31,9 @@ class Order extends Model
     {
         parent::boot();
 
-        // Auto-generate order number
         static::creating(function ($order) {
             if (empty($order->order_number)) {
                 $order->order_number = 'ORD-' . strtoupper(uniqid());
-            }
-        });
-
-        // Trigger when order is updated
-        static::updated(function ($order) {
-            if (
-                $order->order_status === 'completed' &&
-                $order->payment_status === 'paid' &&
-                $order->completed_at
-            ) {
-                $order->handleAccountsSold();
             }
         });
     }
@@ -71,43 +58,8 @@ class Order extends Model
         return $this->hasManyThrough(Delivery::class, OrderItem::class);
     }
 
-    /* ================= MARK ACCOUNTS AS SOLD ================= */
-    public function handleAccountsSold(): void
-    {
-        DB::transaction(function () {
-            foreach ($this->orderItems as $item) {
-                $product = $item->product;
-                if (!$product) continue;
-
-                // Lock and fetch only required unsold accounts
-                $accounts = $product->accounts()
-                    ->where('status', 'unsold')
-                    ->lockForUpdate()
-                    ->limit($item->quantity)
-                    ->get();
-
-                if ($accounts->count() < $item->quantity) {
-                    throw new \Exception("Insufficient stock for product {$product->name}");
-                }
-
-                // Mark as sold
-                foreach ($accounts as $acc) {
-                    $acc->update(['status' => 'sold']);
-                }
-
-                // Decrement stock
-                $product->decrement('stock', $item->quantity);
-
-                // Update Google Sheet
-                if ($product->google_sheet_id) {
-                    $this->updateGoogleSheet($product, $accounts);
-                }
-            }
-        });
-    }
-
     /* ================= GOOGLE SHEET CLIENT ================= */
-    private function sheetsClient(): Sheets
+    public function sheetsClient(): Sheets
     {
         $client = new Client();
         $client->setApplicationName('Order Fulfillment');
@@ -117,40 +69,66 @@ class Order extends Model
         return new Sheets($client);
     }
 
-    private function updateGoogleSheet($product, $accounts): void
+    /**
+     * Updates Google Sheet for a product and sold accounts
+     */
+    public function updateGoogleSheet(string $sheetId, $accounts): void
     {
         if ($accounts->isEmpty()) return;
 
-        $sheetId = $product->google_sheet_id;
         $service = $this->sheetsClient();
 
-        // Fetch spreadsheet and tabs
+        // Step 1: Ensure 'sold' tab exists
         $spreadsheet = $service->spreadsheets->get($sheetId);
         $tabs = collect($spreadsheet->getSheets())
             ->map(fn($s) => $s->getProperties()->getTitle());
 
-        $soldEmails = $accounts->pluck('email')->map(fn($e) => strtolower($e))->toArray();
+        if (!$tabs->contains('sold')) {
+            $service->spreadsheets->batchUpdate(
+                $sheetId,
+                new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
+                    'requests' => [['addSheet' => ['properties' => ['title' => 'sold']]]]
+                ])
+            );
+            $tabs->push('sold'); // update local list
+        }
 
-        // Remove sold emails from all unsold tabs (skip "sold")
+        // Step 2: Prepare sold emails list
+        $soldEmails = $accounts->pluck('email')
+            ->filter()
+            ->map(fn($e) => strtolower(trim($e)))
+            ->toArray();
+
+        // Step 3: Remove sold emails from all unsold tabs
         foreach ($tabs as $tab) {
-            if (strtolower($tab) === 'sold') continue; // skip sold tab
+            if (strtolower($tab) === 'sold') continue;
 
-            $response = $service->spreadsheets_values->get($sheetId, "{$tab}!A1:Z");
-            $rows = $response->getValues();
-            if (!$rows || count($rows) < 2) continue;
+            $range = "{$tab}!A1:Z";
+            $response = $service->spreadsheets_values->get($sheetId, $range);
+            $rows = $response->getValues() ?? [];
+            if (count($rows) < 2) continue; // skip if only headers
 
-            $headers = $rows[0];
-            $emailIndex = array_search('email', array_map('strtolower', $headers));
+            $headers = array_map('strtolower', $rows[0]);
+            $emailIndex = array_search('email', $headers);
             if ($emailIndex === false) continue;
 
-            $filtered = [$headers]; // always include headers
+            // Filter rows without reading entire sheet
+            $filtered = [$rows[0]];
             foreach (array_slice($rows, 1) as $row) {
-                $email = strtolower($row[$emailIndex] ?? '');
-                if (!in_array($email, $soldEmails)) {
+                $row = array_pad($row, count($headers), '');
+                if (!in_array(strtolower($row[$emailIndex] ?? ''), $soldEmails)) {
                     $filtered[] = $row;
                 }
             }
 
+            // Clear old data below header
+            $service->spreadsheets_values->clear(
+                $sheetId,
+                "{$tab}!A2:Z",
+                new \Google\Service\Sheets\ClearValuesRequest()
+            );
+
+            // Update only filtered rows
             $service->spreadsheets_values->update(
                 $sheetId,
                 "{$tab}!A1",
@@ -159,37 +137,39 @@ class Order extends Model
             );
         }
 
-        // Create "sold" tab if missing
-        if (!$tabs->contains('sold')) {
-            $service->spreadsheets->batchUpdate($sheetId, new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
-                'requests' => [['addSheet' => ['properties' => ['title' => 'sold']]]]
-            ]));
+        // Step 4: Append sold accounts to 'sold' tab
+        $response = $service->spreadsheets_values->get($sheetId, "sold!A1:Z");
+        $sheetRows = $response->getValues() ?? [];
 
-            // refresh tabs after creating sold tab
-            $spreadsheet = $service->spreadsheets->get($sheetId);
-            $tabs = collect($spreadsheet->getSheets())
-                ->map(fn($s) => $s->getProperties()->getTitle());
+        $sheetHeaders = [];
+        if (empty($sheetRows)) {
+            // If sold tab is empty, create headers
+            $sheetHeaders = array_merge(['email'], $accounts->first()->meta_headers ?? []);
+            $service->spreadsheets_values->update(
+                $sheetId,
+                "sold!A1",
+                new \Google\Service\Sheets\ValueRange(['values' => [$sheetHeaders]]),
+                ['valueInputOption' => 'RAW']
+            );
+        } else {
+            $sheetHeaders = $sheetRows[0];
         }
 
-        // Prepare rows to append to sold tab
-        $headers = $accounts->first()->meta_headers ?? [];
-        if (!empty($headers)) {
-            $rows = $accounts->map(
-                fn($a) =>
-                array_map(fn($h) => $a->meta[$h] ?? '', (array)$a->meta)
-            )->toArray();
+        // Prepare rows to append
+        $rowsToAppend = $accounts->map(function ($account) use ($sheetHeaders) {
+            $meta = is_array($account->meta) ? $account->meta : [];
+            return array_map(
+                fn($header) =>
+                strtolower(trim($header)) === 'email' ? $account->email ?? '' : $meta[strtolower(trim($header))] ?? '',
+                $sheetHeaders
+            );
+        })->toArray();
 
-            // Prepend headers if sold tab is empty
-            $response = $service->spreadsheets_values->get($sheetId, "sold!A1:Z");
-            $existingRows = $response->getValues() ?? [];
-            if (empty($existingRows)) {
-                array_unshift($rows, $headers);
-            }
-
+        if (!empty($rowsToAppend)) {
             $service->spreadsheets_values->append(
                 $sheetId,
                 "sold!A1",
-                new \Google\Service\Sheets\ValueRange(['values' => $rows]),
+                new \Google\Service\Sheets\ValueRange(['values' => $rowsToAppend]),
                 ['valueInputOption' => 'RAW']
             );
         }

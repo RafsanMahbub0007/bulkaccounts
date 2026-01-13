@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class ProductAccount extends Model
 {
     protected $fillable = [
-        'product_id', 'email','meta','status'
+        'product_id', 'email','meta','status','meta_headers'
     ];
 
     protected $casts = [
         'meta' => 'array',
+        'meta_headers' => 'array',
     ];
     public function product()
         {

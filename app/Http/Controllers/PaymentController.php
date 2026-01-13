@@ -45,13 +45,14 @@ class PaymentController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    /* ================= FULFILLMENT ================= */
     private function completeOrder(Order $order, array $payload): void
     {
         DB::transaction(function () use ($order, $payload) {
-
             $service = $this->sheets();
 
+            Log::info("Processing order ID: {$order->id}", $payload);
+
+            // Update order first
             $order->update([
                 'payment_status' => 'paid',
                 'order_status'   => 'completed',
@@ -59,99 +60,53 @@ class PaymentController extends Controller
                 'transaction_reference' => $payload['payment_id'] ?? null,
             ]);
 
-            foreach ($order->items as $item) {
+            foreach ($order->orderItems as $item) {
+                if (!$item->product) continue;
 
-                $accounts = ProductAccount::where('product_id', $item->product_id)
+                $product = $item->product;
+                $limit = (int)$item->quantity;
+
+                // Fetch unsold accounts
+                $accounts = ProductAccount::where('product_id', $product->id)
                     ->where('status', 'unsold')
                     ->lockForUpdate()
-                    ->limit($item->quantity)
+                    ->limit($limit)
                     ->get();
 
-                if ($accounts->count() < $item->quantity) {
-                    throw new \Exception('Insufficient stock');
+                if ($accounts->count() < $limit) {
+                    throw new \Exception("Insufficient stock for product {$product->name}");
                 }
 
+                // Mark accounts as sold
                 foreach ($accounts as $acc) {
                     $acc->update(['status' => 'sold']);
+                    Log::info("Account ID {$acc->id} marked as sold");
                 }
 
-                $item->product->decrement('stock', $item->quantity);
+                // Decrement stock
+                $product->decrement('stock', $limit);
+                Log::info("Product ID {$product->id} stock decremented by {$limit}, new stock: {$product->stock}");
 
-                if ($item->product->google_sheet_id) {
-                    $this->updateGoogleSheet(
-                        $service,
-                        $item->product->google_sheet_id,
-                        $accounts
-                    );
+                // Update Google Sheet if applicable
+                if ($product->google_sheet_id && $accounts->isNotEmpty()) {
+                    $order->updateGoogleSheet($product->google_sheet_id, $accounts);
+                    Log::info("Google Sheet updated for product ID {$product->id}");
                 }
             }
 
-            Payment::create([
-                'order_id' => $order->id,
-                'amount' => $payload['price_amount'] ?? 0,
-                'currency' => $payload['price_currency'] ?? 'USD',
-                'status' => 'completed',
-                'transaction_id' => $payload['payment_id'] ?? null,
-                'paid_at' => now(),
-            ]);
+            // Record the payment
+            Payment::updateOrCreate(
+                ['transaction_id' => $payload['payment_id'] ?? null],
+                [
+                    'order_id' => $order->id,
+                    'amount' => $payload['price_amount'] ?? 0,
+                    'currency' => $payload['price_currency'] ?? 'USD',
+                    'status' => 'completed',
+                    'paid_at' => now(),
+                ]
+            );
+
+            Log::info("Order ID {$order->id} completed successfully");
         });
-    }
-
-    /* ================= GOOGLE SHEET UPDATE ================= */
-    private function updateGoogleSheet(Sheets $service, string $sheetId, $accounts): void
-    {
-        $spreadsheet = $service->spreadsheets->get($sheetId);
-        $tabs = collect($spreadsheet->getSheets())
-            ->map(fn ($s) => $s->getProperties()->getTitle());
-
-        $soldEmails = $accounts->pluck('email')->map(fn ($e) => strtolower($e))->toArray();
-
-        foreach ($tabs as $tab) {
-            $response = $service->spreadsheets_values->get($sheetId, "{$tab}!A1:Z");
-            $rows = $response->getValues();
-            if (!$rows || count($rows) < 2) continue;
-
-            $headers = $rows[0];
-            $emailIndex = array_search('email', array_map('strtolower', $headers));
-            if ($emailIndex === false) continue;
-
-            $filtered = [$headers];
-
-            foreach (array_slice($rows, 1) as $row) {
-                $email = strtolower($row[$emailIndex] ?? '');
-                if (!in_array($email, $soldEmails)) {
-                    $filtered[] = $row;
-                }
-            }
-
-            $service->spreadsheets_values->update(
-                $sheetId,
-                "{$tab}!A1",
-                new \Google\Service\Sheets\ValueRange(['values' => $filtered]),
-                ['valueInputOption' => 'RAW']
-            );
-        }
-
-        // Append to SOLD tab
-        if (!$tabs->contains('sold')) {
-            $service->spreadsheets->batchUpdate($sheetId,
-                new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
-                    'requests' => [['addSheet' => ['properties' => ['title' => 'sold']]]]
-                ])
-            );
-        }
-
-        $headers = $accounts->first()->meta_headers;
-
-        $rows = $accounts->map(fn ($a) =>
-            array_map(fn ($h) => $a->meta[$h] ?? '', $headers)
-        )->toArray();
-
-        $service->spreadsheets_values->append(
-            $sheetId,
-            "sold!A1",
-            new \Google\Service\Sheets\ValueRange(['values' => $rows]),
-            ['valueInputOption' => 'RAW']
-        );
     }
 }
