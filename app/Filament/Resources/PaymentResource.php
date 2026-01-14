@@ -147,7 +147,6 @@ class PaymentResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -162,7 +161,10 @@ class PaymentResource extends Resource
             //
         ];
     }
-
+        public static function canCreate(): bool
+        {
+            return false;
+        }
     public static function getPages(): array
     {
         return [

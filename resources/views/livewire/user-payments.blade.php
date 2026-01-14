@@ -36,10 +36,11 @@
                 <table class="min-w-full table-auto">
                     <thead class="bg-red-600 text-white text-sm uppercase">
                         <tr>
+                            <th class="px-6 py-4 text-left">Order Number</th>
                             <th class="px-6 py-4 text-left">Transaction ID</th>
+                            <th class="px-6 py-4 text-left">Payment Methode</th>
                             <th class="px-6 py-4 text-left">Amount</th>
                             <th class="px-6 py-4 text-left">Currency</th>
-                            <th class="px-6 py-4 text-left">Order Number</th>
                             <th class="px-6 py-4 text-left">Paid At</th>
                             <th class="px-6 py-4 text-left">Status</th>
                         </tr>
@@ -47,10 +48,11 @@
                     <tbody class="text-gray-400">
                         @foreach ($payments as $payment)
                             <tr class="border-b hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4">{{ $payment->order->order_number }}</td>
                                 <td class="px-6 py-4">{{ $payment->transaction_id }}</td>
+                                <td class="px-6 py-4">{{ $payment->payment_method }}</td>
                                 <td class="px-6 py-4">${{ number_format($payment->amount, 2) }}</td>
                                 <td class="px-6 py-4">{{ $payment->currency }}</td>
-                                <td class="px-6 py-4">{{ $payment->order_number }}</td>
                                 <td class="px-6 py-4">
                                     {{ $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('d M Y') : 'N/A' }}
                                 </td>

@@ -135,7 +135,7 @@ class ProductResource extends Resource
                     $emailIndex = array_search('email', $headers);
                     if ($emailIndex === false) continue;
 
-                    foreach ($rows as $row) {
+                    foreach ($rows as $index => $row) {
                         if (!isset($row[$emailIndex])) continue;
 
                         $email = strtolower(trim($row[$emailIndex]));
@@ -162,9 +162,17 @@ class ProductResource extends Resource
                                 'status'       => $status,
                                 'meta'         => $data,
                                 'meta_headers' => $metaHeaders,
+                                'row_index'    => $index,
                             ]
                         );
                     }
+                }
+
+                // Prune accounts that are no longer in the sheet
+                if (!empty($seen)) {
+                    ProductAccount::where('product_id', $product->id)
+                        ->whereNotIn('email', array_keys($seen))
+                        ->delete();
                 }
 
                 $product->update([

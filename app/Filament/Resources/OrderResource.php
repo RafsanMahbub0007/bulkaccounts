@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use App\Services\OrderFulfillmentService;
+use Filament\Notifications\Notification;
 
 class OrderResource extends Resource
 {
@@ -126,7 +128,51 @@ class OrderResource extends Resource
                 // Filters can be added here
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('fulfillOrder')
+                    ->label('Complete & Fulfill')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Order $record) => $record->order_status !== 'completed' && $record->payment_status !== 'paid')
+                    ->form([
+                        TextInput::make('transaction_id')
+                            ->label('Transaction ID')
+                            ->default(fn (Order $record) => $record->payments()->latest()->first()?->transaction_id)
+                            ->disabled(),
+                        TextInput::make('amount')
+                            ->label('Amount')
+                            ->default(fn (Order $record) => $record->payments()->latest()->first()?->amount)
+                            ->disabled(),
+                    ])
+                    ->action(function (Order $record) {
+                        try {
+                            // Get the existing payment or create a new one
+                            $payment = $record->payments()->latest()->first();
+                            $transactionId = $payment ? $payment->transaction_id : 'MANUAL-' . uniqid();
+
+                            app(OrderFulfillmentService::class)->fulfillOrder($record, [
+                                'payment_id' => $transactionId,
+                                'price_amount' => $record->total_price,
+                                'price_currency' => 'USD'
+                            ]);
+                            
+                            // Update the pending payment status if it exists
+                            if ($payment) {
+                                $payment->update(['status' => 'completed', 'paid_at' => now()]);
+                            }
+
+                            Notification::make()
+                                ->title('Order Fulfilled Successfully')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Fulfillment Failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

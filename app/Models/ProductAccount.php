@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductAccount extends Model
 {
     protected $fillable = [
-        'product_id', 'email','meta','status','meta_headers'
+        'product_id', 'email','meta','status','meta_headers','row_index'
     ];
 
     protected $casts = [

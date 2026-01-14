@@ -120,18 +120,19 @@ class Checkout extends Component
 
             /* ================= TEST MODE (MANUAL PAYMENT) ================= */
             if ($this->isTestMode) {
+                // Create a pending payment record for admin review
+                \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'transaction_id' => $this->transactionIdInput,
+                    'amount' => $order->total_price,
+                    'currency' => 'USD',
+                    'status' => 'pending', // Pending admin approval
+                ]);
 
-                app(PaymentController::class)->handle(
-                    new Request([
-                        'order_id'       => $order->order_number,
-                        'payment_status' => 'finished',
-                        'payment_id'     => $this->transactionIdInput ?? 'TEST123',
-                        'price_amount'   => $order->total_price,
-                        'price_currency' => 'USD',
-                    ])
-                );
-
-                return redirect()->route('home');
+                // Just clear cart and redirect. 
+                // Admin will manually fulfill the order.
+                Session::forget('cart');
+                return redirect()->route('home')->with('success', 'Order placed successfully! Waiting for admin approval.');
             }
 
             /* ================= LIVE PAYMENT ================= */

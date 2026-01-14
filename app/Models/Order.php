@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Google\Client;
 use Google\Service\Sheets;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -90,61 +91,60 @@ class Order extends Model
                     'requests' => [['addSheet' => ['properties' => ['title' => 'sold']]]]
                 ])
             );
-            $tabs->push('sold'); // update local list
+            $tabs->push('sold');
         }
 
         // Step 2: Prepare sold emails list
-        $soldEmails = $accounts->pluck('email')
-            ->filter()
-            ->map(fn($e) => strtolower(trim($e)))
-            ->toArray();
+            $soldEmails = $accounts->pluck('email')
+                ->filter()
+                ->map(fn($e) => strtolower(trim($e)))
+                ->toArray();
 
-        // Step 3: Remove sold emails from all unsold tabs
-        foreach ($tabs as $tab) {
-            if (strtolower($tab) === 'sold') continue;
+            // Step 3: Remove sold emails from other tabs
+            foreach ($tabs as $tab) {
+                if (strtolower($tab) === 'sold') continue;
 
-            $range = "{$tab}!A1:Z";
-            $response = $service->spreadsheets_values->get($sheetId, $range);
-            $rows = $response->getValues() ?? [];
-            if (count($rows) < 2) continue; // skip if only headers
+                $range = "{$tab}!A1:Z";
+                $response = $service->spreadsheets_values->get($sheetId, $range);
+                $rows = $response->getValues() ?? [];
+                if (count($rows) < 2) continue;
 
-            $headers = array_map('strtolower', $rows[0]);
-            $emailIndex = array_search('email', $headers);
-            if ($emailIndex === false) continue;
+                $headers = array_map('strtolower', $rows[0]);
+                $emailIndex = array_search('email', $headers);
+                if ($emailIndex === false) continue;
 
-            // Filter rows without reading entire sheet
-            $filtered = [$rows[0]];
-            foreach (array_slice($rows, 1) as $row) {
-                $row = array_pad($row, count($headers), '');
-                if (!in_array(strtolower($row[$emailIndex] ?? ''), $soldEmails)) {
-                    $filtered[] = $row;
+                $filtered = [$rows[0]];
+                foreach (array_slice($rows, 1) as $row) {
+                    $row = array_pad($row, count($headers), '');
+                    if (!in_array(strtolower($row[$emailIndex] ?? ''), $soldEmails)) {
+                        $filtered[] = $row;
+                    }
                 }
+
+                $service->spreadsheets_values->clear(
+                    $sheetId,
+                    "{$tab}!A2:Z",
+                    new \Google\Service\Sheets\ClearValuesRequest()
+                );
+
+                $service->spreadsheets_values->update(
+                    $sheetId,
+                    "{$tab}!A1",
+                    new \Google\Service\Sheets\ValueRange(['values' => $filtered]),
+                    ['valueInputOption' => 'RAW']
+                );
             }
 
-            // Clear old data below header
-            $service->spreadsheets_values->clear(
-                $sheetId,
-                "{$tab}!A2:Z",
-                new \Google\Service\Sheets\ClearValuesRequest()
-            );
-
-            // Update only filtered rows
-            $service->spreadsheets_values->update(
-                $sheetId,
-                "{$tab}!A1",
-                new \Google\Service\Sheets\ValueRange(['values' => $filtered]),
-                ['valueInputOption' => 'RAW']
-            );
-        }
-
-        // Step 4: Append sold accounts to 'sold' tab
+        // Step 4: Prepare sold tab headers
         $response = $service->spreadsheets_values->get($sheetId, "sold!A1:Z");
         $sheetRows = $response->getValues() ?? [];
 
-        $sheetHeaders = [];
         if (empty($sheetRows)) {
-            // If sold tab is empty, create headers
-            $sheetHeaders = array_merge(['email'], $accounts->first()->meta_headers ?? []);
+            // If sold tab is empty, create headers from first account
+            $firstAccount = $accounts->first();
+            $metaHeaders = $firstAccount->meta_headers ?? [];
+            $sheetHeaders = array_merge(['Email'], $metaHeaders);
+
             $service->spreadsheets_values->update(
                 $sheetId,
                 "sold!A1",
@@ -155,16 +155,35 @@ class Order extends Model
             $sheetHeaders = $sheetRows[0];
         }
 
-        // Prepare rows to append
-        $rowsToAppend = $accounts->map(function ($account) use ($sheetHeaders) {
-            $meta = is_array($account->meta) ? $account->meta : [];
-            return array_map(
-                fn($header) =>
-                strtolower(trim($header)) === 'email' ? $account->email ?? '' : $meta[strtolower(trim($header))] ?? '',
-                $sheetHeaders
-            );
-        })->toArray();
+            $rowsToAppend = $accounts->map(function ($account) use ($sheetHeaders) {
+                $meta = $account->meta ?? [];
+                $metaHeaders = $account->meta_headers ?? [];
+                
+                // Map meta headers to meta values
+                $metaMap = [];
+                foreach ($metaHeaders as $i => $header) {
+                    if (isset($meta[$i])) {
+                        $metaMap[strtolower($header)] = $meta[$i];
+                    }
+                }
 
+                $row = [];
+
+                foreach ($sheetHeaders as $index => $header) {
+                    if ($index === 0 || strtolower($header) === 'email') {
+                        $row[] = $account->email ?? '';
+                    } else {
+                        // Normalize header to match meta keys
+                        $key = strtolower($header); 
+                        $row[] = $metaMap[$key] ?? '';
+                    }
+                }
+
+                return $row;
+            })->toArray();
+
+
+        // Step 6: Append to sold tab
         if (!empty($rowsToAppend)) {
             $service->spreadsheets_values->append(
                 $sheetId,

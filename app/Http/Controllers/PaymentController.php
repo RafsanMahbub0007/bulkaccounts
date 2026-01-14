@@ -8,21 +8,10 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use App\Models\ProductAccount;
 use App\Models\Payment;
-use Google\Client;
-use Google\Service\Sheets;
+use App\Services\OrderFulfillmentService;
 
 class PaymentController extends Controller
 {
-    private function sheets(): Sheets
-    {
-        $client = new Client();
-        $client->setApplicationName('Order Fulfillment');
-        $client->setScopes([Sheets::SPREADSHEETS]);
-        $client->setAuthConfig(config('services.google.credentials'));
-
-        return new Sheets($client);
-    }
-
     public function handle(Request $request)
     {
         $data = $request->all();
@@ -39,74 +28,14 @@ class PaymentController extends Controller
         }
 
         if ($data['payment_status'] === 'finished') {
-            $this->completeOrder($order, $data);
+            try {
+                app(OrderFulfillmentService::class)->fulfillOrder($order, $data);
+            } catch (\Exception $e) {
+                Log::error("Fulfillment failed for order {$order->id}: " . $e->getMessage());
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            }
         }
 
         return response()->json(['status' => 'ok']);
-    }
-
-    private function completeOrder(Order $order, array $payload): void
-    {
-        DB::transaction(function () use ($order, $payload) {
-            $service = $this->sheets();
-
-            Log::info("Processing order ID: {$order->id}", $payload);
-
-            // Update order first
-            $order->update([
-                'payment_status' => 'paid',
-                'order_status'   => 'completed',
-                'completed_at'   => now(),
-                'transaction_reference' => $payload['payment_id'] ?? null,
-            ]);
-
-            foreach ($order->orderItems as $item) {
-                if (!$item->product) continue;
-
-                $product = $item->product;
-                $limit = (int)$item->quantity;
-
-                // Fetch unsold accounts
-                $accounts = ProductAccount::where('product_id', $product->id)
-                    ->where('status', 'unsold')
-                    ->lockForUpdate()
-                    ->limit($limit)
-                    ->get();
-
-                if ($accounts->count() < $limit) {
-                    throw new \Exception("Insufficient stock for product {$product->name}");
-                }
-
-                // Mark accounts as sold
-                foreach ($accounts as $acc) {
-                    $acc->update(['status' => 'sold']);
-                    Log::info("Account ID {$acc->id} marked as sold");
-                }
-
-                // Decrement stock
-                $product->decrement('stock', $limit);
-                Log::info("Product ID {$product->id} stock decremented by {$limit}, new stock: {$product->stock}");
-
-                // Update Google Sheet if applicable
-                if ($product->google_sheet_id && $accounts->isNotEmpty()) {
-                    $order->updateGoogleSheet($product->google_sheet_id, $accounts);
-                    Log::info("Google Sheet updated for product ID {$product->id}");
-                }
-            }
-
-            // Record the payment
-            Payment::updateOrCreate(
-                ['transaction_id' => $payload['payment_id'] ?? null],
-                [
-                    'order_id' => $order->id,
-                    'amount' => $payload['price_amount'] ?? 0,
-                    'currency' => $payload['price_currency'] ?? 'USD',
-                    'status' => 'completed',
-                    'paid_at' => now(),
-                ]
-            );
-
-            Log::info("Order ID {$order->id} completed successfully");
-        });
     }
 }
