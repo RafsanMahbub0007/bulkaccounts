@@ -9,6 +9,9 @@ use App\Exports\OrderAccountsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Mail\OrderFulfilledMail;
+use Illuminate\Support\Facades\Mail;
+
 use Google\Client;
 use Google\Service\Sheets;
 
@@ -94,6 +97,18 @@ class OrderFulfillmentService
                     Excel::store(new OrderAccountsExport($allSoldAccounts), $filePath, 'public');
                     $order->update(['download_file' => $filePath]);
                     Log::info("Order file generated: {$filePath}");
+
+                    // Send Email to Guest or User
+                    $recipientEmail = $order->guest_email ?? $order->user?->email;
+                    if ($recipientEmail) {
+                        try {
+                            Mail::to($recipientEmail)->send(new OrderFulfilledMail($order, $filePath));
+                            Log::info("Order fulfillment email sent to: {$recipientEmail}");
+                        } catch (\Exception $e) {
+                            Log::error("Failed to send order email: " . $e->getMessage());
+                        }
+                    }
+
                 } catch (\Exception $e) {
                     Log::error("Failed to generate order file: " . $e->getMessage());
                 }

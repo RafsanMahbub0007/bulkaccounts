@@ -5,3 +5,21 @@
 [x-cloak] {
     display: none;
 }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+    .text-gray-400 {
+        color: #9ca3af;
+    }
+    .border-white\/10 {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}

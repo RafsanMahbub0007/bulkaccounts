@@ -108,7 +108,7 @@ class ProductResource extends Resource
     }
 
     /* ================= SYNC ENGINE ================= */
-    public static function syncSheet(Product $product): void
+    public static function syncSheet(Product $product, bool $notify = true): void
     {
         try {
             $service = static::sheets();
@@ -182,16 +182,22 @@ class ProductResource extends Resource
                 ]);
             });
 
-            Notification::make()
-                ->title('Sheet synced successfully')
-                ->success()
-                ->send();
+            if ($notify) {
+                Notification::make()
+                    ->title('Sheet synced successfully')
+                    ->success()
+                    ->send();
+            }
         } catch (\Throwable $e) {
-            Notification::make()
-                ->title('Sheet sync failed')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
+            if ($notify) {
+                Notification::make()
+                    ->title('Sheet sync failed')
+                    ->body($e->getMessage())
+                    ->danger()
+                    ->send();
+            } else {
+                throw $e; // Re-throw so the caller can handle it
+            }
         }
     }
 

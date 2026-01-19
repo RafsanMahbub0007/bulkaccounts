@@ -20,7 +20,7 @@
 
                     <!-- TITLE + IMAGE -->
                     <div class="flex flex-col sm:flex-row sm:items-center gap-5">
-                        <img src="{{ image_path($product->subcategory->image) }}"
+                        <img src="{{ image_path($product->subcategory->image) }}" loading="lazy" decoding="async"
                              class="w-20 h-20 rounded-2xl shadow-[0_0_20px_rgba(255,0,100,0.4)] object-cover" />
 
                         <div>

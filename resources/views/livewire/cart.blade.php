@@ -32,17 +32,17 @@
 
             <!-- CART SECTION -->
             @if (count($cartItems) > 0)
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
 
                     <!-- LEFT — CART ITEMS -->
                     <div class="lg:col-span-2 space-y-6">
                         @foreach ($cartItems as $item)
-                            <div class="bg-gray-900/70 border border-gray-800 p-6 rounded-xl shadow-xl
-                                        flex items-center justify-between hover:border-gray-700 transition">
+                            <div class="bg-gray-900/70 border border-gray-800 p-4 sm:p-6 rounded-xl shadow-xl
+                                        flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-gray-700 transition">
 
                                 <!-- Product Info -->
-                                <div class="flex items-center space-x-5">
-                                    <img src="{{ image_path($item['image']) }}"
+                                <div class="flex items-center gap-4">
+                                    <img src="{{ image_path($item['image']) }}" loading="lazy" decoding="async"
                                          class="w-20 h-20 object-cover rounded-xl shadow-md">
 
                                     <div>
@@ -54,7 +54,7 @@
                                 </div>
 
                                 <!-- Controls -->
-                                <div class="flex items-center space-x-4">
+                                <div class="flex items-center gap-4">
 
                                     <input type="number" min="1" max="10000"
                                            value="{{ $item['quantity'] }}"

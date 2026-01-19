@@ -30,47 +30,89 @@ class OrderResource extends Resource
             ->schema([
                 Select::make('user_id')
                     ->relationship('user', 'name')
-                    ->required()
-                    ->label('Customer'),
+                    ->label('Customer')
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->live() // Make it reactive
+                    ->helperText('Select a registered user, or leave empty for a guest order.'),
+
+                TextInput::make('guest_email')
+                    ->email()
+                    ->label('Guest Email')
+                    ->required(fn (Forms\Get $get) => empty($get('user_id')))
+                    ->visible(fn (Forms\Get $get) => empty($get('user_id')))
+                    ->helperText('Required if no registered customer is selected.'),
 
                 TextInput::make('order_number')
                     ->disabled()
                     ->label('Order Number')
-                    ->nullable(),
+                    ->nullable()
+                    ->visible(fn ($livewire) => ! $livewire instanceof Pages\CreateOrder),
 
                 TextInput::make('total_price')
                     ->numeric()
                     ->required()
                     ->label('Total Price'),
 
-                Select::make('payment_status')
-                    ->options([
-                        'paid' => 'Paid',
-                        'unpaid' => 'Unpaid',
-                        'partially_paid' => 'Partially Paid',
-                    ])
-                    ->default('unpaid')
-                    ->required()
-                    ->label('Payment Status'),
 
-                Select::make('order_status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'processing' => 'Processing',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                    ])
-                    ->default('pending')
-                    ->required()
-                    ->label('Order Status'),
 
-                DatePicker::make('ordered_at')
-                    ->disabled()
-                    ->label('Ordered Date'),
-
-                DatePicker::make('completed_at')
-                    ->nullable()
-                    ->label('Completed Date'),
+                Forms\Components\Section::make('Order Items')
+                    ->schema([
+                        Forms\Components\Repeater::make('orderItems')
+                            ->relationship()
+                            ->schema([
+                                Select::make('product_id')
+                                    ->relationship('product', 'name')
+                                    ->required()
+                                    ->preload()
+                                    ->searchable()
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                        $product = \App\Models\Product::find($state);
+                                        if ($product) {
+                                            $set('unit_price', $product->selling_price);
+                                            $set('quantity', $product->min_order_qty); // Set min qty
+                                            $set('total_price', $product->min_order_qty * $product->selling_price);
+                                        }
+                                    }),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required()
+                                    ->reactive()
+                                    ->minValue(fn (Forms\Get $get) => 
+                                        \App\Models\Product::find($get('product_id'))?->min_order_qty ?? 1
+                                    )
+                                    ->maxValue(fn (Forms\Get $get) =>
+                                        \App\Models\Product::find($get('product_id'))?->stock ?? 0
+                                    )
+                                    ->afterStateUpdated(fn ($state, Forms\Get $get, Forms\Set $set) =>
+                                        $set('total_price', $state * $get('unit_price'))
+                                    ),
+                                TextInput::make('unit_price')
+                                    ->numeric()
+                                    ->required()
+                                    ->reactive()
+                                    ->minValue(fn (Forms\Get $get) => 
+                                        \App\Models\Product::find($get('product_id'))?->selling_price ?? 0
+                                    )
+                                    ->afterStateUpdated(fn ($state, Forms\Get $get, Forms\Set $set) =>
+                                        $set('total_price', $state * $get('quantity'))
+                                    ),
+                                TextInput::make('total_price')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(),
+                            ])
+                            ->columns(4)
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                $items = $get('orderItems') ?? [];
+                                $total = collect($items)->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
+                                $set('total_price', $total);
+                            }),
+                    ]),
             ]);
     }
 

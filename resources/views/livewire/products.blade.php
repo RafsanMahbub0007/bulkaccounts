@@ -51,7 +51,7 @@
                             <a href="{{ route('product.details', $product->slug) }}">
                                 <div class="relative h-48 sm:h-48 overflow-hidden">
 
-                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
+                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}" loading="lazy" decoding="async"
                                         class="h-full w-full object-cover transition-transform duration-700" />
 
                                     {{-- Featured Badge --}}
