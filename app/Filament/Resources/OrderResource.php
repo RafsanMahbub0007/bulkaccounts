@@ -109,7 +109,7 @@ class OrderResource extends Resource
                             ->live()
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
                                 $items = $get('orderItems') ?? [];
-                                $total = collect($items)->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
+                                $total = collect($items)->sum(fn ($item) => ((float)($item['quantity'] ?? 0)) * ((float)($item['unit_price'] ?? 0)));
                                 $set('total_price', $total);
                             }),
                     ]),
@@ -210,6 +210,39 @@ class OrderResource extends Resource
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->title('Fulfillment Failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+                Tables\Actions\Action::make('resendEmail')
+                    ->label('Resend Email')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->visible(fn (Order $record) => $record->order_status === 'completed' && $record->download_file && !empty($record->guest_email))
+                    ->action(function (Order $record) {
+                        try {
+                            $recipientEmail = $record->guest_email ?? $record->user?->email;
+                            
+                            if (!$recipientEmail) {
+                                Notification::make()
+                                    ->title('No recipient email found')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                            
+                            \Illuminate\Support\Facades\Mail::to($recipientEmail)
+                                ->send(new \App\Mail\OrderFulfilledMail($record, $record->download_file));
+                            
+                            Notification::make()
+                                ->title('Email Resent Successfully')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Failed to send email')
                                 ->body($e->getMessage())
                                 ->danger()
                                 ->send();

@@ -22,7 +22,7 @@ class OrderFulfilledMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Order #' . $this->order->order_number . ' is Ready!',
+            subject: 'PvaProSeller Order Confirmation & Accounts Delivery - #' . $this->order->order_number,
         );
     }
 

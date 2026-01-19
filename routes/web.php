@@ -75,16 +75,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // User payment logs
     Route::get('/user/payments', UserPayments::class)->name('user.payments');
 
-    // Protected download route
-    Route::get('/download/{order}', function (Order $order) {
-        if (!$order->download_file || !Storage::exists($order->download_file)) {
-            abort(404);
-        }
-        $fileName = 'accounts_' . $order->order_number . '.xlsx';
-        return Storage::download($order->download_file, $fileName);
-    })->name('order.download');
     Route::get('/payment/status/{orderId}', PaymentStatus::class)->name('payment.status');
 });
+
+// Public Download Route (Accessible by Guests)
+Route::get('/download/order/{order:order_number}', function (Order $order) {
+    if (!$order->download_file) {
+        abort(404, 'File not generated.');
+    }
+
+    // Check public disk
+    if (Storage::disk('public')->exists($order->download_file)) {
+        return Storage::disk('public')->download(
+            $order->download_file, 
+            'order_' . $order->order_number . '.xlsx'
+        );
+    }
+    
+    // Fallback to local/default disk
+    if (Storage::exists($order->download_file)) {
+        return Storage::download(
+            $order->download_file, 
+            'order_' . $order->order_number . '.xlsx'
+        );
+    }
+
+    abort(404, 'File not found on server.');
+})->name('order.download.public');
 
 Route::post('/payment/callback', [PaymentController::class, 'handle'])->name('payment.callback');
 

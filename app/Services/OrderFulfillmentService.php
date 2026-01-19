@@ -100,6 +100,7 @@ class OrderFulfillmentService
 
                     // Send Email to Guest or User
                     $recipientEmail = $order->guest_email ?? $order->user?->email;
+                    
                     if ($recipientEmail) {
                         try {
                             Mail::to($recipientEmail)->send(new OrderFulfilledMail($order, $filePath));
@@ -107,6 +108,8 @@ class OrderFulfillmentService
                         } catch (\Exception $e) {
                             Log::error("Failed to send order email: " . $e->getMessage());
                         }
+                    } else {
+                        Log::warning("No recipient email found for Order ID {$order->id}. Skipping email.");
                     }
 
                 } catch (\Exception $e) {
