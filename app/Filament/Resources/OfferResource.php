@@ -20,6 +20,7 @@ class OfferResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-gift';
     protected static ?string $navigationLabel = 'Offers';
     protected static ?string $pluralLabel = 'Offers';
+    protected static ?int $navigationSort = 7;
 
 
     public static function form(Form $form): Form
