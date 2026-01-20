@@ -45,7 +45,7 @@
                 <!-- Search Form - Responsive -->
                 <form action="{{ route('search') }}" method="GET" id="hero-search"
                     class="flex items-center bg-white/10 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl backdrop-blur-xl border border-white/10 focus-within:ring-2 focus-within:ring-blue-400/50 transition-all max-w-xl">
-                    <input type="text" name="query" placeholder="Search verified accounts…"
+                    <input type="text" required name="query" placeholder="Search verified accounts…"
                         class="flex-1 px-4 sm:px-5 lg:px-6 py-3 sm:py-4 lg:py-5 bg-transparent text-white rounded-l-2xl sm:rounded-l-3xl placeholder-gray-400 focus:outline-none text-sm sm:text-base lg:text-lg w-full min-w-0"
                         aria-label="Search products" />
                     <button type="submit"
