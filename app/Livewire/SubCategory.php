@@ -29,7 +29,7 @@ class SubCategory extends Component
 
         $subcategories = $category->subcategories()
             ->where('name', 'like', "%{$this->search}%")
-            ->paginate(10);
+            ->orderby('order', 'asc');
 
         return view('livewire.subcategories', [
             'subcategories' => $subcategories,

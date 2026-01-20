@@ -16,6 +16,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Google\Client;
 use Google\Service\Sheets;
+use Filament\Forms\Components\TagsInput;
 
 class ProductResource extends Resource
 {
@@ -43,7 +44,21 @@ class ProductResource extends Resource
                 )
                 ->required()
                 ->disabled(fn($get) => !$get('category_id')),
-
+                TagsInput::make('keywords')
+                ->afterStateHydrated(function (TagsInput $component, $state) {
+                    $component->state(
+                        filled($state)
+                            ? array_map('trim', explode(',', $state))
+                            : []
+                    );
+                })
+                ->dehydrateStateUsing(fn ($state) =>
+                    filled($state) ? implode(',', $state) : null
+                )
+                ->nullable(),
+            Forms\Components\TextInput::make('display_order')
+                    ->numeric()
+                    ->default(0),
             Forms\Components\CheckboxList::make('feature_ids')
                 ->options(ProductFeature::pluck('name', 'id'))
                 ->columns(2),
@@ -65,27 +80,37 @@ class ProductResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('display_order', 'asc')
+            ->actionsColumnLabel('Operations')
+            ->actionsAlignment('center')
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
+                Tables\Columns\TextColumn::make('display_order')
+                    ->sortable()
+                    ->badge(),
                 Tables\Columns\TextColumn::make('stock')->badge(),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('openSheet')
+                        ->label('Open Sheet')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn ($record) =>
+                            "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}"
+                        )
+                        ->openUrlInNewTab(),
 
-                Tables\Actions\Action::make('openSheet')
-                    ->label('Open Sheet')
-                    ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => "https://docs.google.com/spreadsheets/d/{$record->google_sheet_id}")
-                    ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('syncSheet')
+                        ->label('Sync Sheet')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('success')
+                        ->action(fn ($record) => static::syncSheet($record)),
+                    Tables\Actions\DeleteAction::make(),
 
-                Tables\Actions\Action::make('syncSheet')
-                    ->label('Sync Sheet')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('success')
-                    ->action(fn($record) => static::syncSheet($record)),
             ]);
     }
+
 
     /* ================= GOOGLE CLIENT ================= */
     private static function sheets(): Sheets

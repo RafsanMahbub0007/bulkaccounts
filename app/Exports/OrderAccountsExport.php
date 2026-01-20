@@ -17,7 +17,7 @@ class OrderAccountsExport implements FromArray, WithHeadings, ShouldAutoSize
         $this->accounts = $accounts;
         
         // Calculate all unique headers
-        $allHeaders = ['Product', 'Email'];
+        $allHeaders = ['Email'];
         foreach ($accounts as $account) {
             if (!empty($account->meta_headers) && is_array($account->meta_headers)) {
                 foreach ($account->meta_headers as $header) {
@@ -56,9 +56,7 @@ class OrderAccountsExport implements FromArray, WithHeadings, ShouldAutoSize
             }
 
             foreach ($this->headers as $header) {
-                if ($header === 'Product') {
-                    $row[] = $account->product->name ?? 'Unknown Product';
-                } elseif ($header === 'Email') {
+                if ($header === 'Email') {
                     $row[] = $account->email;
                 } else {
                     $row[] = $accountMetaMap[$header] ?? '';

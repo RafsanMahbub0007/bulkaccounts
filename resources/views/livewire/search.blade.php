@@ -435,69 +435,9 @@
                     </div>
 
                     <!-- Pagination -->
-                    @if($products->hasPages())
-                        <div class="mt-8 md:mt-10">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm text-gray-400">
-                                    Page {{ $products->currentPage() }} of {{ $products->lastPage() }}
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    @if($products->onFirstPage())
-                                        <span class="px-4 py-2 bg-white/5 text-gray-500 rounded-xl cursor-not-allowed">
-                                            Previous
-                                        </span>
-                                    @else
-                                        <button
-                                            wire:click="previousPage"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors duration-300"
-                                        >
-                                            Previous
-                                        </button>
-                                    @endif
-
-                                    <div class="flex items-center gap-1">
-                                        @foreach(range(1, min(5, $products->lastPage())) as $page)
-                                            <button
-                                                wire:click="gotoPage({{ $page }})"
-                                                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300"
-                                                :class="{{ $products->currentPage() === $page ?
-                                                    'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25' :
-                                                    'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                                                }}"
-                                            >
-                                                {{ $page }}
-                                            </button>
-                                        @endforeach
-
-                                        @if($products->lastPage() > 5)
-                                            <span class="px-2 text-gray-400">...</span>
-                                            <button
-                                                wire:click="gotoPage({{ $products->lastPage() }})"
-                                                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300"
-                                                :class="{{ $products->currentPage() === $products->lastPage() ?
-                                                    'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25' :
-                                                    'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                                                }}"
-                                            >
-                                                {{ $products->lastPage() }}
-                                            </button>
-                                        @endif
-                                    </div>
-
-                                    @if($products->hasMorePages())
-                                        <button
-                                            wire:click="nextPage"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors duration-300"
-                                        >
-                                            Next
-                                        </button>
-                                    @else
-                                        <span class="px-4 py-2 bg-white/5 text-gray-500 rounded-xl cursor-not-allowed">
-                                            Next
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
+                    @if(method_exists($products, 'links'))
+                        <div class="mt-8 flex justify-center">
+                             {{-- Pagination removed --}}
                         </div>
                     @endif
                 @else

@@ -14,11 +14,7 @@ class Home extends Component
     public function render()
     {
         $system = Setting::find(1);
-        $products = Product::with('category')
-            ->orderBy(
-                Category::select('order')
-                    ->whereColumn('categories.id', 'products.category_id')
-            )
+        $products = Product::orderBy('display_order', 'asc')
             ->get();
         return view('livewire.home', [
             'products' => $products,

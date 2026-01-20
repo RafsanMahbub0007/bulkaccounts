@@ -8,7 +8,11 @@
     @php
         $system = \App\Models\Setting::find(1);
         $banners = \App\Models\Banner::all();
-        $offer = \App\Models\Offer::find(1);
+        $offer = \App\Models\Offer::where('status', 'active')
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->latest()
+            ->first();
     @endphp
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>

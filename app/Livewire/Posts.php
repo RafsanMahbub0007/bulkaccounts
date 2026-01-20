@@ -25,7 +25,7 @@ class Posts extends Component
                     ->orWhere('content', 'like', '%' . $this->search . '%');
             })
             ->latest()
-            ->paginate(10);
+            ->get();
 
         return view('livewire.posts', compact('posts'));
     }

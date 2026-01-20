@@ -73,13 +73,13 @@ class SubCategoryDetails extends Component
     }
     public function render()
     {
-        $products = $this->subcategory->products()
+        $products = Product::where('subcategory_id', $this->subcategory->id)
             ->where('name', 'like', "%{$this->search}%")
-            ->paginate(10);
-        $system = Setting::find(1);
+            ->orderBy('display_order', 'asc')
+            ->get();
+
         return view('livewire.sub-category-details', [
             'products' => $products,
-            'system' => $system
         ]);
     }
 }

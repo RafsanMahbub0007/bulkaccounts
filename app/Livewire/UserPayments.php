@@ -26,7 +26,7 @@ class UserPayments extends Component
                     ->orWhere('currency', 'like', '%' . $this->search . '%');
             })
             ->orderBy($this->sortBy, 'desc')
-            ->paginate(10);
+            ->get();
 
         return view('livewire.user-payments', compact('payments'));
     }

@@ -102,8 +102,8 @@
                     </table>
                 </div>
             </div>
-            <div class="mt-12">
-                {{ $orders->links('pagination::tailwind') }}
+            <div class="mt-4">
+                {{-- Pagination removed --}}
             </div>
         @endif
     </div>

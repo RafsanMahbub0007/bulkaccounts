@@ -28,6 +28,7 @@ class Checkout extends Component
 
     // Payment modal
     public $showPaymentModal = false;
+    public $showMinOrderModal = false;
     public $transactionIdInput;
 
     public function mount()
@@ -63,13 +64,22 @@ class Checkout extends Component
     /* ================= SHOW PAYMENT MODAL ================= */
     public function proceedToPayment()
     {
-        $this->validate();
-
+        // 1. Check Cart
         if (empty($this->cartItems)) {
             $this->addError('cart', 'Your cart is empty.');
             return;
         }
 
+        // 2. Check Minimum Order
+        if ($this->total < 10) {
+            $this->showMinOrderModal = true;
+            return;
+        }
+
+        // 3. Validate Form
+        $this->validate();
+
+        // 4. Show Payment Modal
         $this->showPaymentModal = true;
     }
 

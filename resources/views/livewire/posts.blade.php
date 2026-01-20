@@ -71,7 +71,7 @@
 
             <!-- Pagination -->
             <div class="mt-6">
-                {{ $posts->links() }}
+                {{-- Pagination removed --}}
             </div>
         @else
             <p class="text-gray-400 text-center">No posts found.</p>

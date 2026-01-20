@@ -1,5 +1,5 @@
 
-@if ($offer == true)
+@if ($offer)
 <section class="relative overflow-hidden text-white py-4">
   <!-- Background Gradient -->
   <div class="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 animate-[gradientMove_10s_linear_infinite] opacity-90"></div>

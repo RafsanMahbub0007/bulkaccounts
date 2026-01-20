@@ -146,7 +146,7 @@
 
             <!-- PAGINATION -->
             <div class="mt-8">
-                {{ $products->links() }}
+                {{-- Pagination removed --}}
             </div>
         </div>
     </div>

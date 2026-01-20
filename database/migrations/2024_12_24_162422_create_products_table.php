@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->foreignId('subcategory_id')->constrained('sub_categories')->cascadeOnDelete();
+            $table->integer('display_order')->default(0);
             $table->json('feature_ids')->nullable();
             $table->float('purchase_price', 10, 2);
             $table->float('selling_price', 10, 2);

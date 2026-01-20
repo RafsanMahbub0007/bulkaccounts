@@ -39,7 +39,7 @@ class UserOrders extends Component
                 $query->where('order_number', 'like', '%' . $this->search . '%');
             })
             ->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate(10);
+            ->get();
 
         return view('livewire.user-orders', ['orders' => $orders]);
     }

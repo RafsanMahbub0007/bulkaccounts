@@ -107,7 +107,7 @@ class Search extends Component
             });
 
         return view('livewire.search', [
-            'products' => $products->paginate(12),
+            'products' => $products->get(),
             'categories' => Category::all(),
             'totalResults' => $products->count(),
         ]);

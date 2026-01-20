@@ -32,7 +32,8 @@ class Categorydetails extends Component
         ->get();
         $subcategories = $this->category->subcategories()
             ->where('name', 'like', "%{$this->search}%")
-            ->paginate(12);
+            ->orderby('order', 'asc')
+            ->get();
 
         return view('livewire.categorydetails', [
             'category' => $this->category,

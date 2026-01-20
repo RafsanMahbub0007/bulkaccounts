@@ -80,7 +80,7 @@
 
                 <!-- Pagination -->
                 <div class="mt-10">
-                    {{ $subcategories->links() }}
+                    {{-- Pagination removed --}}
                 </div>
             </div>
 

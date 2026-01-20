@@ -30,8 +30,7 @@ class Products extends Component
             ->when(!empty($this->category), function ($query) {
                 $query->whereIn('category_id', $this->category);
             })
-            ->orderBy('selling_price', $this->sortDirection)
-            ->paginate(12);
+            ->orderBy('display_order', $this->sortDirection);
 
         return view('livewire.products', compact('products', 'categories', 'system'));
     }
