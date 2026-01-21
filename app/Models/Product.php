@@ -28,7 +28,8 @@ class Product extends Model
         'content',
         'google_sheet_url',
         'google_sheet_id',
-        'sheet_meta'
+        'sheet_meta',
+        'is_active',
     ];
 
     protected $casts = [

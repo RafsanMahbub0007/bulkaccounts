@@ -11,7 +11,7 @@ class Categories extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $categories = Category::orderBy('order', 'asc')->get();
+        $categories = Category::where('is_active', true)->orderBy('order', 'asc')->get();
         return view('livewire.categories', [
             'categories' => $categories,
         ]);

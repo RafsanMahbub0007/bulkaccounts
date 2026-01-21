@@ -23,7 +23,7 @@ class CategoryMenu extends Component
 
     protected function loadCategories()
     {
-        $this->categories = Category::with('subcategories')->orderBy('order','ASC')->get()
+        $this->categories = Category::with('subcategories')->where('is_active', true)->orderBy('order','ASC')->get()
             ->map(function ($cat) {
                 return [
                     'id' => $cat->id,

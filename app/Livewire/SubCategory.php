@@ -25,10 +25,11 @@ class SubCategory extends Component
 
     public function render()
     {
-        $category = Category::where('slug', $this->slug)->firstOrFail();
+        $category = Category::where('slug', $this->slug)->where('is_active', true)->firstOrFail();
 
         $subcategories = $category->subcategories()
             ->where('name', 'like', "%{$this->search}%")
+            ->where('is_active', true)
             ->orderby('order', 'asc');
 
         return view('livewire.subcategories', [

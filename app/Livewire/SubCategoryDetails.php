@@ -75,6 +75,7 @@ class SubCategoryDetails extends Component
     {
         $products = Product::where('subcategory_id', $this->subcategory->id)
             ->where('name', 'like', "%{$this->search}%")
+            ->where('is_active', true)
             ->orderBy('display_order', 'asc')
             ->get();
 

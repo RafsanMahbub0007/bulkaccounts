@@ -29,6 +29,7 @@ return new class extends Migration
             $table->text('keywords')->nullable();
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }

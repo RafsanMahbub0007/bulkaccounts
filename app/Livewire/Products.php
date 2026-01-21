@@ -20,17 +20,25 @@ class Products extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $categories = Category::all();
-        $system = Setting::find(1);
+        $categories = Category::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        $system = Setting::first();
+
         $products = Product::query()
             ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('description', 'like', '%' . $this->search . '%');
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                        ->orWhere('description', 'like', '%' . $this->search . '%');
+                });
             })
             ->when(!empty($this->category), function ($query) {
                 $query->whereIn('category_id', $this->category);
             })
-            ->orderBy('display_order', $this->sortDirection);
+            ->where('is_active', true)
+            ->orderBy('display_order', $this->sortDirection)
+            ->paginate(12);
 
         return view('livewire.products', compact('products', 'categories', 'system'));
     }

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Google\Client;
 use Google\Service\Sheets;
 use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Toggle;
 
 class ProductResource extends Resource
 {
@@ -60,6 +61,9 @@ class ProductResource extends Resource
             Forms\Components\TextInput::make('display_order')
                     ->numeric()
                     ->default(0),
+            Toggle::make('is_active')
+                    ->label('Active')
+                    ->default(false),
             Forms\Components\CheckboxList::make('feature_ids')
                 ->options(ProductFeature::pluck('name', 'id'))
                 ->columns(2),

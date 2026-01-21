@@ -28,10 +28,13 @@ class Categorydetails extends Component
     public function render()
     {
         $popularCategories = Category::where('id', '!=', $this->category->id)
+        ->where('is_active', true)
+        ->orderby('order', 'asc')
         ->take(10)
         ->get();
         $subcategories = $this->category->subcategories()
             ->where('name', 'like', "%{$this->search}%")
+            ->where('is_active', true)
             ->orderby('order', 'asc')
             ->get();
 
