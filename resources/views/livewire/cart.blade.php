@@ -48,7 +48,7 @@
                                     <div>
                                         <h3 class="text-lg font-semibold text-white">{{ $item['name'] }}</h3>
                                         <p class="text-gray-400 text-sm">
-                                            {{ number_format($item['price'], 2) }} BDT
+                                            {{ number_format($item['price'], 2) }} $
                                         </p>
                                     </div>
                                 </div>
@@ -83,7 +83,7 @@
                         <div class="flex justify-between text-lg mb-6">
                             <span class="text-gray-300">Total:</span>
                             <span class="text-red-400 font-bold text-xl">
-                                {{ number_format($totalPrice, 2) }} BDT
+                                {{ number_format($totalPrice, 2) }} $
                             </span>
                         </div>
 

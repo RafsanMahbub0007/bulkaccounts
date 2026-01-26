@@ -87,21 +87,21 @@ Route::get('/download/order/{order:order_number}', function (Order $order) {
     // Check public disk
     if (Storage::disk('public')->exists($order->download_file)) {
         return Storage::disk('public')->download(
-            $order->download_file, 
+            $order->download_file,
             'order_' . $order->order_number . '.xlsx'
         );
     }
-    
+
     // Fallback to local/default disk
     if (Storage::exists($order->download_file)) {
         return Storage::download(
-            $order->download_file, 
+            $order->download_file,
             'order_' . $order->order_number . '.xlsx'
         );
     }
 
     abort(404, 'File not found on server.');
-})->name('order.download.public');
+})->name('order.download');
 
 Route::post('/payment/callback', [PaymentController::class, 'handle'])->name('payment.callback');
 
