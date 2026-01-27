@@ -1,5 +1,7 @@
 <div>
     @include('partials.hero')
+    @include('partials.stats')
+    @include('partials.categories')
     @include('partials.featured-categories')
     @include('partials.affordable-pricing')
     @include('partials.guaranteed-safety')

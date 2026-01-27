@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Exports\UsersExport;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListUsers extends ListRecords
 {
@@ -13,6 +15,10 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('export_users')
+                ->label('Download User List')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(fn () => Excel::download(new UsersExport, 'users.xlsx')),
             Actions\CreateAction::make(),
         ];
     }
