@@ -25,6 +25,7 @@ use App\Livewire\PrivacyPolicy;
 use App\Livewire\Search;
 use App\Livewire\Terms;
 use App\Models\Order;
+use App\Models\PreOrder;
 use App\Models\OrderItem;
 
 
@@ -102,6 +103,31 @@ Route::get('/download/order/{order:order_number}', function (Order $order) {
 
     abort(404, 'File not found on server.');
 })->name('order.download');
+
+// Pre-Order Download Route
+Route::get('/download/pre-order/{preOrder:order_number}', function (PreOrder $preOrder) {
+    if (!$preOrder->download_file) {
+        abort(404, 'File not generated.');
+    }
+
+    // Check public disk
+    if (Storage::disk('public')->exists($preOrder->download_file)) {
+        return Storage::disk('public')->download(
+            $preOrder->download_file,
+            'pre_order_' . $preOrder->order_number . '.xlsx'
+        );
+    }
+
+    // Fallback to local/default disk
+    if (Storage::exists($preOrder->download_file)) {
+        return Storage::download(
+            $preOrder->download_file,
+            'pre_order_' . $preOrder->order_number . '.xlsx'
+        );
+    }
+
+    abort(404, 'File not found on server.');
+})->name('pre-order.download');
 
 Route::post('/payment/callback', [PaymentController::class, 'handle'])->name('payment.callback');
 

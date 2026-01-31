@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_accounts', function (Blueprint $table) {
-            $table->integer('row_index')->default(0)->after('status');
-        });
+        if (!Schema::hasColumn('product_accounts', 'row_index')) {
+            Schema::table('product_accounts', function (Blueprint $table) {
+                $table->integer('row_index')->default(0)->after('status');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('product_accounts', function (Blueprint $table) {
-            $table->dropColumn('row_index');
-        });
+        if (Schema::hasColumn('product_accounts', 'row_index')) {
+            Schema::table('product_accounts', function (Blueprint $table) {
+                $table->dropColumn('row_index');
+            });
+        }
     }
 };

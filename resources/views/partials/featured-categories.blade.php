@@ -124,34 +124,8 @@
                         </div>
 
                         <!-- CART / PREORDER -->
-                        @if ($product->outOfStock())
-                            <div class="mt-4 pointer-events-auto">
-                                <a href="{{ $system->pre_order_link ?? '#' }}"
-                                    class="group relative w-full sm:w-auto
-              flex items-center justify-center gap-2
-              px-5 sm:px-6 py-2.5
-              text-sm sm:text-base font-semibold
-              whitespace-nowrap
-              rounded-full
-              bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500
-              text-white
-              shadow-lg shadow-blue-500/30
-              transition-all duration-300
-              hover:shadow-xl hover:shadow-blue-500/40
-              hover:-translate-y-0.5
-              active:translate-y-0
-              focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900">
+                        @livewire('add-to-cart', ['productId' => $product->id], key($product->id))
 
-                                    <!-- Icon -->
-                                    <i class="fa-solid fa-clock-rotate-left text-sm opacity-90"></i>
-
-                                    <!-- Text -->
-                                    <span>Pre-Order Now</span>
-                                </a>
-                            </div>
-                        @else
-                            @livewire('add-to-cart', ['productId' => $product->id], key($product->id))
-                        @endif
                     </div>
                 </div>
             @endforeach
