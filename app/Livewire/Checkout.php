@@ -225,7 +225,7 @@ class Checkout extends Component
                 }
 
                 Session::forget('cart');
-                return redirect()->route('home')->with('success', 'Order placed successfully! Waiting for admin approval.');
+                return redirect()->route('home')->with('success', 'Order placed successfully! Delivery of pre-order items will take 24-72 hours.');
             }
 
             /* ================= LIVE PAYMENT ================= */

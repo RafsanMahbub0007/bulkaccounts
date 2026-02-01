@@ -23,6 +23,16 @@ class PreOrderResource extends Resource
     protected static ?string $navigationGroup = 'Order Management';
     protected static ?int $navigationSort = 2;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::whereIn('status', ['pending', 'processing'])->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

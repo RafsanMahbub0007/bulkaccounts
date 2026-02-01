@@ -112,7 +112,7 @@
                                         <h2 class="text-3xl font-bold text-white mb-2">{{ $activeCategory['name'] }}</h2>
                                         <p class="text-gray-400 text-sm">Explore our collection of {{ count($activeCategory['subcategories']) }} subcategories</p>
                                     </div>
-                                    <a href="#" class="text-xs font-bold text-red-400 hover:text-red-300 uppercase tracking-widest flex items-center gap-1 transition-colors">
+                                    <a href="{{ route('category.details', $activeCategory['slug']) }}" class="text-xs font-bold text-red-400 hover:text-red-300 uppercase tracking-widest flex items-center gap-1 transition-colors">
                                         View All
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                                     </a>

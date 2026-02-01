@@ -12,10 +12,12 @@ class ProductDetails extends Component
     public $product;
     public $relatedProducts;
     public $quantity;
+    
     public function mount(Product $product)
     {
         $this->product = $product;
-        $this->quantity = $product->min_order_qty;
+        // If stock > 0, default to min_order_qty, else 1
+        $this->quantity = $product->stock > 0 ? $product->min_order_qty : 1;
         $this->relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
@@ -25,47 +27,52 @@ class ProductDetails extends Component
 
     public function addToCart()
     {
-        if ($this->quantity > $this->product->stock) {
+        $this->updateCartSession();
+        $this->dispatch('cartUpdated');
+    }
+
+    public function buyNow()
+    {
+        $this->updateCartSession();
+        $this->dispatch('cartUpdated');
+        return redirect()->route('checkout');
+    }
+
+    private function updateCartSession()
+    {
+        $isPreOrder = $this->product->stock <= 0;
+
+        if (!$isPreOrder && $this->quantity > $this->product->stock) {
             session()->flash('error', 'Not enough stock available.');
             $this->dispatch('cartUpdateFailed');
             return;
         }
 
         $cart = session()->get('cart', []);
-        $cart[$this->product->id] = [
-            'id' => $this->product->id,
-            'name' => $this->product->name,
-            'image' => $this->product->product_image,
-            'price' => $this->product->selling_price,
-            'quantity' => $this->quantity,
-            'stock' => $this->product->stock,
-        ];
-
-        session()->put('cart', $cart);
-        session()->flash('success', 'Product added to cart!');
-        $this->dispatch('cartUpdated');
-    }
-
-    public function buyNow()
-    {
-        if ($this->quantity > $this->product->stock) {
-            session()->flash('error', 'Not enough stock available.');
-            return;
+        
+        if (isset($cart[$this->product->id])) {
+             if (!$isPreOrder) {
+                if ($cart[$this->product->id]['quantity'] + $this->quantity > $this->product->stock) {
+                     session()->flash('error', 'Not enough stock available.');
+                     $this->dispatch('cartUpdateFailed');
+                     return;
+                }
+             }
+             $cart[$this->product->id]['quantity'] += $this->quantity;
+        } else {
+             $cart[$this->product->id] = [
+                'id' => $this->product->id,
+                'name' => $this->product->name,
+                'image' => $this->product->product_image,
+                'price' => $this->product->selling_price,
+                'quantity' => $this->quantity,
+                'stock' => $this->product->stock,
+                'is_preorder' => $isPreOrder,
+            ];
         }
 
-        $cart = session()->get('cart', []);
-        $cart[$this->product->id] = [
-            'id' => $this->product->id,
-            'name' => $this->product->name,
-            'image' => $this->product->product_image,
-            'price' => $this->product->selling_price,
-            'quantity' => $this->quantity,
-            'stock' => $this->product->stock,
-        ];
-
         session()->put('cart', $cart);
-        $this->dispatch('cartUpdated');
-        return redirect()->route('checkout');
+        session()->flash('success', $isPreOrder ? 'Pre-order item added!' : 'Product added to cart!');
     }
 
     #[Layout('layouts.app')]

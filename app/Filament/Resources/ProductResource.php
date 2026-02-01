@@ -25,6 +25,16 @@ class ProductResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?int $navigationSort = 4;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('stock', 0)->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     /* ================= FORM ================= */
     public static function form(Form $form): Form
     {
@@ -93,7 +103,10 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('display_order')
                     ->sortable()
                     ->badge(),
-                Tables\Columns\TextColumn::make('stock')->badge(),
+                Tables\Columns\TextColumn::make('stock')
+                    ->badge()
+                    ->color(fn ($state) => $state === 0 ? 'danger' : 'success')
+                    ->formatStateUsing(fn ($state) => $state === 0 ? 'Out of Stock' : $state),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime(),
             ])
             ->actions([

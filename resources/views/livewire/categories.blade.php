@@ -34,21 +34,8 @@
                             <span x-text="'$' + (quantity * {{ $product->price }}).toFixed(2)"
                                 class="font-semibold text-red-500"></span>
                         </div>
-                        <div class="flex gap-4">
-                            <form wire:submit.prevent="addToCart">
-                                <input type="hidden" name="quantity" :value="quantity" />
-                                <button type="submit"
-                                    class="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-red-700 transition">
-                                    <i class="fas fa-cart-plus"></i> Add to Cart
-                                </button>
-                            </form>
-                            <form wire:submit.prevent="buyNow">
-                                <input type="hidden" name="quantity" :value="quantity" />
-                                <button type="submit"
-                                    class="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition">
-                                    <i class="fas fa-credit-card"></i> Buy Now
-                                </button>
-                            </form>
+                        <div class="flex gap-4 w-full">
+                            @livewire('add-to-cart', ['productId' => $product->id], key($product->id))
                         </div>
                     </div>
                 </div>

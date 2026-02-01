@@ -134,14 +134,19 @@
                             </form>
 
                         @else
-
-                            <a href="{{ $system->pre_order_link }}"
-                               class="inline-flex justify-center items-center gap-2
-                                      bg-gradient-to-r from-yellow-500 to-orange-600
-                                      hover:from-yellow-600 hover:to-orange-700
-                                      px-8 py-4 rounded-xl font-bold shadow-xl">
-                                <i class="fas fa-clock"></i> Pre-Order Now
-                            </a>
+                            
+                            <div class="flex flex-col items-center">
+                                <a href="{{ $system->pre_order_link }}"
+                                   class="inline-flex justify-center items-center gap-2
+                                          rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 cursor-pointer
+                                          hover:scale-105 active:scale-95
+                                          px-8 py-4 font-bold">
+                                    <i class="fas fa-rotate"></i> Pre-Order Now
+                                </a>
+                                <span class="text-xs text-cyan-500 mt-2 font-medium animate-pulse">
+                                    Delivery: 24-72 hours
+                                </span>
+                            </div>
 
                         @endif
                     </div>

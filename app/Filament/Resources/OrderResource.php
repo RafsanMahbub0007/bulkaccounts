@@ -24,6 +24,16 @@ class OrderResource extends Resource
     protected static ?string $navigationGroup = 'Order Management';
     protected static ?int $navigationSort = 1;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::whereIn('order_status', ['pending', 'processing'])->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
