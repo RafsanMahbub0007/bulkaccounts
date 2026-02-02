@@ -23,25 +23,27 @@ class CategoryMenu extends Component
 
     protected function loadCategories()
     {
-        $this->categories = Category::with('subcategories')->where('is_active', true)->orderBy('order','ASC')->get()
-            ->map(function ($cat) {
-                return [
-                    'id' => $cat->id,
-                    'name' => $cat->name,
-                    'slug' => $cat->slug,
-                    'subcategories' => $cat->subcategories->map(function ($sub) use ($cat) {
-                        return [
-                            'id' => $sub->id,
-                            'name' => $sub->name,
-                            'slug' => $sub->slug,
-                            'url' => route('subcategory.details', [
-                                'category' => $cat->slug,
-                                'subcategory' => $sub->slug,
-                            ]),
-                        ];
-                    }),
-                ];
-            });
+        $this->categories = cache()->remember('category_menu_list', 3600, function () {
+            return Category::with('subcategories')->where('is_active', true)->orderBy('order', 'ASC')->get()
+                ->map(function ($cat) {
+                    return [
+                        'id' => $cat->id,
+                        'name' => $cat->name,
+                        'slug' => $cat->slug,
+                        'subcategories' => $cat->subcategories->map(function ($sub) use ($cat) {
+                            return [
+                                'id' => $sub->id,
+                                'name' => $sub->name,
+                                'slug' => $sub->slug,
+                                'url' => route('subcategory.details', [
+                                    'category' => $cat->slug,
+                                    'subcategory' => $sub->slug,
+                                ]),
+                            ];
+                        }),
+                    ];
+                });
+        });
     }
 
     public function selectCategory($index)
