@@ -53,7 +53,7 @@
 
         <!-- CATEGORIES -->
         @php
-            $cats = \App\Models\Category::where('is_active', 1)->orderBy('order', 'ASC')->get();
+            $cats = cache()->remember('footer_categories', 3600, fn() => \App\Models\Category::where('is_active', 1)->orderBy('order', 'ASC')->get());
         @endphp
         <div class="flex-1 min-w-[180px]">
             <h3

@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
-        $system = \App\Models\Setting::find(1);
-        $banners = \App\Models\Banner::all();
-        $offer = \App\Models\Offer::where('status', 'active')
+        $system = cache()->remember('system_settings', 3600, fn() => \App\Models\Setting::find(1));
+        $banners = cache()->remember('banners_list', 3600, fn() => \App\Models\Banner::all());
+        $offer = cache()->remember('active_offer', 600, fn() => \App\Models\Offer::where('status', 'active')
             ->whereDate('start_date', '<=', now())
             ->whereDate('end_date', '>=', now())
             ->latest()
-            ->first();
+            ->first());
     @endphp
 
     <title>{{ $system->website_name ?? 'Jabed' }}</title>
