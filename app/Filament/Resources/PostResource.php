@@ -40,6 +40,10 @@ class PostResource extends Resource
                     ->maxLength(255)
                     ->unique(Post::class, 'slug', ignoreRecord: true),
 
+                TextInput::make('meta_title')
+                    ->label('Meta Title')
+                    ->maxLength(255),
+
                 FileUpload::make('image')
                     ->label('Featured Image')
                     ->image()

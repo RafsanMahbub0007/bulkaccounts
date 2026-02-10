@@ -1,4 +1,14 @@
 <section class="relative py-20 bg-gray-900 text-white">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'guidelines')->first();
+        $title = $seo->meta_title ?? 'User Guidelines';
+        $description = $seo->meta_description ?? 'Read our user guidelines to get the most out of your experience.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <div class="container mx-auto px-4">
         <!-- Hero / Header -->
         <div class="text-center mb-16">

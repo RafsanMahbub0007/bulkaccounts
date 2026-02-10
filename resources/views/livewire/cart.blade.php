@@ -1,4 +1,14 @@
 <section class="bg-gray-950 min-h-screen py-14">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'cart')->first();
+        $title = $seo->meta_title ?? 'Your Shopping Cart';
+        $description = $seo->meta_description ?? 'Review your selected bulk accounts before checkout. Secure and fast processing.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <div class="container mx-auto px-4 lg:px-10">
 
         <!-- Title -->

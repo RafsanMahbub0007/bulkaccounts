@@ -1,4 +1,13 @@
 <section class="relative bg-gray-900 text-white overflow-hidden px-6 py-20">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'pricing')->first();
+        $title = $seo->meta_title ?? 'Pricing - Buy Bulk Accounts';
+        $description = $seo->meta_description ?? 'Explore our affordable pricing for verified bulk accounts. High quality and instant delivery.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
 
     <!-- Glow Background -->
     <div class="absolute inset-0 pointer-events-none">

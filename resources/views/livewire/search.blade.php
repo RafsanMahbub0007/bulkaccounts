@@ -1,4 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900" x-data="{ showFilters: window.innerWidth >= 1024 }">
+    @section('title', 'Search Results - ' . ($system->website_name ?? 'Jabed'))
+    @section('description', 'Search for verified bulk accounts, categories, and products.')
+
     <div class="container mx-auto px-4 py-6 md:py-8">
         <!-- Header Section -->
         <div class="mb-6 md:mb-8">

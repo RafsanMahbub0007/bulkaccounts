@@ -79,7 +79,7 @@ class ProductDetails extends Component
     public function render()
     {
         $this->product->content = \Illuminate\Support\Str::markdown($this->product->content);
-        $system = cache()->remember('system_settings', 3600, fn() => Setting::find(1));
+        $system = Setting::find(1);
         return view('livewire.product-details', [
             'product' => $this->product,
             'relatedProducts' => $this->relatedProducts,

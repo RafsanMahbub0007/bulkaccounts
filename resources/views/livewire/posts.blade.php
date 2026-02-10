@@ -1,4 +1,14 @@
 <div class="bg-gray-900 min-h-screen py-8">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'blog')->first();
+        $title = $seo->meta_title ?? 'Blog - Latest Insights & Updates';
+        $description = $seo->meta_description ?? 'Explore insights, tips, and updates on the latest trends in account selling and digital growth.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <!-- Hero Section -->
     <section class="py-16 bg-cover bg-center relative" style="background-image: url('path-to-your-hero-image.jpg');">
         <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>

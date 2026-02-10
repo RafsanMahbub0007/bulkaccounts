@@ -1,4 +1,7 @@
 <section class="relative bg-gray-900 text-white overflow-hidden px-6 py-20">
+    @section('title', $category->meta_title ?? $category->name . ' - Categories')
+    @section('description', $category->description ?? 'Explore ' . $category->name . ' categories. Find the best bulk accounts for your needs.')
+    @section('keywords', $category->keywords ?? '')
 
     <!-- Glow Background -->
     <div class="absolute inset-0 pointer-events-none">

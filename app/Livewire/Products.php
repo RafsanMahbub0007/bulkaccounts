@@ -27,7 +27,6 @@ class Products extends Component
         $system = Setting::first();
 
         $products = Product::query()
-            ->with(['subcategory', 'category'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')

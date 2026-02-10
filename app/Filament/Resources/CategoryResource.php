@@ -42,6 +42,9 @@ class CategoryResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->placeholder('Enter category slug'),
+                TextInput::make('meta_title')
+                    ->label('Meta Title')
+                    ->maxLength(255),
                 TagsInput::make('keywords')
                     ->placeholder('Add keywords...')
                     ->splitKeys([','])

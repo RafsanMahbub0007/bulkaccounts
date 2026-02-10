@@ -1,4 +1,7 @@
 <section class="relative bg-gray-900 text-white py-16 md:py-20 overflow-hidden">
+    @section('title', $product->meta_title ?? $product->name . ' - ' . ($product->category->name ?? 'Product'))
+    @section('description', $product->description ?? Str::limit(strip_tags($product->content ?? 'Buy ' . $product->name . ' at best prices.'), 150))
+    @section('keywords', $product->keywords ?? '')
 
     <!-- Background Neon Glow -->
     <div class="absolute inset-0 pointer-events-none">

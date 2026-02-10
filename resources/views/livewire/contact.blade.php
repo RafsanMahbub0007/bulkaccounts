@@ -1,4 +1,14 @@
 <div>
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'contact')->first();
+        $title = $seo->meta_title ?? 'Contact Us - Get in Touch';
+        $description = $seo->meta_description ?? 'Have questions or need support? Contact our team for assistance with bulk accounts and digital products.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <!-- Contact Banner -->
     <section class="bg-gray-900 py-28 relative overflow-hidden">
         <div class="container mx-auto px-6 text-center relative z-10">

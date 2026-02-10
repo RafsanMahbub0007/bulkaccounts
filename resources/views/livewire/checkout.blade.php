@@ -1,4 +1,14 @@
 <div>
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'checkout')->first();
+        $title = $seo->meta_title ?? 'Secure Checkout';
+        $description = $seo->meta_description ?? 'Complete your purchase securely. Instant delivery for verified accounts.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     {{-- =========================
         CHECKOUT PAGE
     ========================= --}}

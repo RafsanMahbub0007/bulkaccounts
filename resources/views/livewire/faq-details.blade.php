@@ -1,4 +1,14 @@
 <section class="relative py-20 bg-gray-900 text-white">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'faq')->first();
+        $title = $seo->meta_title ?? 'FAQ - ' . ($system->website_name ?? 'Jabed');
+        $description = $seo->meta_description ?? 'Find answers to common questions about our bulk account services and support.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <div class="container mx-auto px-4">
         <!-- Hero / Header -->
         <div class="text-center mb-16">
