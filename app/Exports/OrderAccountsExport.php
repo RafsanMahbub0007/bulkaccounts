@@ -3,67 +3,37 @@
 namespace App\Exports;
 
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class OrderAccountsExport implements FromArray, WithHeadings, ShouldAutoSize
+class OrderAccountsExport implements WithMultipleSheets
 {
     protected $accounts;
-    protected $headers = [];
 
     public function __construct(Collection $accounts)
     {
         $this->accounts = $accounts;
-        
-        // Calculate all unique headers
-        $allHeaders = ['Email'];
-        foreach ($accounts as $account) {
-            if (!empty($account->meta_headers) && is_array($account->meta_headers)) {
-                foreach ($account->meta_headers as $header) {
-                     // Normalize header: ucfirst, trim
-                     $h = ucfirst(trim($header));
-                     // Avoid duplicates
-                     if (!in_array($h, $allHeaders)) {
-                         $allHeaders[] = $h;
-                     }
-                }
-            }
+    }
+
+    public function sheets(): array
+    {
+        $sheets = [];
+
+        // Group accounts by product ID
+        $grouped = $this->accounts->groupBy('product_id');
+
+        foreach ($grouped as $productId => $accounts) {
+            // Get product name from the first account in the group
+            $firstAccount = $accounts->first();
+
+            // Fallback name if relation is missing (though it should exist)
+            $title = $firstAccount->product ? $firstAccount->product->name : "Product {$productId}";
+
+            // Clean title for Excel (remove invalid chars if necessary)
+            $title = str_replace(['*', ':', '/', '\\', '?', '[', ']'], '', $title);
+
+            $sheets[] = new OrderProductSheet($accounts, $title);
         }
-        $this->headers = $allHeaders;
-    }
 
-    public function headings(): array
-    {
-        return $this->headers;
-    }
-
-    public function array(): array
-    {
-        return $this->accounts->map(function ($account) {
-            $row = [];
-            
-            // Map the headers to values for this account
-            $accountMetaMap = [];
-            $meta = $account->meta ?? [];
-            $metaHeaders = $account->meta_headers ?? [];
-            
-            foreach ($metaHeaders as $i => $h) {
-                if (isset($meta[$i])) {
-                    // Use same normalization as in constructor
-                    $accountMetaMap[ucfirst(trim($h))] = $meta[$i];
-                }
-            }
-
-            foreach ($this->headers as $header) {
-                if ($header === 'Email') {
-                    $row[] = $account->email;
-                } else {
-                    $row[] = $accountMetaMap[$header] ?? '';
-                }
-            }
-            
-            return $row;
-        })->toArray();
+        return $sheets;
     }
 }

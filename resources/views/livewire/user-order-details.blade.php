@@ -150,7 +150,7 @@
             <!-- ============================= -->
             <div class="text-center mt-8">
                 @if($order->payment_status==='paid' && $order->order_status==='completed' && $order->completed_at)
-                    <a href="{{ route('order.download', $order->id) }}"
+                    <a href="{{ route('order.download', $order->order_number) }}"
                        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg text-lg transition">
                         <i class="fas fa-download mr-2"></i> Download Accounts File
                     </a>

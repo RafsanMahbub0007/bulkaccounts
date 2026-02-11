@@ -114,7 +114,7 @@
                 <!-- Download Action -->
                 @if($order->download_file)
                 <div class="btn-container">
-                    <a href="{{ route('order.download.public', ['order' => $order->order_number]) }}" class="btn">Download Accounts File</a>
+                    <a href="{{ route('order.download', ['order' => $order->order_number]) }}" class="btn">Download Accounts File</a>
                     <p style="margin-top: 15px; font-size: 13px; color: #666;">
                         Or check the attachment included with this email.
                     </p>
