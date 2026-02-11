@@ -27,7 +27,6 @@ class Products extends Component
         $system = Setting::first();
 
         $products = Product::query()
-            ->with(['subcategory', 'category'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -39,7 +38,7 @@ class Products extends Component
             })
             ->where('is_active', true)
             ->orderBy('display_order', $this->sortDirection)
-            ->paginate(12);
+            ->get();
 
         return view('livewire.products', compact('products', 'categories', 'system'));
     }

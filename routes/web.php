@@ -29,6 +29,10 @@ use App\Models\PreOrder;
 use App\Models\OrderItem;
 
 
+use App\Http\Controllers\SitemapController;
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes

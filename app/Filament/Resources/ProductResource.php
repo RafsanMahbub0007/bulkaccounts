@@ -41,7 +41,7 @@ class ProductResource extends Resource
         return $form->schema([
             Forms\Components\TextInput::make('name')->required(),
             Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true),
-
+            Forms\Components\TextInput::make('meta_title')->label('Meta Title')->maxLength(255),
             Forms\Components\Select::make('category_id')
                 ->relationship('category', 'name')
                 ->required()

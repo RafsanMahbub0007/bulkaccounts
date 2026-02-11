@@ -1,4 +1,14 @@
 <div>
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'contact')->first();
+        $title = $seo->meta_title ?? 'Contact Us - Get in Touch';
+        $description = $seo->meta_description ?? 'Have questions or need support? Contact our team for assistance with bulk accounts and digital products.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <!-- Contact Banner -->
     <section class="bg-gray-900 py-28 relative overflow-hidden">
         <div class="container mx-auto px-6 text-center relative z-10">
@@ -46,42 +56,48 @@
                             <span class="ml-4 text-gray-300 text-lg">{{ $system->address }}</span>
                         </li>
                     </ul>
-                    <div class="mt-8">
-                        <a href="#"
-                            class="inline-block bg-red-500 text-white py-3 px-6 rounded-lg shadow hover:bg-red-400 transition">
-                            Get Directions
-                        </a>
-                    </div>
+
                 </div>
 
                 <!-- Contact Form -->
                 <div class="bg-gray-800 rounded-lg shadow-lg p-8">
                     <h3 class="text-2xl font-bold text-white mb-6">Send Us a Message</h3>
-                    <form action="" method="POST">
-                        @csrf
+                    
+                    @if (session()->has('message'))
+                        <div class="bg-green-500 text-white p-4 rounded-lg mb-6">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="submit">
                         <div class="space-y-6">
                             <div>
                                 <label for="name" class="block text-gray-300 mb-2">Your Name</label>
-                                <input type="text" id="name" name="name"
-                                    class="w-full p-4 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500"
-                                    placeholder="Enter your name" required>
+                                <input type="text" id="name" wire:model="name"
+                                    class="w-full p-4 rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-red-500 @error('name') border-red-500 @enderror"
+                                    placeholder="Enter your name">
+                                @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 <label for="email" class="block text-gray-300 mb-2">Your Email</label>
-                                <input type="email" id="email" name="email"
-                                    class="w-full p-4 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500"
-                                    placeholder="Enter your email" required>
+                                <input type="email" id="email" wire:model="email"
+                                    class="w-full p-4 rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-red-500 @error('email') border-red-500 @enderror"
+                                    placeholder="Enter your email">
+                                @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 <label for="message" class="block text-gray-300 mb-2">Your Message</label>
-                                <textarea id="message" name="message" rows="6"
-                                    class="w-full p-4 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500"
-                                    placeholder="Write your message here..." required></textarea>
+                                <textarea id="message" wire:model="message" rows="6"
+                                    class="w-full p-4 rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-red-500 @error('message') border-red-500 @enderror"
+                                    placeholder="Write your message here..."></textarea>
+                                @error('message') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         <button type="submit"
-                            class="w-full bg-red-500 text-white py-3 px-6 rounded-lg mt-6 hover:bg-red-400 transition">
-                            Send Message
+                            class="w-full bg-red-500 text-white py-3 px-6 rounded-lg mt-6 hover:bg-red-400 transition flex justify-center items-center"
+                            wire:loading.attr="disabled">
+                            <span wire:loading.remove>Send Message</span>
+                            <span wire:loading><i class="fas fa-spinner fa-spin"></i> Sending...</span>
                         </button>
                     </form>
                 </div>

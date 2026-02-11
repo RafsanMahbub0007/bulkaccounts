@@ -1,4 +1,7 @@
 <div class="bg-gray-900 text-gray-300 min-h-screen py-12">
+    @section('title', $post->meta_title ?? $post->title . ' - Blog')
+    @section('description', $post->description ?? \Illuminate\Support\Str::limit(strip_tags($post->content), 150))
+    @section('keywords', $post->keywords ?? '')
 
     <div class="container mx-auto px-6 lg:px-16 flex flex-col lg:flex-row gap-12">
 

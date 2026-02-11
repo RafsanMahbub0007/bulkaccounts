@@ -14,7 +14,7 @@ class Category extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'slug', 'keywords', 'description', 'image', 'order', 'is_active'];
+    protected $fillable = ['name', 'slug', 'meta_title', 'keywords', 'description', 'image', 'order', 'is_active'];
 
     /**
      * Get the products for the category.

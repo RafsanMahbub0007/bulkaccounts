@@ -1,4 +1,14 @@
 <section class="relative py-24 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'about')->first();
+        $title = $seo->meta_title ?? 'About Us - ' . ($system->website_name ?? 'Jabed');
+        $description = $seo->meta_description ?? 'Learn about our mission to empower businesses with secure and verified bulk accounts.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
+
     <div class="container mx-auto px-4 text-center">
         <!-- Main Heading -->
         <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 animate-fade-in">

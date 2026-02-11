@@ -15,7 +15,9 @@
             ->first());
     @endphp
 
-    <title>{{ $system->website_name ?? 'Jabed' }}</title>
+    <title>@yield('title', $system->website_name ?? 'Jabed')</title>
+    <meta name="description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
+    <meta name="keywords" content="@yield('keywords', 'bulk accounts, buy accounts, digital products')">
     <!-- FavIcon -->
     <link rel="shortcut icon" href="{{ image_path($system->favicon) }}" type="image/x-icon">
     <!-- Fonts -->
@@ -32,6 +34,15 @@
 
     <!-- Styles -->
     @livewireStyles
+        <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MXF56YB47E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-MXF56YB47E');
+</script>
 </head>
 
 <body class="font-sans antialiased">

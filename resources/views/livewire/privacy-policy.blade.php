@@ -1,4 +1,13 @@
 <section class="relative py-24 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
+    @php
+        $seo = \App\Models\SeoSetting::where('page_name', 'privacy')->first();
+        $title = $seo->meta_title ?? 'Privacy Policy';
+        $description = $seo->meta_description ?? 'Read our privacy policy to understand how we collect, use, and protect your data.';
+        $keywords = $seo->meta_keywords ?? '';
+    @endphp
+    @section('title', $title)
+    @section('description', $description)
+    @section('keywords', $keywords)
 
     <!-- Background Effects -->
     <div class="absolute inset-0 pointer-events-none">
