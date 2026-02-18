@@ -2,6 +2,8 @@
     @section('title', $category->meta_title ?? $category->name . ' - Categories')
     @section('description', $category->description ?? 'Explore ' . $category->name . ' categories. Find the best bulk accounts for your needs.')
     @section('keywords', $category->keywords ?? '')
+    @section('og_image', image_path($category->image))
+    @section('og_type', 'product.group')
 
     <!-- Glow Background -->
     <div class="absolute inset-0 pointer-events-none">

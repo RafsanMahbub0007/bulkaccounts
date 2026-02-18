@@ -1,7 +1,9 @@
 <div class="bg-gray-900 text-gray-300 min-h-screen py-12">
-    @section('title', $post->meta_title ?? $post->title . ' - Blog')
+    @section('title', $post->meta_title ?? $post->title . ' - ' . ($system->website_name ?? 'PvaProseller'))
     @section('description', $post->description ?? \Illuminate\Support\Str::limit(strip_tags($post->content), 150))
     @section('keywords', $post->keywords ?? '')
+    @section('og_image', image_path($post->image))
+    @section('og_type', 'article')
 
     <div class="container mx-auto px-6 lg:px-16 flex flex-col lg:flex-row gap-12">
 
@@ -69,5 +71,23 @@
     <footer class="bg-gray-900 border-t border-gray-700 py-8 mt-12">
         <!-- Include your existing footer here -->
     </footer>
+
+    @push('schema')
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": @json($post->title),
+      "image": @json(image_path($post->image)),
+      "datePublished": "{{ $post->created_at->toIso8601String() }}",
+      "dateModified": "{{ $post->updated_at->toIso8601String() }}",
+      "author": {
+        "@type": "Person",
+        "name": @json($post->author->name)
+      },
+      "description": @json($post->description ?? Str::limit(strip_tags($post->content), 150))
+    }
+    </script>
+    @endpush
 
 </div>

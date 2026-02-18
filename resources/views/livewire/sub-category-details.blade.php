@@ -1,7 +1,9 @@
 <section class="relative bg-gray-900 text-white overflow-hidden px-6 py-20">
-    @section('title', $subcategory->meta_title ?? $subcategory->name . ' - ' . ($subcategory->category->name ?? 'Category'))
+    @section('title', $subcategory->meta_title ?? $subcategory->name . ' - ' . ($subcategory->category->name ?? 'Category') . ' - ' . ($system->website_name ?? 'PvaProseller'))
     @section('description', $subcategory->description ?? 'Explore ' . $subcategory->name . ' in ' . ($subcategory->category->name ?? 'our store') . '. Verified bulk accounts available.')
     @section('keywords', $subcategory->keywords ?? '')
+    @section('og_image', image_path($subcategory->image))
+    @section('og_type', 'product.group')
 
     <!-- Glow Background -->
     <div class="absolute inset-0 pointer-events-none">

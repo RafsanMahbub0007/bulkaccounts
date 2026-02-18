@@ -10,6 +10,24 @@
         $banners = \App\Models\Banner::all();
     @endphp
     <title>{{ $system->website_name ?? 'PvaProseller' }}</title>
+    <meta name="description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
+    <meta name="keywords" content="@yield('keywords', 'bulk accounts, buy accounts, digital products')">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ $system->website_name ?? 'PvaProseller' }}">
+    <meta property="og:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
+    <meta property="og:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
+    <meta property="og:site_name" content="{{ $system->website_name ?? 'PvaProseller' }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="{{ $system->website_name ?? 'PvaProseller' }}">
+    <meta property="twitter:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
+    <meta property="twitter:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
+
     <!-- FavIcon -->
     <link rel="shortcut icon" href="{{ image_path($system->favicon) }}" type="image/x-icon">
 
@@ -39,6 +57,7 @@
     </div>
 
     @livewireScripts
+    @stack('schema')
     <!-- Floating Support Buttons -->
     <div
         class="fixed

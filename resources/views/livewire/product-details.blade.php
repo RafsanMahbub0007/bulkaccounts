@@ -1,7 +1,9 @@
 <section class="relative bg-gray-900 text-white py-16 md:py-20 overflow-hidden">
-    @section('title', $product->meta_title ?? $product->name . ' - ' . ($product->category->name ?? 'Product'))
+    @section('title', $product->meta_title ?? $product->name . ' - ' . ($product->category->name ?? 'Product') . ' - ' . ($system->website_name ?? 'PvaProseller'))
     @section('description', $product->description ?? Str::limit(strip_tags($product->content ?? 'Buy ' . $product->name . ' at best prices.'), 150))
     @section('keywords', $product->keywords ?? '')
+    @section('og_image', image_path($product->product_image ?? $product->subcategory->image))
+    @section('og_type', 'product')
 
     <!-- Background Neon Glow -->
     <div class="absolute inset-0 pointer-events-none">
@@ -201,5 +203,25 @@
     <!-- TOASTS -->
     <x-toast on="cartUpdated" type="success">Success</x-toast>
     <x-toast on="cartUpdateFailed" type="failed">Out of Stock</x-toast>
+
+    @push('schema')
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": @json($product->name),
+      "image": @json(image_path($product->product_image ?? $product->subcategory->image)),
+      "description": @json($product->description ?? Str::limit(strip_tags($product->content), 150)),
+      "sku": @json($product->slug),
+      "offers": {
+        "@type": "Offer",
+        "url": @json(url()->current()),
+        "priceCurrency": "USD",
+        "price": "{{ $product->selling_price }}",
+        "availability": "https://schema.org/{{ $product->stock > 0 ? 'InStock' : 'OutOfStock' }}"
+      }
+    }
+    </script>
+    @endpush
 
 </section>
