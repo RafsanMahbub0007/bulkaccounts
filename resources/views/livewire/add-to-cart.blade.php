@@ -27,6 +27,9 @@
         @endif
     </div>
 
+    <!-- Toast Notification -->
+    <x-toast on="cartUpdated" type="success">Item added to cart successfully!</x-toast>
+
     <!-- Buy Now -->
     @if(!$isPreOrder)
     <span wire:click="buyNow"

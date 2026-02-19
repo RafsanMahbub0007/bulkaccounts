@@ -4,7 +4,7 @@
     shown: false,
     timeout: null,
     type: '{{ $type }}'
-}" x-init="@this.on('{{ $on }}', () => {
+}" x-init="window.addEventListener('{{ $on }}', () => {
     clearTimeout(timeout);
     shown = true;
     timeout = setTimeout(() => {

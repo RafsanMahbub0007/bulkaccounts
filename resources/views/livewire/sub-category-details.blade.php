@@ -129,6 +129,11 @@
             </div>
         </div>
     </div>
+    
+    <!-- TOASTS -->
+    <x-toast on="cartUpdated" type="success">Item added to cart successfully!</x-toast>
+    <x-toast on="cartUpdateFailed" type="failed">Out of Stock</x-toast>
+
     <style>
         /* BADGES */
         .badge-left,

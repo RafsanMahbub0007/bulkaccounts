@@ -22,8 +22,8 @@ class AddToCart extends Component
     public function addToCart()
     {
         $this->updateCartSession();
-        session()->flash('success', $this->isPreOrder ? 'Pre-order item added to cart.' : 'Product added to cart.');
-        $this->dispatch('cartUpdated');
+        // Dispatch to browser window so Alpine.js toast can catch it
+        $this->dispatch('cartUpdated'); 
     }
 
     public function buyNow()
