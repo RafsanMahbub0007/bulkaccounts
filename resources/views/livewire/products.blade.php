@@ -154,7 +154,52 @@
                                 </div>
 
                                 <!-- CART / PREORDER -->
-                                @livewire('add-to-cart', ['productId' => $product->id], key($product->id))
+                        <div class="flex flex-col sm:flex-row gap-3 mt-4 pointer-events-auto">
+                            
+                            <!-- Add to Cart / Pre-Order -->
+                            <div class="flex flex-col flex-1">
+                                <span wire:click="addToCart({{ $product->id }})"
+                                    class="w-full
+                                        flex items-center justify-center
+                                        px-4 sm:px-5 py-2 sm:py-2.5
+                                        text-[13px] sm:text-sm font-semibold
+                                        whitespace-nowrap
+                                        rounded-full
+                                        bg-gradient-to-r {{ $product->stock <= 0 ? 'from-cyan-500 to-blue-500' : 'from-pink-500 to-purple-500' }} text-white
+                                        shadow-lg {{ $product->stock <= 0 ? 'shadow-cyan-500/30' : 'shadow-pink-500/30' }}
+                                        transition-all duration-300 cursor-pointer
+                                        hover:scale-105 active:scale-95">
+                                    {{ $product->stock <= 0 ? '' : 'Add to Cart' }}
+                                    @if($product->stock <= 0)
+                                        <span class="flex items-center gap-2">
+                                            <i class="fas fa-rotate"></i> Pre-Order Now
+                                        </span>
+                                    @endif
+                                </span>
+                                @if($product->stock <= 0)
+                                    <span class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
+                                        Delivery: 24-72 hours
+                                    </span>
+                                @endif
+                            </div>
+
+                            <!-- Buy Now -->
+                            @if($product->stock > 0)
+                                <span wire:click="buyNow({{ $product->id }})"
+                                    class="flex-1 min-w-0
+                                           flex items-center justify-center
+                                           px-4 sm:px-5 py-2 sm:py-2.5
+                                           text-[13px] sm:text-sm font-semibold
+                                           whitespace-nowrap
+                                           rounded-full
+                                           bg-gradient-to-r from-cyan-500 to-blue-500 text-white
+                                           shadow-lg shadow-cyan-500/30
+                                           transition-all duration-300 cursor-pointer
+                                           hover:scale-105 active:scale-95">
+                                    Buy&nbsp;Now
+                                </span>
+                            @endif
+                        </div>
 
                             </div>
                         </div>
@@ -167,11 +212,6 @@
             </div>
         </div>
     </div>
-
-    <!-- TOASTS -->
-    <x-toast on="cartUpdated" type="success">Item added to cart successfully!</x-toast>
-    <x-toast on="cartUpdateFailed" type="failed">Out of Stock</x-toast>
-
     <style>
         /* BADGES */
         .badge-left,

@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -59,6 +60,11 @@ class SubCategoryResource extends Resource
                     ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
                     ->nullable(),
                 Textarea::make('description')
+                    ->nullable()
+                    ->columnSpanFull(), // Make it take full width
+                RichEditor::make('content')
+                    ->label('Detailed Content')
+                    ->columnSpanFull() // Make it take full width
                     ->nullable(),
                 FileUpload::make('image')
                     ->label('Sub-Category Image')

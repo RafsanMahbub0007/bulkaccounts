@@ -23,7 +23,7 @@ class AddToCart extends Component
     {
         $this->updateCartSession();
         // Dispatch to browser window so Alpine.js toast can catch it
-        $this->dispatch('cartUpdated'); 
+        $this->dispatch('cartUpdated', message: 'Item added to cart successfully!'); 
     }
 
     public function buyNow()

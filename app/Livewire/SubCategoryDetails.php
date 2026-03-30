@@ -27,48 +27,44 @@ class SubCategoryDetails extends Component
     public function addToCart($productId)
     {
         $product = Product::findOrFail($productId);
-        if ($this->quantity > $this->product->stock) {
-            session()->flash('error', 'Not enough stock available.');
-            $this->dispatch('cartUpdateFailed');
-            return;
-        }
+        
+        $isPreOrderItem = $product->stock <= 0;
 
         $cart = session()->get('cart', []);
-        $cart[$this->product->id] = [
-            'id' => $this->product->id,
-            'name' => $this->product->name,
-            'image' => $this->product->product_image,
-            'price' => $this->product->selling_price,
-            'quantity' => $this->quantity,
-            'stock' => $this->product->stock,
-        ];
+
+        if (isset($cart[$productId])) {
+             // Existing item
+            $currentQty = $cart[$productId]['quantity'];
+            
+            // If it's NOT a pre-order (meaning we have stock), enforce stock limit
+            if (!$isPreOrderItem) {
+                if ($currentQty + 1 > $product->stock) {
+                    $this->dispatch('cartUpdateFailed', 'Not enough stock available.');
+                    return;
+                }
+            }
+            $cart[$productId]['quantity'] += 1;
+
+        } else {
+             // New item
+            $cart[$productId] = [
+                'id'       => $product->id,
+                'name'     => $product->name,
+                'price'    => $product->selling_price,
+                'quantity' => $product->min_order_qty > 0 ? $product->min_order_qty : 1,
+                'stock'    => $product->stock,
+                'image'    => $product->subCategory->image ?? null,
+                'is_preorder' => $isPreOrderItem,
+            ];
+        }
 
         session()->put('cart', $cart);
-        session()->flash('success', 'Product added to cart!');
-        $this->dispatch('cartUpdated');
+        $this->dispatch('cartUpdated', message: 'Item added to cart successfully!');
     }
 
     public function buyNow($productId)
     {
-        $product = Product::findOrFail($productId);
-
-        if ($this->quantity > $this->product->stock) {
-            session()->flash('error', 'Not enough stock available.');
-            return;
-        }
-
-        $cart = session()->get('cart', []);
-        $cart[$this->product->id] = [
-            'id' => $this->product->id,
-            'name' => $this->product->name,
-            'image' => $this->product->product_image,
-            'price' => $this->product->selling_price,
-            'quantity' => $this->quantity,
-            'stock' => $this->product->stock,
-        ];
-
-        session()->put('cart', $cart);
-        $this->dispatch('cartUpdated');
+        $this->addToCart($productId);
         return redirect()->route('checkout');
     }
     public function render()
@@ -79,8 +75,26 @@ class SubCategoryDetails extends Component
             ->orderBy('display_order', 'asc')
             ->get();
 
+        // Fetch related products (e.g., from the same category but different subcategory, or random active products)
+        $relatedProducts = Product::where('category_id', $this->subcategory->category_id)
+            ->where('subcategory_id', '!=', $this->subcategory->id) // Exclude current subcategory products
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->take(5)
+            ->get();
+
+        if ($relatedProducts->isEmpty()) {
+             // Fallback: Just random products if no related ones found in same category
+             $relatedProducts = Product::where('id', '!=', 0) // Dummy where
+                ->where('is_active', true)
+                ->inRandomOrder()
+                ->take(5)
+                ->get();
+        }
+
         return view('livewire.sub-category-details', [
             'products' => $products,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 }

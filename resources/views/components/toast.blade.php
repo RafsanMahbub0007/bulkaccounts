@@ -3,9 +3,16 @@
 <div x-data="{
     shown: false,
     timeout: null,
+    message: '{{ $slot->isEmpty() ? 'Saved successfully!' : $slot }}',
     type: '{{ $type }}'
-}" x-init="window.addEventListener('{{ $on }}', () => {
+}" x-init="window.addEventListener('{{ $on }}', (event) => {
     clearTimeout(timeout);
+    if (event.detail && event.detail.message) {
+        message = event.detail.message;
+    }
+    if (event.detail && event.detail.type) {
+        type = event.detail.type;
+    }
     shown = true;
     timeout = setTimeout(() => {
         shown = false
@@ -21,7 +28,7 @@
             <i class="fas fa-check-circle text-2xl text-white"></i>
         </div>
         <div class="flex-1">
-            <p class="text-sm font-semibold">{{ $slot->isEmpty() ? 'Saved successfully!' : $slot }}</p>
+            <p class="text-sm font-semibold" x-text="message"></p>
         </div>
         <button @click="shown = false" class="flex-shrink-0 text-white hover:text-gray-300 focus:outline-none">
             <i class="fas fa-times"></i>
@@ -35,7 +42,7 @@
             <i class="fas fa-times-circle text-2xl text-white"></i>
         </div>
         <div class="flex-1">
-            <p class="text-sm font-semibold">{{ $slot->isEmpty() ? 'Something went wrong!' : $slot }}</p>
+            <p class="text-sm font-semibold" x-text="message"></p>
         </div>
         <button @click="shown = false" class="flex-shrink-0 text-white hover:text-gray-300 focus:outline-none">
             <i class="fas fa-times"></i>

@@ -90,6 +90,11 @@
 
     @livewireScripts
     @stack('schema')
+
+    <!-- GLOBAL TOAST NOTIFICATIONS -->
+    <x-toast on="cartUpdated" type="success">Item added to cart successfully!</x-toast>
+    <x-toast on="cartUpdateFailed" type="failed">Out of Stock or Error!</x-toast>
+
     <!-- Floating Support Icons -->
     <div
         class="fixed

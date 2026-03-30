@@ -13,6 +13,7 @@ class SubCategory extends Model
         'meta_title',
         'keywords',
         'description',
+        'content',
         'image',
         'order',
         'is_active'

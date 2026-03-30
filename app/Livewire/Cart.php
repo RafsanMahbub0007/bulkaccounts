@@ -35,7 +35,7 @@ class Cart extends Component
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
             session()->put('cart', $cart);
-            $this->dispatch('cartUpdated');
+            $this->dispatch('cartUpdated', message: 'Item removed from cart.', type: 'failed');
             $this->updateCart();
         }
     }
@@ -63,7 +63,7 @@ class Cart extends Component
                 session()->put('cart', $cart);
 
                 // Dispatch event after updating quantity
-                $this->dispatch('cartUpdated');
+                $this->dispatch('cartUpdated', message: 'Cart updated.');
                 $this->updateCart();
             }
         }

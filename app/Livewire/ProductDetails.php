@@ -28,7 +28,7 @@ class ProductDetails extends Component
     public function addToCart()
     {
         $this->updateCartSession();
-        $this->dispatch('cartUpdated');
+        $this->dispatch('cartUpdated', message: 'Item added to cart successfully!');
     }
 
     public function buyNow()
