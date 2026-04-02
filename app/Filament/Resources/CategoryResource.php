@@ -7,6 +7,7 @@ use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -67,6 +68,8 @@ class CategoryResource extends Resource
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(false),
+                RichEditor::make('Content')
+                    ->nullable()
             ]);
     }
 

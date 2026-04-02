@@ -87,6 +87,11 @@
                 <div class="mt-10">
                     {{-- Pagination removed --}}
                 </div>
+                 @if($category->content)
+                <div class="text-gray-300 text-lg leading-relaxed mt-6 max-w-4xl mx-auto sm:mx-0">
+                    {!! $category->content !!}
+                </div>
+            @endif
             </div>
 
             <!-- 🔹 SIDEBAR -->
