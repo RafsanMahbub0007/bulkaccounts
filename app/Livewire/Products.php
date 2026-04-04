@@ -38,7 +38,7 @@ class Products extends Component
             })
             ->where('is_active', true)
             ->orderBy('display_order', $this->sortDirection)
-            ->get();
+            ->paginate(12);
 
         return view('livewire.products', compact('products', 'categories', 'system'));
     }

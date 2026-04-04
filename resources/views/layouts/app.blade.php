@@ -6,34 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
-        $system = cache()->remember('system_settings', 3600, fn() => \App\Models\Setting::find(1));
-        $banners = cache()->remember('banners_list', 3600, fn() => \App\Models\Banner::all());
-        $offer = cache()->remember('active_offer', 600, fn() => \App\Models\Offer::where('status', 'active')
+        $system = \App\Models\Setting::find(1);
+        $banners = \App\Models\Banner::all();
+        $offer = \App\Models\Offer::where('status', 'active')
             ->whereDate('start_date', '<=', now())
             ->whereDate('end_date', '>=', now())
             ->latest()
-            ->first());
+            ->first();
     @endphp
 
-    <title>@yield('title', $system->website_name ?? 'PvaProseller')</title>
-    <meta name="description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta name="keywords" content="@yield('keywords', 'bulk accounts, buy accounts, digital products')">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="@yield('title', $system->website_name ?? 'PvaProseller')">
-    <meta property="og:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta property="og:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
-    <meta property="og:site_name" content="{{ $system->website_name ?? 'PvaProseller' }}">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="@yield('title', $system->website_name ?? 'PvaProseller')">
-    <meta property="twitter:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta property="twitter:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
-
+    <title>{{ $system->website_name ?? 'Jabed' }}</title>
     <!-- FavIcon -->
     <link rel="shortcut icon" href="{{ image_path($system->favicon) }}" type="image/x-icon">
     <!-- Fonts -->
@@ -50,15 +32,6 @@
 
     <!-- Styles -->
     @livewireStyles
-        <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MXF56YB47E"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-MXF56YB47E');
-</script>
 </head>
 
 <body class="font-sans antialiased">
@@ -89,12 +62,6 @@
     @stack('modals')
 
     @livewireScripts
-    @stack('schema')
-
-    <!-- GLOBAL TOAST NOTIFICATIONS -->
-    <x-toast on="cartUpdated" type="success">Item added to cart successfully!</x-toast>
-    <x-toast on="cartUpdateFailed" type="failed">Out of Stock or Error!</x-toast>
-
     <!-- Floating Support Icons -->
     <div
         class="fixed
