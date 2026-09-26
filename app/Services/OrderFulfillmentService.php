@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\ProductAccount;
 use App\Models\Payment;
@@ -11,12 +12,27 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderFulfilledMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 use Google\Client;
 use Google\Service\Sheets;
 
 class OrderFulfillmentService
 {
+    private function formatDeliveredAccounts($accounts): string
+    {
+        return $accounts
+            ->map(function ($account) {
+                $metaValues = collect($account->meta ?? [])
+                    ->filter(fn ($value) => filled($value))
+                    ->implode(' | ');
+
+                return trim($account->email . ($metaValues ? ' | ' . $metaValues : ''));
+            })
+            ->filter()
+            ->implode(PHP_EOL);
+    }
+
     private function sheets(): Sheets
     {
         $client = new Client();
@@ -40,14 +56,25 @@ class OrderFulfillmentService
             Log::info("Starting fulfillment for order ID: {$order->id}");
 
             // Update order status
-            $order->update([
+            $orderUpdate = [
                 'payment_status' => 'paid',
                 'order_status'   => 'completed',
                 'completed_at'   => now(),
-                'transaction_reference' => $paymentPayload['payment_id'] ?? null,
-            ]);
+            ];
+
+            if (Schema::hasColumn('orders', 'transaction_reference')) {
+                $orderUpdate['transaction_reference'] = $paymentPayload['payment_id'] ?? null;
+            }
+
+            if (Schema::hasColumn('orders', 'nowpayments_payment_id') && ! empty($paymentPayload['payment_id'] ?? null)) {
+                $orderUpdate['nowpayments_payment_id'] = $paymentPayload['payment_id'];
+            }
+
+            $order->update($orderUpdate);
             
             $allSoldAccounts = collect();
+
+            $order->loadMissing('orderItems.product');
 
             foreach ($order->orderItems as $item) {
                 if (!$item->product) continue;
@@ -74,9 +101,21 @@ class OrderFulfillmentService
                     Log::info("Account ID {$acc->id} marked as sold");
                 }
 
-                // Decrement stock
-                $product->decrement('stock', $limit);
-                Log::info("Product ID {$product->id} stock decremented by {$limit}, new stock: {$product->stock}");
+                $updatedStock = ProductAccount::where('product_id', $product->id)
+                    ->where('status', 'unsold')
+                    ->count();
+
+                $product->update(['stock' => $updatedStock]);
+                Log::info("Product ID {$product->id} stock updated after fulfillment, new stock: {$updatedStock}");
+
+                Delivery::updateOrCreate(
+                    ['order_item_id' => $item->id],
+                    [
+                        'status' => 'delivered',
+                        'delivered_at' => now(),
+                        'accounts' => $this->formatDeliveredAccounts($accounts),
+                    ]
+                );
 
                 // Update Google Sheet if applicable
                 if ($product->google_sheet_id && $accounts->isNotEmpty()) {

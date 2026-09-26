@@ -133,7 +133,7 @@
     <!-- FOOTER BOTTOM -->
     <div
         class="mt-10 sm:mt-12 border-t border-white/10 pt-6 text-center text-sm sm:text-base text-gray-500 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3">
-        <span>&copy; {{ date('Y') }} Pva Pro-Seller. All rights reserved.</span>
+        <span>&copy; {{ date('Y-m-d, H:i:s,') }} Pva Pro-Seller. All rights reserved.</span>
         <span class="hidden sm:inline">|</span>
         <a href="{{ route('privacy') }}" class="hover:text-red-400 transition-colors">Privacy Policy</a>
     </div>

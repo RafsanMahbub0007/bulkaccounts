@@ -1,6 +1,8 @@
 <section class="relative bg-gray-900 text-white overflow-hidden px-6 py-20">
-    @section('title', $subcategory->meta_title ?? $subcategory->name . ' - ' . ($subcategory->category->name ?? 'Category') . ' - ' . ($system->website_name ?? 'PvaProseller'))
-    @section('description', $subcategory->description ?? 'Explore ' . $subcategory->name . ' in ' . ($subcategory->category->name ?? 'our store') . '. Verified bulk accounts available.')
+    @section('title', $subcategory->meta_title ?? $subcategory->name . ' - ' . ($subcategory->category->name ??
+        'Category') . ' - ' . ($system->website_name ?? 'PvaProseller'))
+    @section('description', $subcategory->description ?? 'Explore ' . $subcategory->name . ' in ' .
+        ($subcategory->category->name ?? 'our store') . '. Verified bulk accounts available.')
     @section('keywords', $subcategory->keywords ?? '')
     @section('og_image', image_path($subcategory->image))
     @section('og_type', 'product.group')
@@ -17,15 +19,9 @@
         <div class="mb-10 text-center sm:text-left">
             <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-2">
                 <span class="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-                   Explore {{ $subcategory->name }}'s
+                    Explore {{ $subcategory->name }}'s
                 </span>
             </h1>
-            
-            @if($subcategory->content)
-                <div class="text-gray-300 text-lg leading-relaxed mt-6 max-w-4xl mx-auto sm:mx-0">
-                    {!! $subcategory->content !!}
-                </div>
-            @endif
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
@@ -132,10 +128,11 @@
 
                         <!-- CART / PREORDER -->
                         <div class="flex flex-col sm:flex-row gap-3 mt-4 pointer-events-auto">
-                            
+
                             <!-- Add to Cart / Pre-Order -->
                             <div class="flex flex-col flex-1">
                                 <span wire:click="addToCart({{ $product->id }})"
+                                    @if ($product->stock > 0) data-add-to-cart-trigger @endif
                                     class="w-full
                                         flex items-center justify-center
                                         px-4 sm:px-5 py-2 sm:py-2.5
@@ -147,21 +144,22 @@
                                         transition-all duration-300 cursor-pointer
                                         hover:scale-105 active:scale-95">
                                     {{ $product->stock <= 0 ? '' : 'Add to Cart' }}
-                                    @if($product->stock <= 0)
+                                    @if ($product->stock <= 0)
                                         <span class="flex items-center gap-2">
                                             <i class="fas fa-rotate"></i> Pre-Order Now
                                         </span>
                                     @endif
                                 </span>
-                                @if($product->stock <= 0)
-                                    <span class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
-                                        Delivery: 24-72 hours
+                                @if ($product->stock <= 0)
+                                    <span
+                                        class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
+                                        Delivery: 24 hours
                                     </span>
                                 @endif
                             </div>
 
                             <!-- Buy Now -->
-                            @if($product->stock > 0)
+                            @if ($product->stock > 0)
                                 <span wire:click="buyNow({{ $product->id }})"
                                     class="flex-1 min-w-0
                                            flex items-center justify-center
@@ -187,9 +185,13 @@
                 {{-- Pagination removed --}}
             </div>
         </div>
-
+        @if ($subcategory->content)
+            <div class="prose prose-invert max-w-none">
+                {!! $subcategory->content !!}
+            </div>
+        @endif
         <!-- RELATED PRODUCTS SECTION -->
-        @if($relatedProducts->count() > 0)
+        @if ($relatedProducts->count() > 0)
             <div class="mt-24 border-t border-white/10 pt-16">
                 <h2 class="text-3xl font-bold text-center text-white mb-12">
                     <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -199,12 +201,14 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                     @foreach ($relatedProducts as $product)
-                        <div class="group rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 backdrop-blur-xl transition hover:scale-[1.02] hover:shadow-xl">
-                            
+                        <div
+                            class="group rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 backdrop-blur-xl transition hover:scale-[1.02] hover:shadow-xl">
+
                             <!-- Image -->
                             <a href="{{ route('product.details', $product->slug) }}">
                                 <div class="relative h-48 sm:h-48 overflow-hidden">
-                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
+                                    <img src="{{ image_path($product->subcategory->image) }}"
+                                        alt="{{ $product->name }}"
                                         class="h-full w-full object-cover transition-transform duration-700" />
 
                                     @if ($product->is_featured)
@@ -226,21 +230,27 @@
                                         {{ $product->name }}
                                     </h2>
                                 </div>
-                                
+
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center gap-2">
                                         @if ($product->activeOffer())
-                                            <span class="text-green-400 font-bold text-md">${{ number_format($product->discountedPrice(), 2) }}</span>
-                                            <span class="text-xs line-through text-gray-400">${{ number_format($product->selling_price, 2) }}</span>
+                                            <span
+                                                class="text-green-400 font-bold text-md">${{ number_format($product->discountedPrice(), 2) }}</span>
+                                            <span
+                                                class="text-xs line-through text-gray-400">${{ number_format($product->selling_price, 2) }}</span>
                                         @else
-                                            <span class="text-pink-400 font-bold text-md">${{ number_format($product->selling_price, 2) }}</span>
+                                            <span
+                                                class="text-pink-400 font-bold text-md">${{ number_format($product->selling_price, 2) }}</span>
                                         @endif
                                     </div>
                                     <div class="flex items-center">
                                         @if ($product->outOfStock())
-                                            <span class="text-red-500 font-normal text-sm border border-red-500 px-1 py-1 rounded-full">Out Of Stock</span>
+                                            <span
+                                                class="text-red-500 font-normal text-sm border border-red-500 px-1 py-1 rounded-full">Out
+                                                Of Stock</span>
                                         @else
-                                            <span class="text-pink-400 font-bold text-md">Stock: {{ $product->stock }}</span>
+                                            <span class="text-pink-400 font-bold text-md">Stock:
+                                                {{ $product->stock }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -250,7 +260,8 @@
                                 <div class="features-box">
                                     <div class="features-grid {{ count($features) > 4 ? 'scrollable' : '' }}">
                                         @foreach ($features as $feature)
-                                            <div class="feature-pill" title="{{ $feature }}">{{ $feature }}</div>
+                                            <div class="feature-pill" title="{{ $feature }}">{{ $feature }}
+                                            </div>
                                         @endforeach
                                     </div>
                                 </div>
@@ -259,11 +270,12 @@
                                 <div class="flex flex-col sm:flex-row gap-3 mt-4 pointer-events-auto">
                                     <div class="flex flex-col flex-1">
                                         <span wire:click="addToCart({{ $product->id }})"
+                                            @if ($product->stock > 0) data-add-to-cart-trigger @endif
                                             class="w-full flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-full bg-gradient-to-r {{ $product->stock <= 0 ? 'from-cyan-500 to-blue-500' : 'from-pink-500 to-purple-500' }} text-white shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all">
                                             {{ $product->stock <= 0 ? 'Pre-Order' : 'Add to Cart' }}
                                         </span>
                                     </div>
-                                    @if($product->stock > 0)
+                                    @if ($product->stock > 0)
                                         <span wire:click="buyNow({{ $product->id }})"
                                             class="flex-1 flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all">
                                             Buy Now
@@ -277,7 +289,7 @@
             </div>
         @endif
     </div>
-    
+
     <style>
         /* BADGES */
         .badge-left,

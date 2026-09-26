@@ -27,52 +27,61 @@ class OfferResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                ->required()
-                ->maxLength(255),
-
-            Forms\Components\Textarea::make('description')
-                ->rows(3)
-                ->nullable(),
-
-            Forms\Components\Select::make('discount_type')
-                ->options([
-                    'percentage' => 'Percentage',
-                    'fixed' => 'Fixed Amount',
-                ])
-                ->default('percentage')
-                ->required(),
-
-            Forms\Components\TextInput::make('discount_value')
-                ->numeric()
-                ->required()
-                ->suffix('% or $'),
-
-            Forms\Components\DatePicker::make('start_date')->required(),
-            Forms\Components\DatePicker::make('end_date')->required(),
-
-            Forms\Components\Select::make('status')
-                ->options([
-                    'active' => 'Active',
-                    'inactive' => 'Inactive',
-                ])
-                ->default('active'),
-
-            Forms\Components\Section::make('Apply To')
-                ->schema([
-                    Forms\Components\Select::make('categories')
-                        ->multiple()
-                        ->relationship('categories', 'name')
-                        ->label('Applicable Categories')
-                        ->preload(),
-
-                    Forms\Components\Select::make('products')
-                        ->multiple()
-                        ->relationship('products', 'name')
-                        ->label('Applicable Products')
-                        ->preload(),
-                ])
-                ->columns(2),
+                Forms\Components\Section::make('Offer Details')
+                    ->description('Set the title, discount type, status, and active period for this offer.')
+                    ->schema([
+                        Forms\Components\TextInput::make('title')
+                            ->label('Offer Title')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Offer Description')
+                            ->rows(3)
+                            ->nullable()
+                            ->columnSpanFull(),
+                        Forms\Components\Select::make('discount_type')
+                            ->label('Discount Type')
+                            ->options([
+                                'percentage' => 'Percentage',
+                                'fixed' => 'Fixed Amount',
+                            ])
+                            ->default('percentage')
+                            ->required(),
+                        Forms\Components\TextInput::make('discount_value')
+                            ->label('Discount Value')
+                            ->numeric()
+                            ->required()
+                            ->suffix('% or $'),
+                        Forms\Components\DatePicker::make('start_date')
+                            ->label('Start Date')
+                            ->required(),
+                        Forms\Components\DatePicker::make('end_date')
+                            ->label('End Date')
+                            ->required(),
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'active' => 'Active',
+                                'inactive' => 'Inactive',
+                            ])
+                            ->default('active'),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Apply Offer To')
+                    ->description('Choose where this offer should be applied.')
+                    ->schema([
+                        Forms\Components\Select::make('categories')
+                            ->multiple()
+                            ->relationship('categories', 'name')
+                            ->label('Applicable Categories')
+                            ->preload(),
+                        Forms\Components\Select::make('products')
+                            ->multiple()
+                            ->relationship('products', 'name')
+                            ->label('Applicable Products')
+                            ->preload(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -124,5 +133,25 @@ class OfferResource extends Resource
             'create' => Pages\CreateOffer::route('/create'),
             'edit' => Pages\EditOffer::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_offers') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_offers') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_offers') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_offers') ?? false;
     }
 }

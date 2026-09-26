@@ -22,6 +22,9 @@ class Order extends Model
         'ordered_at',
         'completed_at',
         'download_file',
+        'nowpayments_invoice_id',
+        'nowpayments_payment_id',
+        'transaction_reference',
     ];
 
     protected $casts = [

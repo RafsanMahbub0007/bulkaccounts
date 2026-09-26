@@ -34,42 +34,57 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter category name'),
-                TextInput::make('slug')
-                    ->unique(Category::class, 'slug', ignoreRecord: true)
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter category slug'),
-                TextInput::make('meta_title')
-                    ->label('Meta Title')
-                    ->maxLength(255),
-                TagsInput::make('keywords')
-                    ->placeholder('Add keywords...')
-                    ->splitKeys([','])
-                    ->afterStateHydrated(function (TagsInput $component, $state) {
-                        $component->state($state ? explode(',', $state) : []);
-                    })
-                    ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
-                    ->nullable(),
-
-                Textarea::make('description')
-                    ->nullable(),
-                FileUpload::make('image')
-                    ->label('Category Image')
-                    ->image()
-                    ->directory('categories'),
-                TextInput::make('order')
-                    ->numeric()
-                    ->default(0)
-                    ->label('Display Order'),
-                Toggle::make('is_active')
-                    ->label('Active')
-                    ->default(false),
-                RichEditor::make('Content')
-                    ->nullable()
+                Forms\Components\Section::make('Category Details')
+                    ->description('Set the basic category information used in the store.')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Category Name')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Enter the category name'),
+                        TextInput::make('slug')
+                            ->label('Slug')
+                            ->unique(Category::class, 'slug', ignoreRecord: true)
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Enter the category URL slug'),
+                        TextInput::make('order')
+                            ->numeric()
+                            ->default(0)
+                            ->label('Display Order'),
+                        Toggle::make('is_active')
+                            ->label('Active Status')
+                            ->default(false),
+                        FileUpload::make('image')
+                            ->label('Category Image')
+                            ->image()
+                            ->directory('categories'),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('SEO Information')
+                    ->description('Add optional SEO data for this category page.')
+                    ->schema([
+                        TextInput::make('meta_title')
+                            ->label('Meta Title')
+                            ->maxLength(255),
+                        TagsInput::make('keywords')
+                            ->label('Meta Keywords')
+                            ->placeholder('Add keywords...')
+                            ->splitKeys([','])
+                            ->afterStateHydrated(function (TagsInput $component, $state) {
+                                $component->state($state ? explode(',', $state) : []);
+                            })
+                            ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
+                            ->nullable()
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Short Description')
+                            ->nullable()
+                            ->columnSpanFull(),
+                        RichEditor::make('content')
+                            ->label('Detailed Content / Description for user panel')
+                            ->columnSpanFull(),
+                    ])
             ]);
     }
 
@@ -125,5 +140,25 @@ class CategoryResource extends Resource
             'create' => Pages\CreateCategory::route('/create'),
             'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_categories') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_categories') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_categories') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_categories') ?? false;
     }
 }

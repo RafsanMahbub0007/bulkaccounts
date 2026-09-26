@@ -60,8 +60,14 @@
                             <a href="{{ route('product.details', $product->slug) }}">
                                 <div class="relative h-48 sm:h-48 overflow-hidden">
 
-                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}" loading="lazy" decoding="async"
-                                        class="h-full w-full object-cover transition-transform duration-700" />
+                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
+                                        loading="lazy" decoding="async"
+                                        class="h-full w-full object-cover transition-transform duration-700"
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
+                                        srcset="{{ image_path($product->subcategory->image) }}?w=320 320w,
+                                                {{ image_path($product->subcategory->image) }}?w=480 480w,
+                                                {{ image_path($product->subcategory->image) }}?w=640 640w,
+                                                {{ image_path($product->subcategory->image) }}?w=800 800w" />
 
                                     {{-- Featured Badge --}}
                                     @if ($product->is_featured)
@@ -101,11 +107,11 @@
                             <div class="p-5 flex flex-col gap-2">
 
                                 <!-- NAME -->
-                                <div class="flex items-center justify-center gap-4 overflow-hidden whitespace-nowrap">
-                                    <h2 class="truncate text-md  font-bold text-cyan-400 max-w-[100%]">
-                                        {{ $product->name }}
-                                    </h2>
-                                </div>
+                                <div class="h-12 flex items-start justify-center">
+    <h4 class="text-lg font-semibold text-cyan-400 text-center line-clamp-2 leading-7">
+        {{ $product->name }}
+    </h4>
+</div>
                                 <div class="flex items-center justify-between w-full">
                                     <!-- Price (Left) -->
                                     <div class="flex items-center gap-2">
@@ -155,10 +161,11 @@
 
                                 <!-- CART / PREORDER -->
                         <div class="flex flex-col sm:flex-row gap-3 mt-4 pointer-events-auto">
-                            
+
                             <!-- Add to Cart / Pre-Order -->
                             <div class="flex flex-col flex-1">
                                 <span wire:click="addToCart({{ $product->id }})"
+                                    @if ($product->stock > 0) data-add-to-cart-trigger @endif
                                     class="w-full
                                         flex items-center justify-center
                                         px-4 sm:px-5 py-2 sm:py-2.5
@@ -178,7 +185,7 @@
                                 </span>
                                 @if($product->stock <= 0)
                                     <span class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
-                                        Delivery: 24-72 hours
+                                        Delivery: 24 hours
                                     </span>
                                 @endif
                             </div>

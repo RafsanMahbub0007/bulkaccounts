@@ -9,25 +9,33 @@
     @php
         $system = \App\Models\Setting::find(1);
         $banners = \App\Models\Banner::all();
+        $seoTitle = trim($__env->yieldContent('title', $system->website_name ?? 'PvaProseller'));
+        $seoDescription = trim($__env->yieldContent('description', 'Best place to buy bulk accounts and digital products.'));
+        $seoKeywords = trim($__env->yieldContent('keywords', 'bulk accounts, buy accounts, digital products'));
+        $seoType = trim($__env->yieldContent('og_type', 'website'));
+        $seoImage = trim($__env->yieldContent('og_image', image_path($system->logo ?? 'default-logo.png')));
     @endphp
-    <title>{{ $system->website_name ?? 'PvaProseller' }}</title>
-    <meta name="description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta name="keywords" content="@yield('keywords', 'bulk accounts, buy accounts, digital products')">
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="keywords" content="{{ $seoKeywords }}">
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:type" content="{{ $seoType }}">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="{{ $system->website_name ?? 'PvaProseller' }}">
-    <meta property="og:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta property="og:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
+    <meta property="og:title" content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:image" content="{{ $seoImage }}">
+    <meta property="og:image:secure_url" content="{{ $seoImage }}">
+    <meta property="og:image:alt" content="{{ $seoTitle }}">
     <meta property="og:site_name" content="{{ $system->website_name ?? 'PvaProseller' }}">
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="{{ $system->website_name ?? 'PvaProseller' }}">
-    <meta property="twitter:description" content="@yield('description', 'Best place to buy bulk accounts and digital products.')">
-    <meta property="twitter:image" content="@yield('og_image', asset('storage/' . ($system->logo ?? 'default-logo.png')))">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
+    <meta name="twitter:image:alt" content="{{ $seoTitle }}">
 
     <!-- FavIcon -->
     <link rel="shortcut icon" href="{{ image_path($system->favicon) }}" type="image/x-icon">
@@ -41,6 +49,7 @@
 
     <!-- Styles -->
     @livewireStyles
+    @stack('schema')
         <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXF56YB47E"></script>
 <script>
@@ -58,7 +67,6 @@
     </div>
 
     @livewireScripts
-    @stack('schema')
     <!-- Floating Support Buttons -->
     <div
         class="fixed

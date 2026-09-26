@@ -71,8 +71,8 @@
                     <div class="p-5 flex flex-col gap-2">
 
                         <!-- NAME -->
-                        <div class="flex items-center justify-center gap-10 overflow-hidden whitespace-nowrap">
-                            <h2 class="truncate text-lg  font-semibold text-cyan-400 max-w-[100%]">
+                        <div class="h-14 flex items-start justify-center">
+                            <h2 class="text-lg font-semibold text-cyan-400 text-center line-clamp-2 leading-7">
                                 {{ $product->name }}
                             </h2>
                         </div>

@@ -37,10 +37,11 @@
                         <div class="flex gap-4 w-full">
                             <!-- CART / PREORDER -->
                         <div class="flex flex-col sm:flex-row gap-3 mt-4 pointer-events-auto">
-                            
+
                             <!-- Add to Cart / Pre-Order -->
                             <div class="flex flex-col flex-1">
                                 <span wire:click="addToCart({{ $product->id }})"
+                                    @if ($product->stock > 0) data-add-to-cart-trigger @endif
                                     class="w-full
                                         flex items-center justify-center
                                         px-4 sm:px-5 py-2 sm:py-2.5
@@ -60,7 +61,7 @@
                                 </span>
                                 @if($product->stock <= 0)
                                     <span class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
-                                        Delivery: 24-72 hours
+                                        Delivery: 24 hours
                                     </span>
                                 @endif
                             </div>
@@ -86,10 +87,13 @@
                     </div>
                 </div>
                 <!-- Product Content -->
-                <div class="bg-gray-800 p-8 rounded-xl shadow-xl space-y-6 mt-8">
-                    <h2 class="text-2xl font-extrabold text-red-500">Product Content</h2>
-                    <p class="text-lg text-gray-300">{{ $product->content }}</p>
-                </div>
+               <div class="bg-gray-800 p-8 rounded-xl shadow-xl space-y-6 mt-8">
+    <h2 class="text-2xl font-extrabold text-red-500">Product Content</h2>
+
+    <div class="prose prose-invert max-w-none text-gray-300">
+        {!! $product->content !!}
+    </div>
+</div>
             </div>
 
             <!-- Related Products section (right column) -->

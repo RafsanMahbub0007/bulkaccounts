@@ -32,68 +32,68 @@ class SettingResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('website_name')
-                    ->required()
-                    ->maxLength(255),
-
-                TextInput::make('phone')
-                    ->label('Mobile No')
-                    ->required(),
-
-                FileUpload::make('favicon')
-                    ->image()
-                    ->directory('fabicon')
-                    ->nullable(),
-
-                FileUpload::make('logo')
-                    ->image()
-                    ->directory('logo')
-                    ->nullable(),
-
-                TextInput::make('email')
-                    ->label('Email Address')
-                    ->required(),
-
-                TextInput::make('f_link')
-                    ->label('Facebook Link'),
-                TextInput::make('i_link')
-                    ->label('Instagram Link'),
-
-                TextInput::make('t_link')
-                    ->label('Telegram Link'),
-
-                TextInput::make('y_link')
-                    ->label('Youtube Link'),
-
-                TextInput::make('tw_link')
-                    ->label('Twitter Link'),
-
-                TextInput::make('lnkd_link')
-                    ->label('Linked In Link'),
-
-                TextInput::make('pre_order_link')
-                    ->label('Pre Order Link'),
-
-                TextInput::make('sup_wa_link')
-                    ->label('Support Whatsapp Link'),
-
-                TextInput::make('sup_tele_link')
-                    ->label('Support Telegram Link'),
-
-                FileUpload::make('manual_pay_qr')
-                    ->label('Manual Payment QR Image')
-                    ->image()
-                    ->directory('pay_qr')
-                    ->nullable(),
-
-                TextInput::make('Manual_pay_wallet')
-                    ->label('Manual Wallet Address'),
-
-                Textarea::make('address')
-                    ->columnSpanFull()
-                    ->rows(5)
-                    ->label('Address')
-                    ->required(),
+                Forms\Components\Section::make('Website Details')
+                    ->description('Set the main business identity and contact details for the website.')
+                    ->schema([
+                        TextInput::make('website_name')
+                            ->label('Website Name')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('phone')
+                            ->label('Mobile Number')
+                            ->required(),
+                        TextInput::make('email')
+                            ->label('Email Address')
+                            ->email()
+                            ->required(),
+                        Textarea::make('address')
+                            ->columnSpanFull()
+                            ->rows(5)
+                            ->label('Business Address')
+                            ->required(),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Branding')
+                    ->description('Upload the main logo and favicon used across the site.')
+                    ->schema([
+                        FileUpload::make('favicon')
+                            ->label('Favicon')
+                            ->image()
+                            ->directory('fabicon')
+                            ->nullable(),
+                        FileUpload::make('logo')
+                            ->label('Website Logo')
+                            ->image()
+                            ->directory('logo')
+                            ->nullable(),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Social and Support Links')
+                    ->description('Add all public social links and customer support links in one place.')
+                    ->schema([
+                        TextInput::make('f_link')->label('Facebook Link'),
+                        TextInput::make('i_link')->label('Instagram Link'),
+                        TextInput::make('t_link')->label('Telegram Link'),
+                        TextInput::make('y_link')->label('YouTube Link'),
+                        TextInput::make('tw_link')->label('Twitter Link'),
+                        TextInput::make('lnkd_link')->label('LinkedIn Link'),
+                        TextInput::make('pre_order_link')->label('Pre Order Link'),
+                        TextInput::make('sup_wa_link')->label('Support WhatsApp Link'),
+                        TextInput::make('sup_tele_link')->label('Support Telegram Link'),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Manual Payment Information')
+                    ->description('Store the wallet address and QR code for manual payment collection.')
+                    ->schema([
+                        FileUpload::make('manual_pay_qr')
+                            ->label('Manual Payment QR Image')
+                            ->image()
+                            ->directory('pay_qr')
+                            ->nullable(),
+                        TextInput::make('Manual_pay_wallet')
+                            ->label('Manual Payment Wallet Address'),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -170,5 +170,25 @@ class SettingResource extends Resource
             'create' => Pages\CreateSetting::route('/create'),
             'edit' => Pages\EditSetting::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_settings') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_settings') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_settings') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_settings') ?? false;
     }
 }

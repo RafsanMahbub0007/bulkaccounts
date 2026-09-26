@@ -28,13 +28,24 @@ class GuideLineResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('title')
-                    ->required(),
-                TextInput::make('youtube_link')
-                    ->required(),
-                RichEditor::make('details')
-                    ->label('Instructions')
-                    ->required()
+                Forms\Components\Section::make('Guideline Details')
+                    ->description('Add the title, video reference, and full guideline instructions.')
+                    ->schema([
+                        TextInput::make('title')
+                            ->label('Title')
+                            ->placeholder('Enter the guideline title')
+                            ->required(),
+                        TextInput::make('youtube_link')
+                            ->label('YouTube Link')
+                            ->url()
+                            ->placeholder('Paste the YouTube video URL')
+                            ->required(),
+                        RichEditor::make('details')
+                            ->label('Instructions')
+                            ->columnSpanFull()
+                            ->required(),
+                    ])
+                    ->columns(2)
             ]);
     }
 
@@ -77,5 +88,25 @@ class GuideLineResource extends Resource
             'create' => Pages\CreateGuideLine::route('/create'),
             'edit' => Pages\EditGuideLine::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_guidelines') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_guidelines') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_guidelines') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_guidelines') ?? false;
     }
 }

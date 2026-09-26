@@ -1,5 +1,5 @@
 @php
-    $categories = \App\Models\Category::orderBy('order', 'ASC')->get();
+    $categories = \App\Models\Category::orderBy('order', 'ASC')->where('is_active',1)->get();
 @endphp
 
 <!-- Popular Categories Section -->
@@ -22,7 +22,7 @@
 
     <!-- Categories Grid - Interactive Design -->
     <div class="categories-container relative">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-10"
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-10"
             x-data="{
                 activeCategory: null,
                 setActive(id) {
@@ -45,7 +45,7 @@
                         </div>
 
                         <!-- Image Container with Parallax Effect -->
-                        <div class="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
+                        <div class="relative h-32 sm:h-36 lg:h-40 overflow-hidden">
                             <div
                                 class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent z-10">
                             </div>
@@ -54,6 +54,10 @@
                             <img src="{{ image_path($category->image) }}" alt="{{ $category->name }}"
                                 loading="lazy" decoding="async"
                                 class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                srcset="{{ image_path($category->image) }}?w=320 320w,
+                                        {{ image_path($category->image) }}?w=480 480w,
+                                        {{ image_path($category->image) }}?w=640 640w"
                                 x-bind:class="{ 'scale-110': activeCategory === {{ $category->id }} }" />
 
                             <!-- Floating Elements -->
@@ -84,24 +88,9 @@
                             <div class="flex items-start justify-between gap-4 mb-3">
                                 <div class="flex-1">
                                     <h3
-                                        class="text-sm sm:text-sm lg:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors duration-300 line-clamp-1">
+                                        class="text-sm sm:text-sm lg:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors duration-300 line-clamp-2 leading-tight">
                                         {{ $category->name }}
                                     </h3>
-
-                                    <!-- Stats Badge -->
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <span
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-                                                </path>
-                                            </svg>
-                                            4.8
-                                        </span>
-                                        <span class="text-xs text-gray-400">•</span>
-                                        <span class="text-xs text-gray-400">250+ Products</span>
-                                    </div>
                                 </div>
 
                                 <!-- Quick Action Button -->
@@ -123,7 +112,7 @@
                             <!-- Features List -->
                             <div class="mb-4">
                                 <div class="flex flex-wrap gap-1.5">
-                                    @foreach (['Premium', 'Verified', '24/7 Support', 'Fast Delivery'] as $feature)
+                                    @foreach (['Premium', 'Verified', '24/7', 'Fast Delivery'] as $feature)
                                         <span
                                             class="px-2 py-1 bg-white/5 border border-white/10 text-gray-300 text-xs rounded-full hover:bg-white/10 transition-colors duration-300">
                                             {{ $feature }}

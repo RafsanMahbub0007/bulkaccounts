@@ -11,38 +11,56 @@
     </div>
 
     <!-- Background Texture - Optimized -->
-    <div class="absolute inset-0 opacity-20">
-        <img src="/img/soft-dark-texture.jpg" alt="Background Texture" class="w-full h-full object-cover" loading="lazy"
-            decoding="async" fetchpriority="low" />
+    <div class="absolute inset-0 -z-10 opacity-20 pointer-events-none">
+        <img src="{{ image_path('img/soft-dark-texture.jpg') }}" alt="Background Texture" class="w-full h-full object-cover"
+            loading="lazy" decoding="async" fetchpriority="low" />
     </div>
 
     <!-- Dark Overlay -->
-    <div class="absolute inset-0 bg-[#0a0e17]/60 backdrop-blur-sm"></div>
+    <div class="absolute inset-0 -z-10 bg-transparent pointer-events-none"></div>
 
     @php
         $banners = \App\Models\Banner::all();
     @endphp
 
-    @foreach ($banners as $banner)
+    @php
+        $heroBannerData = $banners->map(fn ($banner) => [
+            'main_title' => $banner->main_title,
+            'sub_title' => $banner->sub_title,
+            'title_details' => $banner->title_details,
+            'image' => image_path($banner->banner_image),
+        ])->values();
+
+        $firstBanner = $banners->first();
+    @endphp
+
+    <div id="hero-carousel"
+        data-hero-banners='@json($heroBannerData)'
+        class="relative min-h-[520px] sm:min-h-[560px] lg:min-h-[520px]"
+        aria-roledescription="carousel"
+        aria-label="Hero banners">
         <div class="container mx-auto relative grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
-            <!-- Hero Text Content -->
-            <div class="space-y-6 sm:space-y-8 lg:space-y-10" id="hero-content">
-                <div>
-                    <!-- Responsive Typography -->
+            <div class="space-y-6 sm:space-y-8 lg:space-y-10 hero-content">
+                <div class="hero-fade transition-opacity duration-700 opacity-100">
                     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-                        <span class="text-blue-400 block">{{ $banner->main_title }}</span>
+                        <span class="text-blue-400 block" data-hero-main-title>
+                            {{ $firstBanner?->main_title }}
+                        </span>
                     </h1>
-                    <h3
-                        class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight tracking-tight mt-2 sm:mt-3">
-                        <span class="text-gray-400 sm:text-gray-500">{{ $banner->sub_title }}</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight tracking-tight mt-2 sm:mt-3">
+                        <span class="text-gray-400 sm:text-gray-500" data-hero-sub-title>
+                            {{ $firstBanner?->sub_title }}
+                        </span>
                     </h3>
-                    <p class="text-sm sm:text-base lg:text-lg text-gray-300 leading-relaxed max-w-xl mt-4 sm:mt-6">
-                        {{ $banner->title_details }}
+                    <p class="text-sm sm:text-base lg:text-lg text-gray-300 leading-relaxed max-w-xl mt-4 sm:mt-6" data-hero-title-details>
+                        {{ $firstBanner?->title_details }}
+                    </p>
+                    <p class="sr-only" data-hero-slide-label>
+                        Slide 1 of {{ $banners->count() }}
                     </p>
                 </div>
 
-                <!-- Search Form - Responsive -->
-                <form action="{{ route('search') }}" method="GET" id="hero-search"
+                <form action="{{ route('search') }}" method="GET"
                     class="flex items-center bg-white/10 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl backdrop-blur-xl border border-white/10 focus-within:ring-2 focus-within:ring-blue-400/50 transition-all max-w-xl">
                     <input type="text" required name="query" placeholder="Search verified accounts…"
                         class="flex-1 px-4 sm:px-5 lg:px-6 py-3 sm:py-4 lg:py-5 bg-transparent text-white rounded-l-2xl sm:rounded-l-3xl placeholder-gray-400 focus:outline-none text-sm sm:text-base lg:text-lg w-full min-w-0"
@@ -53,8 +71,7 @@
                     </button>
                 </form>
 
-                <!-- CTA Buttons - Responsive Inline -->
-                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 pt-2 sm:pt-4" id="hero-ctas">
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 pt-2 sm:pt-4 hero-ctas">
                     <a href="{{ route('pricing') }}"
                         class="bg-blue-500 hover:bg-blue-600 px-6 sm:px-10 lg:px-14 py-3 sm:py-4 lg:py-5 rounded-lg sm:rounded-xl font-bold shadow-lg shadow-blue-500/20 text-center transition transform hover:scale-105 hover:shadow-blue-500/40 text-sm sm:text-base"
                         aria-label="Shop Now">
@@ -68,16 +85,20 @@
                 </div>
             </div>
 
-            <!-- Hero Image - Responsive -->
-            <div class="relative flex justify-center lg:justify-end mt-8 lg:mt-0" id="hero-image">
+            <div class="relative flex justify-center lg:justify-end mt-8 lg:mt-0 hero-image">
                 <div
-                    class="rounded-xl sm:rounded-2xl lg:rounded-[2rem] overflow-hidden shadow-xl sm:shadow-2xl border border-white/10 bg-white/5 backdrop-blur-sm sm:backdrop-blur-lg lg:backdrop-blur-2xl w-full max-w-lg lg:max-w-3xl">
-                    <img src="{{ image_path($banner->banner_image) }}" alt="Product Preview"
-                        class="w-full h-auto aspect-video sm:aspect-auto object-cover" loading="lazy" decoding="async"
+                    class="hero-fade transition-opacity duration-700 opacity-100 rounded-xl sm:rounded-2xl lg:rounded-[2rem] overflow-hidden shadow-xl sm:shadow-2xl border border-white/10 bg-white/5 backdrop-blur-sm sm:backdrop-blur-lg lg:backdrop-blur-2xl w-full max-w-lg lg:max-w-3xl">
+                    <img
+                        src="{{ $firstBanner ? image_path($firstBanner->banner_image) : '' }}"
+                        alt="Product Preview"
+                        class="w-full h-auto aspect-video sm:aspect-auto object-cover"
+                        loading="eager"
+                        decoding="async"
+                        fetchpriority="high"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        srcset="{{ image_path($banner->banner_image) }}?w=400 400w,
-                                {{ image_path($banner->banner_image) }}?w=800 800w,
-                                {{ image_path($banner->banner_image) }}?w=1200 1200w" />
+                        srcset="{{ $firstBanner ? (image_path($firstBanner->banner_image) . '?w=400 400w,' . image_path($firstBanner->banner_image) . '?w=800 800w,' . image_path($firstBanner->banner_image) . '?w=1200 1200w') : '' }}"
+                        data-hero-image
+                    />
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0b1120]/70 to-transparent"></div>
                 </div>
                 <div
@@ -85,13 +106,45 @@
                 </div>
             </div>
         </div>
-    @endforeach
+
+        @if ($banners->count() > 1)
+            <button type="button"
+                class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm"
+                data-hero-prev
+                aria-label="Previous slide">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <button type="button"
+                class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm"
+                data-hero-next
+                aria-label="Next slide">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+                @foreach ($banners as $banner)
+                    <button type="button"
+                        class="hero-dot w-2.5 h-2.5 rounded-full transition-all border border-white/30 {{ $loop->first ? 'bg-white' : 'bg-white/20 hover:bg-white/40' }}"
+                        data-hero-dot="{{ $loop->index }}"
+                        aria-label="Go to slide {{ $loop->iteration }}"
+                        aria-current="{{ $loop->first ? 'true' : 'false' }}"></button>
+                @endforeach
+            </div>
+        @endif
+    </div>
 
 </section>
 
 <!-- Optimized JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        initHeroCarousel();
+
         // Only load GSAP if not already loaded
         if (!window.gsap) {
             const script = document.createElement('script');
@@ -108,6 +161,100 @@
             initAnimations();
         }
 
+        function initHeroCarousel() {
+            const root = document.getElementById('hero-carousel');
+            if (!root) return;
+
+            const data = root.dataset.heroBanners;
+            if (!data) return;
+
+            let banners;
+            try {
+                banners = JSON.parse(data);
+            } catch {
+                return;
+            }
+
+            if (!Array.isArray(banners) || banners.length <= 1) return;
+
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const prevBtn = root.querySelector('[data-hero-prev]');
+            const nextBtn = root.querySelector('[data-hero-next]');
+            const dots = Array.from(root.querySelectorAll('[data-hero-dot]'));
+            const fadeEls = Array.from(root.querySelectorAll('.hero-fade'));
+
+            const mainTitleEl = root.querySelector('[data-hero-main-title]');
+            const subTitleEl = root.querySelector('[data-hero-sub-title]');
+            const detailsEl = root.querySelector('[data-hero-title-details]');
+            const slideLabelEl = root.querySelector('[data-hero-slide-label]');
+            const imgEl = root.querySelector('[data-hero-image]');
+
+            let active = 0;
+            let timer = null;
+
+            const setActive = (index) => {
+                active = (index + banners.length) % banners.length;
+                const banner = banners[active];
+
+                fadeEls.forEach((el) => el.classList.add('opacity-0'));
+
+                window.setTimeout(() => {
+                    if (mainTitleEl) mainTitleEl.textContent = banner?.main_title ?? '';
+                    if (subTitleEl) subTitleEl.textContent = banner?.sub_title ?? '';
+                    if (detailsEl) detailsEl.textContent = banner?.title_details ?? '';
+
+                    if (slideLabelEl) {
+                        slideLabelEl.textContent = `Slide ${active + 1} of ${banners.length}`;
+                    }
+
+                    if (imgEl && banner?.image) {
+                        imgEl.src = banner.image;
+                        imgEl.setAttribute('srcset', `${banner.image}?w=400 400w, ${banner.image}?w=800 800w, ${banner.image}?w=1200 1200w`);
+                        imgEl.loading = 'lazy';
+                        imgEl.fetchPriority = 'low';
+                    }
+
+                    fadeEls.forEach((el) => el.classList.remove('opacity-0'));
+                }, 220);
+
+                dots.forEach((dot, i) => {
+                    if (i === active) {
+                        dot.classList.remove('bg-white/20', 'hover:bg-white/40');
+                        dot.classList.add('bg-white');
+                        dot.setAttribute('aria-current', 'true');
+                    } else {
+                        dot.classList.remove('bg-white');
+                        dot.classList.add('bg-white/20', 'hover:bg-white/40');
+                        dot.setAttribute('aria-current', 'false');
+                    }
+                });
+            };
+
+            const stop = () => {
+                if (timer) clearInterval(timer);
+                timer = null;
+            };
+
+            const start = () => {
+                stop();
+                if (prefersReducedMotion) return;
+                timer = setInterval(() => setActive(active + 1), 7000);
+            };
+
+            prevBtn?.addEventListener('click', () => setActive(active - 1));
+            nextBtn?.addEventListener('click', () => setActive(active + 1));
+
+            dots.forEach((dot) => {
+                dot.addEventListener('click', () => setActive(parseInt(dot.dataset.heroDot ?? '0', 10)));
+            });
+
+            root.addEventListener('mouseenter', stop);
+            root.addEventListener('mouseleave', start);
+
+            setActive(0);
+            start();
+        }
+
         function initAnimations() {
             // Check if GSAP is available
             if (!window.gsap) return;
@@ -119,7 +266,7 @@
 
             if (!prefersReducedMotion) {
                 // Parallax effect
-                gsap.to("#hero-image", {
+                gsap.to(".hero-image", {
                     yPercent: -5,
                     ease: "none",
                     scrollTrigger: {

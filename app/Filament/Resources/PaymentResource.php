@@ -30,63 +30,60 @@ class PaymentResource extends Resource
     {
         return $form
             ->schema([
-                // Related Order
-                Select::make('order_id')
-                    ->relationship('order', 'order_number')
-                    ->label('Order')
-                    ->required(),
-
-                // Payment Method
-                Select::make('payment_method')
-                    ->label('Payment Method')
-                    ->options([
-                        'credit_card' => 'Credit Card',
-                        'debit_card' => 'Debit Card',
-                        'paypal' => 'PayPal',
-                        'apple_pay' => 'Apple Pay',
-                        'google_pay' => 'Google Pay',
-                        'bank_transfer' => 'Bank Transfer',
-                        'cryptocurrency' => 'Cryptocurrency',
-                        'cash_on_delivery' => 'Cash on Delivery',
-                        'other' => 'Other',
+                Forms\Components\Section::make('Payment Details')
+                    ->description('Select the related order, payment method, and transaction details.')
+                    ->schema([
+                        Select::make('order_id')
+                            ->relationship('order', 'order_number')
+                            ->label('Related Order')
+                            ->required(),
+                        Select::make('payment_method')
+                            ->label('Payment Method')
+                            ->options([
+                                'credit_card' => 'Credit Card',
+                                'debit_card' => 'Debit Card',
+                                'paypal' => 'PayPal',
+                                'apple_pay' => 'Apple Pay',
+                                'google_pay' => 'Google Pay',
+                                'bank_transfer' => 'Bank Transfer',
+                                'cryptocurrency' => 'Cryptocurrency',
+                                'cash_on_delivery' => 'Cash on Delivery',
+                                'other' => 'Other',
+                            ])
+                            ->required(),
+                        TextInput::make('transaction_id')
+                            ->label('Transaction ID')
+                            ->unique(ignoreRecord: true)
+                            ->nullable(),
+                        DatePicker::make('paid_at')
+                            ->label('Paid Date')
+                            ->nullable(),
                     ])
-                    ->required(),
-
-                // Amount Paid
-                TextInput::make('amount')
-                    ->label('Amount')
-                    ->numeric()
-                    ->required(),
-
-                // Currency
-                TextInput::make('currency')
-                    ->label('Currency')
-                    ->default('USD')
-                    ->maxLength(3)
-                    ->required(),
-
-                // Payment Status
-                Select::make('status')
-                    ->label('Payment Status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'completed' => 'Completed',
-                        'failed' => 'Failed',
-                        'refunded' => 'Refunded',
+                    ->columns(2),
+                Forms\Components\Section::make('Amount and Status')
+                    ->description('Set the paid amount, currency, and current payment status.')
+                    ->schema([
+                        TextInput::make('amount')
+                            ->label('Amount')
+                            ->numeric()
+                            ->required(),
+                        TextInput::make('currency')
+                            ->label('Currency')
+                            ->default('USD')
+                            ->maxLength(3)
+                            ->required(),
+                        Select::make('status')
+                            ->label('Payment Status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'completed' => 'Completed',
+                                'failed' => 'Failed',
+                                'refunded' => 'Refunded',
+                            ])
+                            ->default('pending')
+                            ->required(),
                     ])
-                    ->default('pending')
-                    ->required(),
-
-                // Transaction ID
-                TextInput::make('transaction_id')
-                    ->label('Transaction ID')
-                    ->unique(ignoreRecord: true)
-                    ->nullable(),
-
-                // Paid At
-                DatePicker::make('paid_at')
-                    ->label('Paid At')
-                    ->nullable(),
+                    ->columns(2),
             ]);
     }
 
@@ -161,10 +158,6 @@ class PaymentResource extends Resource
             //
         ];
     }
-        public static function canCreate(): bool
-        {
-            return false;
-        }
     public static function getPages(): array
     {
         return [
@@ -172,5 +165,25 @@ class PaymentResource extends Resource
             'create' => Pages\CreatePayment::route('/create'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_payments') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_payments') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_payments') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_payments') ?? false;
     }
 }

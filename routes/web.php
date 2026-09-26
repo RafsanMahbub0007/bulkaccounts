@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,6 +33,10 @@ use App\Models\OrderItem;
 use App\Http\Controllers\SitemapController;
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+Route::get('/i/{path}', [ImageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('image');
 
 /*
 |--------------------------------------------------------------------------

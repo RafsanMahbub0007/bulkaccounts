@@ -20,6 +20,7 @@ class Posts extends Component
     public function render()
     {
         $posts = Post::query()
+            ->with('author')
             ->when($this->search, function ($query) {
                 $query->where('title', 'like', '%' . $this->search . '%')
                     ->orWhere('content', 'like', '%' . $this->search . '%');

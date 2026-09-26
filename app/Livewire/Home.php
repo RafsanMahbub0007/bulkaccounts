@@ -15,8 +15,22 @@ class Home extends Component
     {
         $system = Setting::find(1);
         $products = Product::where('is_active', true)
+        ->with([
+            'subCategory',
+            'offers' => fn ($query) => $query
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now()),
+        ])
         ->orderBy('display_order', 'asc')
         ->get();
+
+        Product::warmFeatureCache(
+            $products
+                ->pluck('feature_ids')
+                ->flatten()
+                ->filter()
+                ->all()
+        );
         return view('livewire.home', [
             'products' => $products,
             'system' => $system,

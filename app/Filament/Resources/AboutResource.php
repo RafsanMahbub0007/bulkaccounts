@@ -29,16 +29,24 @@ class AboutResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('title')->required(),
-                FileUpload::make('about_image')
-                    ->label('Image')
-                    ->image()
-                    ->directory('about_image')
-                    ->nullable(),
-                RichEditor::make('desctiption')
-                    ->label('Content')
-                    ->columnSpanFull()
-                    ->nullable(),
+                Forms\Components\Section::make('About Page Content')
+                    ->description('Add the main heading, image, and detailed content for the about page.')
+                    ->schema([
+                        TextInput::make('title')
+                            ->label('Title')
+                            ->placeholder('Enter the about page title')
+                            ->required(),
+                        FileUpload::make('about_image')
+                            ->label('About Page Image')
+                            ->image()
+                            ->directory('about_image')
+                            ->nullable(),
+                        RichEditor::make('desctiption')
+                            ->label('Content')
+                            ->columnSpanFull()
+                            ->nullable(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -85,5 +93,25 @@ class AboutResource extends Resource
             'create' => Pages\CreateAbout::route('/create'),
             'edit' => Pages\EditAbout::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_about_pages') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_about_pages') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_about_pages') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_about_pages') ?? false;
     }
 }

@@ -26,8 +26,10 @@ class SubCategoryDetails extends Component
     }
     public function addToCart($productId)
     {
-        $product = Product::findOrFail($productId);
-        
+        $product = Product::query()
+            ->with('subCategory')
+            ->findOrFail($productId);
+
         $isPreOrderItem = $product->stock <= 0;
 
         $cart = session()->get('cart', []);
@@ -35,7 +37,7 @@ class SubCategoryDetails extends Component
         if (isset($cart[$productId])) {
              // Existing item
             $currentQty = $cart[$productId]['quantity'];
-            
+
             // If it's NOT a pre-order (meaning we have stock), enforce stock limit
             if (!$isPreOrderItem) {
                 if ($currentQty + 1 > $product->stock) {
@@ -70,6 +72,12 @@ class SubCategoryDetails extends Component
     public function render()
     {
         $products = Product::where('subcategory_id', $this->subcategory->id)
+            ->with([
+                'subCategory',
+                'offers' => fn ($query) => $query
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now()),
+            ])
             ->where('name', 'like', "%{$this->search}%")
             ->where('is_active', true)
             ->orderBy('display_order', 'asc')
@@ -77,6 +85,12 @@ class SubCategoryDetails extends Component
 
         // Fetch related products (e.g., from the same category but different subcategory, or random active products)
         $relatedProducts = Product::where('category_id', $this->subcategory->category_id)
+            ->with([
+                'subCategory',
+                'offers' => fn ($query) => $query
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now()),
+            ])
             ->where('subcategory_id', '!=', $this->subcategory->id) // Exclude current subcategory products
             ->where('is_active', true)
             ->inRandomOrder()
@@ -86,11 +100,26 @@ class SubCategoryDetails extends Component
         if ($relatedProducts->isEmpty()) {
              // Fallback: Just random products if no related ones found in same category
              $relatedProducts = Product::where('id', '!=', 0) // Dummy where
+                ->with([
+                    'subCategory',
+                    'offers' => fn ($query) => $query
+                        ->where('start_date', '<=', now())
+                        ->where('end_date', '>=', now()),
+                ])
                 ->where('is_active', true)
                 ->inRandomOrder()
                 ->take(5)
                 ->get();
         }
+
+        Product::warmFeatureCache(
+            $products
+                ->concat($relatedProducts)
+                ->pluck('feature_ids')
+                ->flatten()
+                ->filter()
+                ->all()
+        );
 
         return view('livewire.sub-category-details', [
             'products' => $products,

@@ -39,55 +39,88 @@ class ProductResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\TextInput::make('name')->required(),
-            Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true),
-            Forms\Components\TextInput::make('meta_title')->label('Meta Title')->maxLength(255),
-            Forms\Components\Select::make('category_id')
-                ->relationship('category', 'name')
-                ->required()
-                ->reactive(),
-
-            Forms\Components\Select::make('subcategory_id')
-                ->options(
-                    fn($get) =>
-                    $get('category_id')
-                        ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
-                        : []
-                )
-                ->required()
-                ->disabled(fn($get) => !$get('category_id')),
-                TagsInput::make('keywords')
-                ->afterStateHydrated(function (TagsInput $component, $state) {
-                    $component->state(
-                        filled($state)
-                            ? array_map('trim', explode(',', $state))
-                            : []
-                    );
-                })
-                ->dehydrateStateUsing(fn ($state) =>
-                    filled($state) ? implode(',', $state) : null
-                )
-                ->nullable(),
-            Forms\Components\TextInput::make('display_order')
-                    ->numeric()
-                    ->default(0),
-            Toggle::make('is_active')
-                    ->label('Active')
-                    ->default(false),
-            Forms\Components\CheckboxList::make('feature_ids')
-                ->options(ProductFeature::pluck('name', 'id'))
+            Forms\Components\Section::make('Product Details')
+                ->description('Enter the main product information used in the catalog.')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Product Name')
+                        ->required(),
+                    Forms\Components\TextInput::make('slug')
+                        ->label('Slug')
+                        ->required()
+                        ->unique(ignoreRecord: true),
+                    Forms\Components\Select::make('category_id')
+                        ->label('Category')
+                        ->relationship('category', 'name')
+                        ->required()
+                        ->reactive(),
+                    Forms\Components\Select::make('subcategory_id')
+                        ->label('Sub Category')
+                        ->options(
+                            fn($get) =>
+                            $get('category_id')
+                                ? SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id')
+                                : []
+                        )
+                        ->required()
+                        ->disabled(fn($get) => !$get('category_id')),
+                    Forms\Components\TextInput::make('display_order')
+                        ->label('Display Order')
+                        ->numeric()
+                        ->default(0),
+                    Toggle::make('is_active')
+                        ->label('Active Status')
+                        ->default(false),
+                ])
                 ->columns(2),
-
-            Forms\Components\TextInput::make('purchase_price')->numeric()->required(),
-            Forms\Components\TextInput::make('selling_price')->numeric()->required(),
-            Forms\Components\TextInput::make('min_order_qty')->numeric()->default(1),
-
-            Forms\Components\Textarea::make('description'),
-            Forms\Components\RichEditor::make('content')->columnSpanFull(),
-
-            Forms\Components\TextInput::make('google_sheet_id')
-                ->label('Google Sheet ID')
-                ->required(),
+            Forms\Components\Section::make('Pricing and Inventory')
+                ->description('Manage the product cost, selling price, and minimum order quantity.')
+                ->schema([
+                    Forms\Components\TextInput::make('purchase_price')
+                        ->label('Purchase Price')
+                        ->numeric()
+                        ->required(),
+                    Forms\Components\TextInput::make('selling_price')
+                        ->label('Selling Price')
+                        ->numeric()
+                        ->required(),
+                    Forms\Components\TextInput::make('min_order_qty')
+                        ->label('Minimum Order Quantity')
+                        ->numeric()
+                        ->default(1),
+                    Forms\Components\TextInput::make('google_sheet_id')
+                        ->label('Google Sheet ID')
+                        ->helperText('This sheet is used to sync product accounts.')
+                        ->required(),
+                ])
+                ->columns(2),
+            Forms\Components\Section::make('Features and SEO')
+                ->description('Attach product features and add SEO metadata.')
+                ->schema([
+                    Forms\Components\CheckboxList::make('feature_ids')
+                        ->label('Product Features')
+                        ->options(ProductFeature::pluck('name', 'id'))
+                        ->columns(2)
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('meta_title')
+                        ->label('Meta Title')
+                        ->maxLength(255),
+                    TagsInput::make('keywords')
+                        ->label('Meta Keywords')
+                        ->splitKeys([','])
+                            ->afterStateHydrated(function (TagsInput $component, $state) {
+                                $component->state($state ? explode(',', $state) : []);
+                            })
+                            ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
+                            ->nullable()
+                            ->columnSpanFull(),
+                    Forms\Components\Textarea::make('description')
+                        ->label('Meta Description')
+                        ->columnSpanFull(),
+                    Forms\Components\RichEditor::make('content')
+                        ->label('Detailed Content / Description for user panel')
+                        ->columnSpanFull(),
+                ])
         ]);
     }
 
@@ -95,6 +128,7 @@ class ProductResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('1s')
             ->defaultSort('display_order', 'asc')
             ->actionsColumnLabel('Operations')
             ->actionsAlignment('center')
@@ -123,6 +157,7 @@ class ProductResource extends Resource
                         ->label('Sync Sheet')
                         ->icon('heroicon-o-arrow-path')
                         ->color('success')
+                        ->visible(fn () => auth()->user()?->hasPermissionTo('sync_product_sheet') ?? false)
                         ->action(fn ($record) => static::syncSheet($record)),
                     Tables\Actions\DeleteAction::make(),
 
@@ -259,5 +294,25 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit'   => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_products') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_products') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_products') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_products') ?? false;
     }
 }

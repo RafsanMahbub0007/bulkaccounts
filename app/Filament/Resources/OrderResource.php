@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -15,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use App\Services\OrderFulfillmentService;
 use Filament\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class OrderResource extends Resource
 {
@@ -38,41 +38,43 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->preload()
-                    ->nullable()
-                    ->live() // Make it reactive
-                    ->helperText('Select a registered user, or leave empty for a guest order.'),
-
-                TextInput::make('guest_email')
-                    ->email()
-                    ->label('Guest Email')
-                    ->required(fn (Forms\Get $get) => empty($get('user_id')))
-                    ->visible(fn (Forms\Get $get) => empty($get('user_id')))
-                    ->helperText('Required if no registered customer is selected.'),
-
-                TextInput::make('order_number')
-                    ->disabled()
-                    ->label('Order Number')
-                    ->nullable()
-                    ->visible(fn ($livewire) => ! $livewire instanceof Pages\CreateOrder),
-
-                TextInput::make('total_price')
-                    ->numeric()
-                    ->required()
-                    ->label('Total Price'),
-
-
-
+                Forms\Components\Section::make('Customer Details')
+                    ->description('Choose the customer for this order or enter a guest email.')
+                    ->schema([
+                        Select::make('user_id')
+                            ->relationship('user', 'name')
+                            ->label('Registered Customer')
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->live()
+                            ->helperText('Select a registered user, or leave empty for a guest order.'),
+                        TextInput::make('guest_email')
+                            ->email()
+                            ->label('Guest Email')
+                            ->required(fn (Forms\Get $get) => empty($get('user_id')))
+                            ->visible(fn (Forms\Get $get) => empty($get('user_id')))
+                            ->helperText('Required if no registered customer is selected.'),
+                        TextInput::make('order_number')
+                            ->disabled()
+                            ->label('Order Number')
+                            ->nullable()
+                            ->visible(fn ($livewire) => ! $livewire instanceof Pages\CreateOrder),
+                        TextInput::make('total_price')
+                            ->numeric()
+                            ->required()
+                            ->label('Total Price'),
+                    ])
+                    ->columns(2),
                 Forms\Components\Section::make('Order Items')
+                    ->description('Add the products included in this order and review line totals.')
+                    ->visible(fn (string $operation): bool => $operation === 'create')
                     ->schema([
                         Forms\Components\Repeater::make('orderItems')
                             ->relationship()
                             ->schema([
                                 Select::make('product_id')
+                                    ->label('Product')
                                     ->relationship('product', 'name')
                                     ->required()
                                     ->preload()
@@ -87,11 +89,12 @@ class OrderResource extends Resource
                                         }
                                     }),
                                 TextInput::make('quantity')
+                                    ->label('Quantity')
                                     ->numeric()
                                     ->default(1)
                                     ->required()
                                     ->reactive()
-                                    ->minValue(fn (Forms\Get $get) => 
+                                    ->minValue(fn (Forms\Get $get) =>
                                         \App\Models\Product::find($get('product_id'))?->min_order_qty ?? 1
                                     )
                                     ->maxValue(fn (Forms\Get $get) =>
@@ -101,16 +104,18 @@ class OrderResource extends Resource
                                         $set('total_price', $state * $get('unit_price'))
                                     ),
                                 TextInput::make('unit_price')
+                                    ->label('Unit Price')
                                     ->numeric()
                                     ->required()
                                     ->reactive()
-                                    ->minValue(fn (Forms\Get $get) => 
+                                    ->minValue(fn (Forms\Get $get) =>
                                         \App\Models\Product::find($get('product_id'))?->selling_price ?? 0
                                     )
                                     ->afterStateUpdated(fn ($state, Forms\Get $get, Forms\Set $set) =>
                                         $set('total_price', $state * $get('quantity'))
                                     ),
                                 TextInput::make('total_price')
+                                    ->label('Line Total')
                                     ->numeric()
                                     ->disabled()
                                     ->dehydrated(),
@@ -123,12 +128,58 @@ class OrderResource extends Resource
                                 $set('total_price', $total);
                             }),
                     ]),
+                Forms\Components\Section::make('Order Items')
+                    ->description('View the items included in this manual order.')
+                    ->visible(fn (string $operation): bool => $operation === 'edit')
+                    ->schema([
+                        Forms\Components\Placeholder::make('order_items_list')
+                            ->label('')
+                            ->content(function (?Order $record): HtmlString|string {
+                                if (! $record) {
+                                    return 'No order items found.';
+                                }
+
+                                $record->loadMissing('orderItems.product');
+
+                                if ($record->orderItems->isEmpty()) {
+                                    return 'No order items found.';
+                                }
+
+                                $rows = $record->orderItems->map(function ($item): string {
+                                    return '<tr>'
+                                        . '<td style="padding:10px;border:1px solid #e5e7eb;">' . e($item->product?->name ?? 'N/A') . '</td>'
+                                        . '<td style="padding:10px;border:1px solid #e5e7eb;">' . e((string) $item->quantity) . '</td>'
+                                        . '<td style="padding:10px;border:1px solid #e5e7eb;">$' . e(number_format((float) $item->unit_price, 2)) . '</td>'
+                                        . '<td style="padding:10px;border:1px solid #e5e7eb;">$' . e(number_format((float) $item->total_price, 2)) . '</td>'
+                                        . '</tr>';
+                                })->implode('');
+
+                                return new HtmlString(
+                                    '<div style="overflow-x:auto;">'
+                                    . '<table style="width:100%;border-collapse:collapse;">'
+                                    . '<thead>'
+                                    . '<tr>'
+                                    . '<th style="text-align:left;padding:10px;border:1px solid #e5e7eb;">Product</th>'
+                                    . '<th style="text-align:left;padding:10px;border:1px solid #e5e7eb;">Quantity</th>'
+                                    . '<th style="text-align:left;padding:10px;border:1px solid #e5e7eb;">Unit Price</th>'
+                                    . '<th style="text-align:left;padding:10px;border:1px solid #e5e7eb;">Total Price</th>'
+                                    . '</tr>'
+                                    . '</thead>'
+                                    . '<tbody>' . $rows . '</tbody>'
+                                    . '</table>'
+                                    . '</div>'
+                                );
+                            })
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('5s')
+             ->defaultSort('ordered_at', 'desc')
             ->columns([
                 TextColumn::make('order_number')
                     ->sortable()
@@ -175,6 +226,12 @@ class OrderResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->label('Completed Date'),
+
+                TextColumn::make('deliveries_count')
+                    ->counts('deliveries')
+                    ->badge()
+                    ->color(fn (string $state): string => (int) $state > 0 ? 'success' : 'gray')
+                    ->label('Delivered Items'),
             ])
             ->filters([
                 // Filters can be added here
@@ -185,7 +242,7 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (Order $record) => $record->order_status !== 'completed' && $record->payment_status !== 'paid')
+                    ->visible(fn (Order $record) => (auth()->user()?->hasPermissionTo('fulfill_orders') ?? false) && $record->order_status !== 'completed' && $record->payment_status !== 'paid')
                     ->form([
                         TextInput::make('transaction_id')
                             ->label('Transaction ID')
@@ -207,7 +264,7 @@ class OrderResource extends Resource
                                 'price_amount' => $record->total_price,
                                 'price_currency' => 'USD'
                             ]);
-                            
+
                             // Update the pending payment status if it exists
                             if ($payment) {
                                 $payment->update(['status' => 'completed', 'paid_at' => now()]);
@@ -234,7 +291,7 @@ class OrderResource extends Resource
                     ->action(function (Order $record) {
                         try {
                             $recipientEmail = $record->guest_email ?? $record->user?->email;
-                            
+
                             if (!$recipientEmail) {
                                 Notification::make()
                                     ->title('No recipient email found')
@@ -242,10 +299,10 @@ class OrderResource extends Resource
                                     ->send();
                                 return;
                             }
-                            
+
                             \Illuminate\Support\Facades\Mail::to($recipientEmail)
                                 ->send(new \App\Mail\OrderFulfilledMail($record, $record->download_file));
-                            
+
                             Notification::make()
                                 ->title('Email Resent Successfully')
                                 ->success()
@@ -258,6 +315,13 @@ class OrderResource extends Resource
                                 ->send();
                         }
                     }),
+                Tables\Actions\Action::make('downloadAccounts')
+                    ->label('Download Accounts')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('info')
+                    ->url(fn (Order $record) => route('order.download', $record->order_number))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Order $record) => $record->order_status === 'completed' && filled($record->download_file)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -268,10 +332,7 @@ class OrderResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RelationManagers\OrderItemsRelationManager::class,
-            RelationManagers\DeliveriesRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -281,5 +342,25 @@ class OrderResource extends Resource
             'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_orders') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_orders') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_orders') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_orders') ?? false;
     }
 }

@@ -27,6 +27,12 @@ class Products extends Component
         $system = Setting::first();
 
         $products = Product::query()
+            ->with([
+                'subCategory',
+                'offers' => fn ($query) => $query
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now()),
+            ])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -38,7 +44,14 @@ class Products extends Component
             })
             ->where('is_active', true)
             ->orderBy('display_order', $this->sortDirection)
-            ->paginate(12);
+            ->get();
+
+        Product::warmFeatureCache(
+            $products->pluck('feature_ids')
+                ->flatten()
+                ->filter()
+                ->all()
+        );
 
         return view('livewire.products', compact('products', 'categories', 'system'));
     }

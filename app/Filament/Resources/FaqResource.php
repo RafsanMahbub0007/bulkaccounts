@@ -27,10 +27,19 @@ class FaqResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('question')
-                    ->required(),
-                TextInput::make('answer')
-                    ->required()
+                Forms\Components\Section::make('FAQ Item')
+                    ->description('Create a question and answer that will appear on the FAQ page.')
+                    ->schema([
+                        TextInput::make('question')
+                            ->label('Question')
+                            ->placeholder('Enter the frequently asked question')
+                            ->required(),
+                        Forms\Components\Textarea::make('answer')
+                            ->label('Answer')
+                            ->rows(4)
+                            ->placeholder('Write the answer clearly for customers')
+                            ->required(),
+                    ])
             ]);
     }
 
@@ -88,5 +97,25 @@ class FaqResource extends Resource
             'create' => Pages\CreateFaq::route('/create'),
             'edit' => Pages\EditFaq::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_faqs') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_faqs') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_faqs') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_faqs') ?? false;
     }
 }

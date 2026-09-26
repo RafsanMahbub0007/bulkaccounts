@@ -35,48 +35,61 @@ class SubCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('category_id')
-                    ->label('Select Category')
-                    ->relationship('category', 'name')
-                    ->required(),
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter Sub-Category name'),
-                TextInput::make('slug')
-                    ->unique(SubCategory::class, 'slug', ignoreRecord: true)
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter Sub-Category slug'),
-                TextInput::make('meta_title')
-                    ->label('Meta Title')
-                    ->maxLength(255),
-                TagsInput::make('keywords')
-                    ->placeholder('Add keywords...')
-                    ->splitKeys([','])
-                    ->afterStateHydrated(function (TagsInput $component, $state) {
-                        $component->state($state ? explode(',', $state) : []);
-                    })
-                    ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
-                    ->nullable(),
-                Textarea::make('description')
-                    ->nullable()
-                    ->columnSpanFull(), // Make it take full width
-                RichEditor::make('content')
-                    ->label('Detailed Content')
-                    ->columnSpanFull() // Make it take full width
-                    ->nullable(),
-                FileUpload::make('image')
-                    ->label('Sub-Category Image')
-                    ->image()
-                    ->directory('subcategories'),
-                TextInput::make('order')
-                    ->numeric()
-                    ->default(0)
-                    ->label('Display Order'),
-                Toggle::make('is_active')
-                    ->label('Active')
-                    ->default(false),
+                Forms\Components\Section::make('Sub Category Details')
+                    ->description('Choose the parent category and enter the core sub category details.')
+                    ->schema([
+                        Select::make('category_id')
+                            ->label('Parent Category')
+                            ->relationship('category', 'name')
+                            ->required(),
+                        TextInput::make('name')
+                            ->label('Sub Category Name')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Enter the sub category name'),
+                        TextInput::make('slug')
+                            ->label('Slug')
+                            ->unique(SubCategory::class, 'slug', ignoreRecord: true)
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Enter the sub category URL slug'),
+                        TextInput::make('order')
+                            ->numeric()
+                            ->default(0)
+                            ->label('Display Order'),
+                        Toggle::make('is_active')
+                            ->label('Active Status')
+                            ->default(false),
+                        FileUpload::make('image')
+                            ->label('Sub Category Image')
+                            ->image()
+                            ->directory('subcategories'),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('SEO Information')
+                    ->description('Add search metadata and page content for this sub category.')
+                    ->schema([
+                        TextInput::make('meta_title')
+                            ->label('Meta Title')
+                            ->maxLength(255),
+                        TagsInput::make('keywords')
+                            ->label('Meta Keywords')
+                            ->placeholder('Add keywords...')
+                            ->splitKeys([','])
+                            ->afterStateHydrated(function (TagsInput $component, $state) {
+                                $component->state($state ? explode(',', $state) : []);
+                            })
+                            ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(',', $state) : $state)
+                            ->nullable()
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Meta Description')
+                            ->nullable()
+                            ->columnSpanFull(),
+                        RichEditor::make('content')
+                            ->label('Detailed Content / Description for user panel')
+                            ->columnSpanFull(),
+                    ])
             ]);
     }
 
@@ -144,5 +157,25 @@ class SubCategoryResource extends Resource
             'create' => Pages\CreateSubCategory::route('/create'),
             'edit' => Pages\EditSubCategory::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_subcategories') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_subcategories') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_subcategories') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_subcategories') ?? false;
     }
 }

@@ -3,6 +3,7 @@
     <!-- Add to Cart / Pre-Order -->
     <div class="flex flex-col flex-1">
         <span wire:click="addToCart"
+            @if (! $isPreOrder) data-add-to-cart-trigger @endif
             class="w-full
                 flex items-center justify-center
                 px-4 sm:px-5 py-2 sm:py-2.5
@@ -22,7 +23,7 @@
         </span>
         @if($isPreOrder)
             <span class="text-[10px] sm:text-xs text-cyan-500 text-center mt-1 font-medium animate-pulse">
-                Delivery: 24-72 hours
+                Delivery: 24 hours
             </span>
         @endif
     </div>

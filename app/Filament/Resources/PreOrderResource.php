@@ -37,34 +37,52 @@ class PreOrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('order_number')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->searchable(),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('total_price')
-                    ->numeric()
-                    ->prefix('$'),
-                Forms\Components\Select::make('payment_status')
-                    ->options([
-                        'unpaid' => 'Unpaid',
-                        'paid' => 'Paid',
-                        'partially_paid' => 'Partially Paid',
-                    ]),
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'processing' => 'Processing',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                    ]),
-                Forms\Components\FileUpload::make('download_file')
-                    ->directory('pre-orders')
-                    ->downloadable(),
+                Forms\Components\Section::make('Customer and Order Details')
+                    ->description('Set the pre-order number, customer, and email information.')
+                    ->schema([
+                        Forms\Components\TextInput::make('order_number')
+                            ->label('Pre Order Number')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('user_id')
+                            ->label('Registered User')
+                            ->relationship('user', 'name')
+                            ->searchable(),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Customer Email')
+                            ->email()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('total_price')
+                            ->label('Total Price')
+                            ->numeric()
+                            ->prefix('$'),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Status and Delivery File')
+                    ->description('Manage the payment status, order status, and final file attachment.')
+                    ->schema([
+                        Forms\Components\Select::make('payment_status')
+                            ->label('Payment Status')
+                            ->options([
+                                'unpaid' => 'Unpaid',
+                                'paid' => 'Paid',
+                                'partially_paid' => 'Partially Paid',
+                            ]),
+                        Forms\Components\Select::make('status')
+                            ->label('Order Status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'processing' => 'Processing',
+                                'completed' => 'Completed',
+                                'cancelled' => 'Cancelled',
+                            ]),
+                        Forms\Components\FileUpload::make('download_file')
+                            ->label('Delivered Accounts File')
+                            ->directory('pre-orders')
+                            ->downloadable()
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -142,7 +160,7 @@ class PreOrderResource extends Resource
                             }
                         }
                     })
-                    ->visible(fn (PreOrder $record) => $record->status !== 'completed' && $record->payment_status === 'paid'),
+                    ->visible(fn (PreOrder $record) => (auth()->user()?->hasPermissionTo('fulfill_pre_orders') ?? false) && $record->status !== 'completed' && $record->payment_status === 'paid'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -165,5 +183,25 @@ class PreOrderResource extends Resource
             'create' => Pages\CreatePreOrder::route('/create'),
             'edit' => Pages\EditPreOrder::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_pre_orders') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_pre_orders') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_pre_orders') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_pre_orders') ?? false;
     }
 }

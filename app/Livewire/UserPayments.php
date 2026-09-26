@@ -20,6 +20,7 @@ class UserPayments extends Component
     public function render()
     {
         $payments = Payment::query()
+            ->with('order')
             ->when($this->search, function ($query) {
                 $query->where('transaction_id', 'like', '%' . $this->search . '%')
                     ->orWhere('order_number', 'like', '%' . $this->search . '%')

@@ -12,17 +12,37 @@ class ProductDetails extends Component
     public $product;
     public $relatedProducts;
     public $quantity;
-    
+
     public function mount(Product $product)
     {
-        $this->product = $product;
+        $this->product = $product->load([
+            'category',
+            'subCategory',
+            'offers' => fn ($query) => $query
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now()),
+        ]);
         // If stock > 0, default to min_order_qty, else 1
         $this->quantity = $product->stock > 0 ? $product->min_order_qty : 1;
         $this->relatedProducts = Product::where('category_id', $product->category_id)
+            ->with([
+                'subCategory',
+                'offers' => fn ($query) => $query
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now()),
+            ])
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
             ->limit(5)
             ->get();
+
+        Product::warmFeatureCache(
+            collect([$this->product->feature_ids])
+                ->concat($this->relatedProducts->pluck('feature_ids'))
+                ->flatten()
+                ->filter()
+                ->all()
+        );
     }
 
     public function addToCart()
@@ -49,7 +69,7 @@ class ProductDetails extends Component
         }
 
         $cart = session()->get('cart', []);
-        
+
         if (isset($cart[$this->product->id])) {
              if (!$isPreOrder) {
                 if ($cart[$this->product->id]['quantity'] + $this->quantity > $this->product->stock) {

@@ -28,10 +28,14 @@ class PrivacyPolicyResource extends Resource
     {
         return $form
             ->schema([
-                RichEditor::make('desctiption')
-                    ->columnSpanFull()
-                    ->label('Write Your Full Privacy Policy')
-                    ->required(),
+                Forms\Components\Section::make('Privacy Policy Content')
+                    ->description('Write or update the full privacy policy shown to users on the website.')
+                    ->schema([
+                        RichEditor::make('desctiption')
+                            ->columnSpanFull()
+                            ->label('Privacy Policy Content')
+                            ->required(),
+                    ]),
             ]);
     }
 
@@ -72,5 +76,25 @@ class PrivacyPolicyResource extends Resource
             'create' => Pages\CreatePrivacyPolicy::route('/create'),
             'edit' => Pages\EditPrivacyPolicy::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_privacy_policies') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_privacy_policies') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_privacy_policies') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_privacy_policies') ?? false;
     }
 }

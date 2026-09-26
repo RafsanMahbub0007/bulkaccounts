@@ -24,19 +24,27 @@ class SeoSettingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('page_name')
-                    ->label('Page Name (e.g., home, about, contact)')
-                    ->required()
-                    ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('meta_title')
-                    ->label('Meta Title')
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('meta_description')
-                    ->label('Meta Description')
-                    ->rows(3),
-                Forms\Components\Textarea::make('meta_keywords')
-                    ->label('Meta Keywords')
-                    ->rows(2),
+                Forms\Components\Section::make('SEO Page Settings')
+                    ->description('Manage the SEO title, description, and keywords for a specific frontend page.')
+                    ->schema([
+                        Forms\Components\TextInput::make('page_name')
+                            ->label('Page Name')
+                            ->helperText('Example: home, about, contact, pricing')
+                            ->required()
+                            ->unique(ignoreRecord: true),
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Title')
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Description')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('meta_keywords')
+                            ->label('Meta Keywords')
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -75,5 +83,25 @@ class SeoSettingResource extends Resource
             'create' => Pages\CreateSeoSetting::route('/create'),
             'edit' => Pages\EditSeoSetting::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_seo_settings') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_seo_settings') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_seo_settings') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_seo_settings') ?? false;
     }
 }

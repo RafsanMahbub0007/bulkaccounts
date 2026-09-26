@@ -6,15 +6,15 @@
     @section('og_type', 'product')
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <!-- Main Product Section -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-                
+
                 <!-- Product Image -->
                 <div class="p-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700/50">
                     <div class="relative w-full max-w-md group">
-                        <img src="{{ image_path($product->subcategory->image) }}" 
+                        <img src="{{ image_path($product->subcategory->image) }}"
                              alt="{{ $product->name }}"
                              class="w-full h-auto object-contain rounded-xl shadow-lg transition duration-500 group-hover:scale-105"
                              loading="lazy">
@@ -23,7 +23,7 @@
 
                 <!-- Product Info -->
                 <div class="p-8 md:p-10 flex flex-col justify-center space-y-6">
-                    
+
                     <!-- Title & Category -->
                     <div>
                         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -70,7 +70,7 @@
 
                     <!-- Add to Cart Section -->
                     <div class="pt-6 border-t border-gray-200 dark:border-gray-700"
-                         x-data="{ 
+                         x-data="{
                              quantity: @entangle('quantity'),
                              minQty: {{ $product->min_order_qty > 0 ? $product->min_order_qty : 1 }},
                              maxQty: {{ $product->stock }}
@@ -90,7 +90,7 @@
                                             class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-pink-500 transition">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <input type="number" 
+                                    <input type="number"
                                            x-model.number="quantity"
                                            class="w-16 text-center bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-bold"
                                            :min="minQty" :max="maxQty">
@@ -109,6 +109,7 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button wire:click="addToCart"
+                                        data-add-to-cart-trigger
                                         class="px-6 py-3 bg-gray-900 dark:bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition shadow-lg flex items-center justify-center gap-2">
                                     <i class="fas fa-shopping-cart"></i> Add to Cart
                                 </button>
@@ -124,7 +125,7 @@
                                 <i class="fas fa-clock mr-2"></i> Pre-Order Now
                             </a>
                             <p class="text-center text-cyan-500 text-sm mt-2 animate-pulse">
-                                Estimated Delivery: 24-72 hours
+                                Estimated Delivery: 24 hours
                             </p>
                         @endif
                     </div>
@@ -135,7 +136,7 @@
 
         <!-- Details & Features Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
-            
+
             <!-- Long Description -->
             <div class="lg:col-span-2">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
@@ -189,13 +190,13 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach ($relatedProducts as $product)
                         <div class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition duration-300">
-                            
+
                             <!-- Image -->
                             <a href="{{ route('product.details', $product->slug) }}" class="block relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                <img src="{{ image_path($product->subcategory->image) }}" 
+                                <img src="{{ image_path($product->subcategory->image) }}"
                                      alt="{{ $product->name }}"
                                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                                
+
                                 @if ($product->is_featured)
                                     <span class="absolute top-3 left-3 px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold rounded-full shadow-lg">
                                         Featured
@@ -229,7 +230,7 @@
                                     </div>
                                 </div>
 
-                                <a href="{{ route('product.details', $product->slug) }}" 
+                                <a href="{{ route('product.details', $product->slug) }}"
                                    class="block w-full py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-center text-sm font-bold rounded-lg hover:bg-pink-500 hover:text-white transition">
                                     View Details
                                 </a>
@@ -243,23 +244,9 @@
     </div>
 
     @push('schema')
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": @json($product->name),
-      "image": @json(image_path($product->product_image ?? $product->subcategory->image)),
-      "description": @json($product->description ?? Str::limit(strip_tags($product->content), 150)),
-      "sku": @json($product->slug),
-      "offers": {
-        "@type": "Offer",
-        "url": @json(url()->current()),
-        "priceCurrency": "USD",
-        "price": "{{ $product->selling_price }}",
-        "availability": "https://schema.org/{{ $product->stock > 0 ? 'InStock' : 'OutOfStock' }}"
-      }
-    }
-    </script>
+        @foreach ($product->schemaMarkup($system) as $schema)
+            <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}</script>
+        @endforeach
     @endpush
 
 </section>

@@ -26,7 +26,14 @@ class ProductFeatureResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')->required()
+                Forms\Components\Section::make('Product Feature Details')
+                    ->description('Create a reusable product feature that can be attached to products.')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Feature Name')
+                            ->placeholder('Enter the feature name')
+                            ->required(),
+                    ])
             ]);
     }
 
@@ -67,5 +74,25 @@ class ProductFeatureResource extends Resource
             'create' => Pages\CreateProductFeature::route('/create'),
             'edit' => Pages\EditProductFeature::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_product_features') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_product_features') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_product_features') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_product_features') ?? false;
     }
 }

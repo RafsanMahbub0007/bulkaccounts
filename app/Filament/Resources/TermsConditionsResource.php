@@ -27,10 +27,14 @@ class TermsConditionsResource extends Resource
     {
         return $form
             ->schema([
-                RichEditor::make('terms')
-                    ->columnSpanFull()
-                    ->label('Write Your Full Terms & Conditions')
-                    ->required(),
+                Forms\Components\Section::make('Terms and Conditions Content')
+                    ->description('Write or update the full terms and conditions displayed on the website.')
+                    ->schema([
+                        RichEditor::make('terms')
+                            ->columnSpanFull()
+                            ->label('Terms and Conditions Content')
+                            ->required(),
+                    ]),
             ]);
     }
 
@@ -72,5 +76,25 @@ class TermsConditionsResource extends Resource
             'create' => Pages\CreateTermsConditions::route('/create'),
             'edit' => Pages\EditTermsConditions::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_terms_conditions') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_terms_conditions') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_terms_conditions') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_terms_conditions') ?? false;
     }
 }

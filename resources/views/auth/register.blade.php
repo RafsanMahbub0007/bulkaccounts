@@ -50,6 +50,103 @@
                             type="email" name="email" :value="old('email')" required placeholder="you@example.com" />
                     </div>
 
+                    <!-- Phone (with Country Code) -->
+                    <div>
+                        @php
+                            $allCountries = config('country_codes', []);
+                            $preferredIso2ByDial = [
+                                '+1' => 'US', '+44' => 'GB', '+61' => 'AU',
+                                '+7' => 'RU', '+91' => 'IN', '+880' => 'BD',
+                            ];
+                            $countryCodes = collect($allCountries)
+                                ->filter(fn ($c) => is_array($c) && isset($c['dial_code'], $c['iso2']))
+                                ->groupBy('dial_code')
+                                ->map(function ($group, $dial) use ($preferredIso2ByDial) {
+                                    $preferredIso2 = $preferredIso2ByDial[$dial] ?? null;
+                                    if ($preferredIso2) {
+                                        $match = $group->firstWhere('iso2', $preferredIso2);
+                                        if ($match) {
+                                            return [
+                                                'dial_code' => $match['dial_code'],
+                                                'iso2' => $match['iso2'],
+                                                'name' => $match['name'] ?? $match['iso2'],
+                                            ];
+                                        }
+                                    }
+                                    $first = $group->first();
+                                    return [
+                                        'dial_code' => $first['dial_code'],
+                                        'iso2' => $first['iso2'],
+                                        'name' => $first['name'] ?? $first['iso2'],
+                                    ];
+                                })
+                                ->values()
+                                ->sortBy('dial_code')
+                                ->values();
+
+                            $oldDial = old('country_code', '+1');
+                            $ccSelected = $countryCodes->firstWhere('dial_code', $oldDial) ?? $countryCodes->first();
+                        @endphp
+
+                        <x-label for="phone_number" value="Phone Number" class="text-gray-300 font-semibold" />
+
+                        <input type="hidden" name="country_code" id="country_code" value="{{ old('country_code', '+1') }}">
+
+                        <div class="mt-2 flex gap-3" data-register-cc-root>
+                            <div class="relative w-40" data-register-cc-wrap>
+                                <button type="button" data-register-cc-toggle
+                                    class="w-full rounded-xl bg-gray-800/60 border border-gray-700 px-3 py-3 text-white flex items-center justify-between gap-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                                    <span class="flex items-center gap-2 min-w-0">
+                                        <img class="w-5 h-4 rounded-sm flex-none"
+                                            id="register-cc-flag"
+                                            src="https://flagcdn.com/24x18/{{ strtolower($ccSelected['iso2'] ?? 'us') }}.png"
+                                            alt="{{ $ccSelected['name'] ?? 'Country' }}">
+                                        <span class="truncate text-sm" id="register-cc-label">({{ $oldDial }})</span>
+                                    </span>
+                                    <svg class="w-4 h-4 flex-none text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+
+                                <div data-register-cc-menu
+                                    class="hidden absolute z-50 mt-2 w-72 max-h-72 overflow-y-auto rounded-xl border border-white/10 bg-gray-800 shadow-2xl">
+                                    <div class="sticky top-0 z-10 bg-gray-800 p-2 border-b border-white/10">
+                                        <input type="text" data-register-cc-search placeholder="Search country or code"
+                                            class="w-full bg-gray-900/80 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-500">
+                                    </div>
+                                    @foreach ($countryCodes as $c)
+                                        <button type="button"
+                                            data-register-cc-option
+                                            data-dial="{{ $c['dial_code'] }}"
+                                            data-name="{{ strtolower($c['name']) }}"
+                                            data-iso="{{ strtolower($c['iso2']) }}"
+                                            class="w-full px-3 py-2 text-left hover:bg-white/5 flex items-center gap-3">
+                                            <img class="w-5 h-4 rounded-sm flex-none"
+                                                src="https://flagcdn.com/24x18/{{ strtolower($c['iso2']) }}.png"
+                                                alt="{{ $c['name'] }}">
+                                            <span class="text-white">({{ $c['dial_code'] }})</span>
+                                            <span class="text-gray-400 text-sm truncate">{{ $c['name'] }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <x-input id="phone_number"
+                                class="flex-1 rounded-xl bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                                type="tel" inputmode="tel" name="phone_number" :value="old('phone_number')"
+                                required placeholder="Phone number" />
+                        </div>
+                        @error('country_code')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        @error('phone_number')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <p class="text-gray-500 text-xs mt-1">
+                            Phone is saved with country code (e.g., +1 5551234567).
+                        </p>
+                    </div>
+
                     <!-- Password w/ Icon -->
                     <div class="relative">
                         <x-label for="password" value="Password" class="text-gray-300 font-semibold" />
@@ -200,6 +297,71 @@
             // Update both icons
             icon1.innerHTML = isHidden ? iconOpen : iconClosed;
             icon2.innerHTML = isHidden ? iconOpen : iconClosed;
+        }
+    </script>
+
+    <!-- Country Code Dropdown (Register) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', initRegisterCountryCode);
+        document.addEventListener('livewire:navigated', initRegisterCountryCode);
+
+        function initRegisterCountryCode() {
+            const root = document.querySelector('[data-register-cc-root]');
+            if (!root) return;
+
+            const toggle = root.querySelector('[data-register-cc-toggle]');
+            const menu = root.querySelector('[data-register-cc-menu]');
+            const search = root.querySelector('[data-register-cc-search]');
+            const options = root.querySelectorAll('[data-register-cc-option]');
+            const hiddenInput = document.getElementById('country_code');
+            const labelEl = document.getElementById('register-cc-label');
+            const flagEl = document.getElementById('register-cc-flag');
+
+            if (!toggle || !menu || !hiddenInput) return;
+
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+                if (!menu.classList.contains('hidden')) {
+                    setTimeout(() => search?.focus(), 50);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+
+            if (search) {
+                search.addEventListener('input', () => {
+                    const q = search.value.toLowerCase().trim();
+                    options.forEach(opt => {
+                        const dial = opt.dataset.dial || '';
+                        const name = opt.dataset.name || '';
+                        const iso = opt.dataset.iso || '';
+                        const show = !q || dial.includes(q) || name.includes(q) || iso.includes(q);
+                        opt.style.display = show ? '' : 'none';
+                    });
+                });
+            }
+
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const dial = opt.dataset.dial;
+                    const iso = opt.dataset.iso;
+                    if (!dial) return;
+
+                    hiddenInput.value = dial;
+                    if (labelEl) labelEl.textContent = '(' + dial + ')';
+                    if (flagEl) {
+                        flagEl.src = 'https://flagcdn.com/24x18/' + (iso || 'us') + '.png';
+                        flagEl.alt = dial;
+                    }
+
+                    menu.classList.add('hidden');
+                });
+            });
         }
     </script>
 

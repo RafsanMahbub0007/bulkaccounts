@@ -43,7 +43,7 @@ class StatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->chart([2000, 2500, 2300, 2700, 3000, 3300, 3500]), 
 
-            Stat::make('Delivered Orders', Delivery::where('status', 'delivered')->count())
+            Stat::make('Delivered Orders', Order::whereHas('deliveries', fn ($query) => $query->where('status', 'delivered'))->count())
                 ->color('info')  
                 ->icon('heroicon-o-truck')
                 ->description('Orders that have been delivered successfully')

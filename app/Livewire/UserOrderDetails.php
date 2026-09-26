@@ -14,6 +14,7 @@ class UserOrderDetails extends Component
     {
         $this->order = $order->load([
             'orderItems.deliveries',
+            'orderItems.product.subCategory',
             'payments', // Load the payments relationship
         ]);
 

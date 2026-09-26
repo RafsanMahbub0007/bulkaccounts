@@ -66,7 +66,7 @@
                                     {{ Str::words($subcategory->description, 10, '...') }}
                                 </p>
 
-                                <a href="{{ route('subcategory.details', [$subcategory->category->slug, $subcategory->slug]) }}"
+                                <a href="{{ route('subcategory.details', [$category->slug, $subcategory->slug]) }}"
                                     class="mt-4 text-center py-2.5 rounded-xl font-semibold
                                           bg-gradient-to-r from-pink-500 to-purple-500
                                           hover:from-pink-400 hover:to-purple-400
@@ -88,7 +88,7 @@
                     {{-- Pagination removed --}}
                 </div>
                  @if($category->content)
-                <div class="text-gray-300 text-lg leading-relaxed mt-6 max-w-4xl mx-auto sm:mx-0">
+                <div class="prose prose-invert max-w-none">
                     {!! $category->content !!}
                 </div>
             @endif

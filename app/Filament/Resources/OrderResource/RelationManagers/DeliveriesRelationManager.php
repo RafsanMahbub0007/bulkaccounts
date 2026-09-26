@@ -101,6 +101,13 @@ class DeliveriesRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('downloadAccounts')
+                    ->label('Download Accounts')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('info')
+                    ->url(fn () => route('order.download', $this->ownerRecord->order_number))
+                    ->openUrlInNewTab()
+                    ->visible(fn ($record) => $record->status === 'delivered' && filled($this->ownerRecord->download_file)),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

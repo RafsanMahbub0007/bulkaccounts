@@ -28,13 +28,31 @@ class BannerResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('main_title'),
-                TextInput::make('sub_title'),
-                Textarea::make('title_details')->rows(3),
-                FileUpload::make('banner_image')
-                    ->image()
-                    ->directory('banner')
-                    ->nullable(),
+                Forms\Components\Section::make('Banner Content')
+                    ->description('Set the main banner text shown on the frontend.')
+                    ->schema([
+                        TextInput::make('main_title')
+                            ->label('Main Title')
+                            ->placeholder('Enter the main headline'),
+                        TextInput::make('sub_title')
+                            ->label('Sub Title')
+                            ->placeholder('Enter the supporting title'),
+                        Textarea::make('title_details')
+                            ->label('Banner Details')
+                            ->rows(3)
+                            ->placeholder('Add short supporting banner text')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Banner Media')
+                    ->description('Upload the banner image used on the homepage.')
+                    ->schema([
+                        FileUpload::make('banner_image')
+                            ->label('Banner Image')
+                            ->image()
+                            ->directory('banner')
+                            ->nullable(),
+                    ]),
             ]);
     }
 
@@ -87,5 +105,25 @@ class BannerResource extends Resource
             'create' => Pages\CreateBanner::route('/create'),
             'edit' => Pages\EditBanner::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_banners') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_banners') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_banners') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasPermissionTo('manage_banners') ?? false;
     }
 }
