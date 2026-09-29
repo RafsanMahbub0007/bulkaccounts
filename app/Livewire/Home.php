@@ -15,6 +15,15 @@ class Home extends Component
     {
         $system = Setting::find(1);
         $products = Product::where('is_active', true)
+        ->whereHas('subCategory', function ($query) {
+            $query->where('is_active', true);
+        })
+
+        // Category must be active
+        ->whereHas('subCategory.category', function ($query) {
+            $query->where('is_active', true);
+        })
+
         ->with([
             'subCategory',
             'offers' => fn ($query) => $query
@@ -23,7 +32,6 @@ class Home extends Component
         ])
         ->orderBy('display_order', 'asc')
         ->get();
-
         Product::warmFeatureCache(
             $products
                 ->pluck('feature_ids')

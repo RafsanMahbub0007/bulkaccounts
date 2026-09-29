@@ -4,15 +4,31 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
     use HasFactory;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Runtime caches
+    |--------------------------------------------------------------------------
+    */
+
     private bool $activeOfferResolved = false;
+
     private ?Offer $activeOfferCache = null;
+
     private static array $featureNamesById = [];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mass Assignment
+    |--------------------------------------------------------------------------
+    */
 
     protected $fillable = [
         'name',
@@ -38,10 +54,28 @@ class Product extends Model
         'is_active',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Casts
+    |--------------------------------------------------------------------------
+    */
+
     protected $casts = [
         'feature_ids' => 'array',
         'sheet_meta' => 'array',
+        'purchase_price' => 'decimal:2',
+        'selling_price' => 'decimal:2',
+        'stock' => 'integer',
+        'min_order_qty' => 'integer',
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function category()
     {
@@ -50,86 +84,23 @@ class Product extends Model
 
     public function subCategory()
     {
-        return $this->belongsTo(SubCategory::class, 'subcategory_id');
+        return $this->belongsTo(
+            SubCategory::class,
+            'subcategory_id'
+        );
     }
 
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
     }
+
     public function offers()
     {
-        return $this->belongsToMany(Offer::class, 'offer_product');
-    }
-
-    /* ACTIVE OFFER (only valid by date) */
-    public function activeOffer()
-    {
-        if ($this->activeOfferResolved) {
-            return $this->activeOfferCache;
-        }
-
-        $now = now();
-        $offer = null;
-
-        if ($this->relationLoaded('offers')) {
-            $offer = $this->offers
-                ->first(fn ($offer) => $offer->start_date <= $now && $offer->end_date >= $now);
-        } else {
-            $offer = $this->offers()
-                ->where('start_date', '<=', $now)
-                ->where('end_date', '>=', $now)
-                ->first();
-        }
-
-        $this->activeOfferCache = $offer;
-        $this->activeOfferResolved = true;
-
-        return $offer;
-    }
-
-    public function hasOffer()
-    {
-        return $this->activeOffer() !== null;
-    }
-
-    /* DISCOUNTED PRICE LOGIC */
-    public function discountedPrice()
-    {
-        $offer = $this->activeOffer();
-
-        if (!$offer) {
-            return $this->selling_price;
-        }
-
-        if ($offer->discount_type === 'percentage') {
-            return $this->selling_price - ($this->selling_price * ($offer->discount_value / 100));
-        }
-
-        if ($offer->discount_type === 'fixed') {
-            return max(0, $this->selling_price - $offer->discount_value);
-        }
-
-        return $this->selling_price;
-    }
-
-    /* DISCOUNT PERCENT FOR BADGE */
-    public function discountPercent()
-    {
-        $offer = $this->activeOffer();
-        if (!$offer) {
-            return 0;
-        }
-
-        return $offer->discount_type === 'percentage'
-            ? round($offer->discount_value)
-            : round(($offer->discount_value / $this->selling_price) * 100);
-    }
-
-    /* STOCK CHECK */
-    public function outOfStock()
-    {
-        return $this->stock <= 0;
+        return $this->belongsToMany(
+            Offer::class,
+            'offer_product'
+        );
     }
 
     public function accounts()
@@ -137,9 +108,136 @@ class Product extends Model
         return $this->hasMany(ProductAccount::class);
     }
 
-    public function featureList()
+    /*
+    |--------------------------------------------------------------------------
+    | Active Offer
+    |--------------------------------------------------------------------------
+    */
+
+    public function activeOffer(): ?Offer
     {
-        if (!$this->feature_ids) {
+        if ($this->activeOfferResolved) {
+            return $this->activeOfferCache;
+        }
+
+        $this->activeOfferCache = null;
+
+        /*
+         * If offers were eager loaded, NEVER query the database again.
+         */
+        if ($this->relationLoaded('offers')) {
+            $now = now();
+
+            $this->activeOfferCache = $this->offers
+                ->first(
+                    fn (Offer $offer) =>
+                        $offer->start_date <= $now &&
+                        $offer->end_date >= $now
+                );
+        } else {
+            /*
+             * Fallback for places where Product is used individually.
+             */
+            $this->activeOfferCache = $this->offers()
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->orderByDesc('end_date')
+                ->first();
+        }
+
+        $this->activeOfferResolved = true;
+
+        return $this->activeOfferCache;
+    }
+
+    public function hasOffer(): bool
+    {
+        return $this->activeOffer() !== null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discounted Price
+    |--------------------------------------------------------------------------
+    */
+
+    public function discountedPrice(): float
+    {
+        $offer = $this->activeOffer();
+
+        if (!$offer) {
+            return (float) $this->selling_price;
+        }
+
+        $price = (float) $this->selling_price;
+        $discount = (float) $offer->discount_value;
+
+        return match ($offer->discount_type) {
+            'percentage' => max(
+                0,
+                $price - ($price * ($discount / 100))
+            ),
+
+            'fixed' => max(
+                0,
+                $price - $discount
+            ),
+
+            default => $price,
+        };
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discount Percentage
+    |--------------------------------------------------------------------------
+    */
+
+    public function discountPercent(): int
+    {
+        $offer = $this->activeOffer();
+
+        if (!$offer) {
+            return 0;
+        }
+
+        if ($offer->discount_type === 'percentage') {
+            return (int) round(
+                (float) $offer->discount_value
+            );
+        }
+
+        $price = (float) $this->selling_price;
+
+        if ($price <= 0) {
+            return 0;
+        }
+
+        return (int) round(
+            ((float) $offer->discount_value / $price) * 100
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock
+    |--------------------------------------------------------------------------
+    */
+
+    public function outOfStock(): bool
+    {
+        return (int) $this->stock <= 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Feature List
+    |--------------------------------------------------------------------------
+    */
+
+    public function featureList(): array
+    {
+        if (empty($this->feature_ids)) {
             return [];
         }
 
@@ -150,26 +248,36 @@ class Product extends Model
             ->values()
             ->all();
 
-        if (!$ids) {
+        if (empty($ids)) {
             return [];
         }
 
-        $missing = array_values(array_diff($ids, array_keys(self::$featureNamesById)));
-        if ($missing) {
-            ProductFeature::query()
-                ->whereIn('id', $missing)
-                ->pluck('name', 'id')
-                ->each(function ($name, $id) {
-                    self::$featureNamesById[(int) $id] = $name;
-                });
+        $missing = array_values(
+            array_diff(
+                $ids,
+                array_keys(self::$featureNamesById)
+            )
+        );
+
+        if (!empty($missing)) {
+            self::warmFeatureCache($missing);
         }
 
         return collect($ids)
-            ->map(fn ($id) => self::$featureNamesById[$id] ?? null)
+            ->map(
+                fn (int $id) =>
+                    self::$featureNamesById[$id] ?? null
+            )
             ->filter()
             ->values()
             ->all();
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Feature Cache
+    |--------------------------------------------------------------------------
+    */
 
     public static function warmFeatureCache(array $ids): void
     {
@@ -180,16 +288,24 @@ class Product extends Model
             ->values()
             ->all();
 
-        if (!$ids) {
+        if (empty($ids)) {
             return;
         }
 
-        $missing = array_values(array_diff($ids, array_keys(self::$featureNamesById)));
+        $missing = array_values(
+            array_diff(
+                $ids,
+                array_keys(self::$featureNamesById)
+            )
+        );
 
-        if (!$missing) {
+        if (empty($missing)) {
             return;
         }
 
+        /*
+         * One query for all missing feature IDs.
+         */
         ProductFeature::query()
             ->whereIn('id', $missing)
             ->pluck('name', 'id')
@@ -198,45 +314,157 @@ class Product extends Model
             });
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Image
+    |--------------------------------------------------------------------------
+    */
+
     public function primaryImageUrl(): string
     {
-        return image_path($this->product_image ?: $this->subCategory?->image);
+        return image_path(
+            $this->product_image
+                ?: $this->subCategory?->image
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEO Title
+    |--------------------------------------------------------------------------
+    */
 
     public function seoTitle(?Setting $setting = null): string
     {
-        $setting ??= Setting::query()->find(1);
+        /*
+         * Prefer passing the already loaded Setting model.
+         *
+         * This prevents:
+         *
+         * Product 1 -> query settings
+         * Product 2 -> query settings
+         * Product 3 -> query settings
+         *
+         * etc.
+         */
+        $setting ??= Cache::remember(
+            'system:settings',
+            now()->addMinutes(30),
+            fn () => Setting::query()->first()
+        );
 
-        return $this->meta_title ?: ($this->name . ' - ' . ($this->category?->name ?? 'Product') . ' - ' . ($setting->website_name ?? config('app.name')));
+        return $this->meta_title
+            ?: (
+                $this->name
+                . ' - '
+                . ($this->category?->name ?? 'Product')
+                . ' - '
+                . ($setting?->website_name ?? config('app.name'))
+            );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEO Description
+    |--------------------------------------------------------------------------
+    */
 
     public function seoDescription(): string
     {
-        return $this->description ?: Str::limit(strip_tags($this->content ?: ('Buy ' . $this->name . ' at best prices.')), 160);
+        return $this->description
+            ?: Str::limit(
+                strip_tags(
+                    $this->content
+                        ?: 'Buy ' . $this->name . ' at best prices.'
+                ),
+                160
+            );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Current SEO Price
+    |--------------------------------------------------------------------------
+    */
 
     public function currentSeoPrice(): float
     {
-        return (float) ($this->hasOffer() ? $this->discountedPrice() : $this->selling_price);
+        return $this->hasOffer()
+            ? $this->discountedPrice()
+            : (float) $this->selling_price;
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sold Count
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | The preferred way is to preload this value using withSum()
+    | from the Products query.
+    |
+    */
 
     public function soldCount(): int
     {
+        /*
+         * If withSum() was used, return the already-loaded value.
+         *
+         * Attribute name:
+         * completed_order_items_sum_quantity
+         */
+        if (array_key_exists(
+            'completed_order_items_sum_quantity',
+            $this->attributes
+        )) {
+            return (int) (
+                $this->attributes[
+                    'completed_order_items_sum_quantity'
+                ] ?? 0
+            );
+        }
+
+        /*
+         * Fallback for individual product pages.
+         */
         return (int) $this->orderItems()
             ->whereHas('order', function ($query) {
-                $query->where('order_status', 'completed')
+                $query
+                    ->where('order_status', 'completed')
                     ->where('payment_status', 'paid');
             })
             ->sum('quantity');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Schema Markup
+    |--------------------------------------------------------------------------
+    */
+
     public function schemaMarkup(?Setting $setting = null): array
     {
-        $setting ??= Setting::query()->find(1);
+        $setting ??= Cache::remember(
+            'system:settings',
+            now()->addMinutes(30),
+            fn () => Setting::query()->first()
+        );
 
         $offer = $this->activeOffer();
-        $productUrl = route('product.details', $this->slug);
-        $categoryName = collect([$this->category?->name, $this->subCategory?->name])
+
+        $productUrl = route(
+            'product.details',
+            $this->slug
+        );
+
+        /*
+         * These relationships should already be eager loaded
+         * by the caller.
+         */
+        $categoryName = collect([
+            $this->category?->name,
+            $this->subCategory?->name,
+        ])
             ->filter()
             ->implode(' > ');
 
@@ -244,109 +472,210 @@ class Product extends Model
             [
                 '@type' => 'PropertyValue',
                 'name' => 'Minimum Order Quantity',
-                'value' => (string) max(1, (int) $this->min_order_qty),
+                'value' => (string) max(
+                    1,
+                    (int) $this->min_order_qty
+                ),
             ],
             [
                 '@type' => 'PropertyValue',
                 'name' => 'Stock',
-                'value' => (string) max(0, (int) $this->stock),
+                'value' => (string) max(
+                    0,
+                    (int) $this->stock
+                ),
             ],
         ])
             ->merge(
-                collect($this->featureList())->map(fn ($feature) => [
-                    '@type' => 'PropertyValue',
-                    'name' => 'Feature',
-                    'value' => $feature,
-                ])
+                collect($this->featureList())
+                    ->map(fn ($feature) => [
+                        '@type' => 'PropertyValue',
+                        'name' => 'Feature',
+                        'value' => $feature,
+                    ])
             )
             ->values()
             ->all();
 
+        $websiteName =
+            $setting?->website_name
+            ?? config('app.name');
+
         $productSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
+
             'name' => $this->name,
+
             'url' => $productUrl,
-            'image' => [$this->primaryImageUrl()],
+
+            'image' => [
+                $this->primaryImageUrl(),
+            ],
+
             'description' => $this->seoDescription(),
+
             'sku' => $this->slug,
+
             'mpn' => $this->slug,
+
             'brand' => [
                 '@type' => 'Brand',
-                'name' => $setting->website_name ?? config('app.name'),
+                'name' => $websiteName,
             ],
-            'category' => $categoryName ?: 'Digital Product',
-            'itemCondition' => 'https://schema.org/NewCondition',
-            'additionalProperty' => $additionalProperties,
+
+            'category' =>
+                $categoryName ?: 'Digital Product',
+
+            'itemCondition' =>
+                'https://schema.org/NewCondition',
+
+            'additionalProperty' =>
+                $additionalProperties,
+
             'offers' => [
                 '@type' => 'Offer',
+
                 'url' => $productUrl,
+
                 'priceCurrency' => 'USD',
-                'price' => number_format($this->currentSeoPrice(), 2, '.', ''),
-                'priceValidUntil' => $offer?->end_date ? date('Y-m-d', strtotime((string) $offer->end_date)) : now()->addMonth()->toDateString(),
-                'availability' => 'https://schema.org/' . ($this->stock > 0 ? 'InStock' : 'OutOfStock'),
+
+                'price' => number_format(
+                    $this->currentSeoPrice(),
+                    2,
+                    '.',
+                    ''
+                ),
+
+                'priceValidUntil' =>
+                    $offer?->end_date
+                        ? date(
+                            'Y-m-d',
+                            strtotime(
+                                (string) $offer->end_date
+                            )
+                        )
+                        : now()
+                            ->addMonth()
+                            ->toDateString(),
+
+                'availability' =>
+                    'https://schema.org/'
+                    . (
+                        $this->stock > 0
+                            ? 'InStock'
+                            : 'OutOfStock'
+                    ),
+
                 'inventoryLevel' => [
                     '@type' => 'QuantitativeValue',
-                    'value' => max(0, (int) $this->stock),
+                    'value' => max(
+                        0,
+                        (int) $this->stock
+                    ),
                 ],
+
                 'seller' => [
                     '@type' => 'Organization',
-                    'name' => $setting->website_name ?? config('app.name'),
+                    'name' => $websiteName,
                     'url' => url('/'),
                 ],
             ],
         ];
 
+        /*
+        |--------------------------------------------------------------------------
+        | Breadcrumb
+        |--------------------------------------------------------------------------
+        */
+
+        $breadcrumbItems = [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => url('/'),
+            ],
+
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Pricing',
+                'item' => route('pricing'),
+            ],
+        ];
+
+        if ($this->category?->slug) {
+            $breadcrumbItems[] = [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $this->category->name,
+                'item' => route(
+                    'category.details',
+                    $this->category->slug
+                ),
+            ];
+        }
+
+        if (
+            $this->category?->slug &&
+            $this->subCategory?->slug
+        ) {
+            $breadcrumbItems[] = [
+                '@type' => 'ListItem',
+                'position' => 4,
+                'name' => $this->subCategory->name,
+                'item' => route(
+                    'subcategory.details',
+                    [
+                        $this->category->slug,
+                        $this->subCategory->slug,
+                    ]
+                ),
+            ];
+        }
+
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => count($breadcrumbItems) + 1,
+            'name' => $this->name,
+            'item' => $productUrl,
+        ];
+
         $breadcrumbSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
-            'itemListElement' => array_values(array_filter([
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'Home',
-                    'item' => url('/'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'Pricing',
-                    'item' => route('pricing'),
-                ],
-                $this->category?->slug ? [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $this->category->name,
-                    'item' => route('category.details', $this->category->slug),
-                ] : null,
-                ($this->category?->slug && $this->subCategory?->slug) ? [
-                    '@type' => 'ListItem',
-                    'position' => 4,
-                    'name' => $this->subCategory->name,
-                    'item' => route('subcategory.details', [$this->category->slug, $this->subCategory->slug]),
-                ] : null,
-                [
-                    '@type' => 'ListItem',
-                    'position' => $this->subCategory?->slug ? 5 : ($this->category?->slug ? 4 : 3),
-                    'name' => $this->name,
-                    'item' => $productUrl,
-                ],
-            ])),
+            'itemListElement' => $breadcrumbItems,
         ];
 
-        return [$productSchema, $breadcrumbSchema];
+        return [
+            $productSchema,
+            $breadcrumbSchema,
+        ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Model Events
+    |--------------------------------------------------------------------------
+    */
 
     protected static function booted()
     {
         static::deleting(function ($product) {
+
             $product->accounts()->delete();
 
             if ($product->accounts_excel) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->accounts_excel);
+                Storage::disk('public')->delete(
+                    $product->accounts_excel
+                );
             }
+
             if ($product->product_image) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->product_image);
+                Storage::disk('public')->delete(
+                    $product->product_image
+                );
             }
         });
     }

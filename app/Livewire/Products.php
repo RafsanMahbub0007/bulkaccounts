@@ -7,12 +7,9 @@ use App\Models\Product;
 use App\Models\Setting;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class Products extends Component
 {
-    use WithPagination;
-
     public $search = '';
     public $category = [];
     public $sortDirection = 'asc';
@@ -20,30 +17,45 @@ class Products extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $categories = Category::where('is_active', true)
+        $categories = Category::query()
+            ->where('is_active', true)
             ->orderBy('order')
             ->get();
 
-        $system = Setting::first();
+        $system = Setting::query()->first();
+        $sortDirection = in_array($this->sortDirection, ['asc', 'desc'], true)
+            ? $this->sortDirection
+            : 'asc';
+        $categoryIds = collect($this->category)
+            ->filter(fn ($id) => filter_var($id, FILTER_VALIDATE_INT) !== false)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
 
         $products = Product::query()
             ->with([
-                'subCategory',
+                'category:id,name,slug',
+                'subCategory:id,name,slug,image',
                 'offers' => fn ($query) => $query
                     ->where('start_date', '<=', now())
-                    ->where('end_date', '>=', now()),
+                    ->where('end_date', '>=', now())
+                    ->orderByDesc('end_date'),
             ])
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('description', 'like', '%' . $this->search . '%');
+            ->when($this->search !== '', function ($query) {
+                $search = trim($this->search);
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('description', 'like', '%' . $search . '%');
                 });
             })
-            ->when(!empty($this->category), function ($query) {
-                $query->whereIn('category_id', $this->category);
+            ->when($categoryIds->isNotEmpty(), function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds);
             })
             ->where('is_active', true)
-            ->orderBy('display_order', $this->sortDirection)
+            ->whereHas('subCategory', fn ($query) => $query->where('is_active', true))
+            ->whereHas('category', fn ($query) => $query->where('is_active', true))
+            ->orderBy('selling_price', $sortDirection)
+            ->orderBy('display_order')
             ->get();
 
         Product::warmFeatureCache(

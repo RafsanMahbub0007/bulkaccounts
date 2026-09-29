@@ -41,7 +41,7 @@
                 <div class="flex justify-between items-center mb-8">
 
                     <x-input type="text" class="w-1/2 p-3 rounded-xl bg-gray-800 border-gray-700 text-white"
-                        placeholder="Search products..." wire:model.live.debounce.500ms="search" />
+                        placeholder="Search products..." wire:model.live.debounce.200ms="search" />
 
                     <x-select wire:model.live="sortDirection"
                         class="bg-gray-800 border-gray-700 text-white rounded-xl p-3">
@@ -60,14 +60,14 @@
                             <a href="{{ route('product.details', $product->slug) }}">
                                 <div class="relative h-48 sm:h-48 overflow-hidden">
 
-                                    <img src="{{ image_path($product->subcategory->image) }}" alt="{{ $product->name }}"
+                                    <img src="{{ $product->primaryImageUrl() }}" alt="{{ $product->name }}"
                                         loading="lazy" decoding="async"
                                         class="h-full w-full object-cover transition-transform duration-700"
                                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
-                                        srcset="{{ image_path($product->subcategory->image) }}?w=320 320w,
-                                                {{ image_path($product->subcategory->image) }}?w=480 480w,
-                                                {{ image_path($product->subcategory->image) }}?w=640 640w,
-                                                {{ image_path($product->subcategory->image) }}?w=800 800w" />
+                                        srcset="{{ $product->primaryImageUrl() }}?w=320 320w,
+                                                {{ $product->primaryImageUrl() }}?w=480 480w,
+                                                {{ $product->primaryImageUrl() }}?w=640 640w,
+                                                {{ $product->primaryImageUrl() }}?w=800 800w" />
 
                                     {{-- Featured Badge --}}
                                     @if ($product->is_featured)
@@ -212,9 +212,6 @@
                         </div>
                     @endforeach
                 </div>
-
-                <!-- PAGINATION -->
-                {{-- {{ $products->links() }} --}}
 
             </div>
         </div>

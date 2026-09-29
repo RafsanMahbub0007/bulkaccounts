@@ -22,27 +22,41 @@ class CategoryMenu extends Component
     }
 
     protected function loadCategories()
-    {
-        $this->categories = Category::with('subcategories')->where('is_active', true)->orderBy('order','ASC')->get()
-            ->map(function ($cat) {
+{
+    $this->categories = Category::with([
+        'subcategories' => function ($query) {
+            $query->where('is_active', true)
+                  ->orderBy('order', 'ASC');
+        }
+    ])
+    ->where('is_active', true)
+    ->orderBy('order', 'ASC')
+    ->get()
+    ->map(function ($cat) {
+        return [
+            'id' => $cat->id,
+            'name' => $cat->name,
+            'slug' => $cat->slug,
+
+            'subcategories' => $cat->subcategories->map(function ($sub) use ($cat) {
                 return [
-                    'id' => $cat->id,
-                    'name' => $cat->name,
-                    'slug' => $cat->slug,
-                    'subcategories' => $cat->subcategories->map(function ($sub) use ($cat) {
-                        return [
-                            'id' => $sub->id,
-                            'name' => $sub->name,
-                            'slug' => $sub->slug,
-                            'url' => route('subcategory.details', [
-                                'category' => $cat->slug,
-                                'subcategory' => $sub->slug,
-                            ]),
-                        ];
-                    }),
+                    'id' => $sub->id,
+                    'name' => $sub->name,
+                    'slug' => $sub->slug,
+                    'url' => route('subcategory.details', [
+                        'category' => $cat->slug,
+                        'subcategory' => $sub->slug,
+                    ]),
                 ];
-            });
-    }
+            })->values(),
+        ];
+    })
+    // Optional: hide categories that have no active subcategories
+    ->filter(function ($cat) {
+        return $cat['subcategories']->isNotEmpty();
+    })
+    ->values();
+}
 
     public function selectCategory($index)
     {
