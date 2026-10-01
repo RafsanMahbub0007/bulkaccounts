@@ -1,7 +1,7 @@
 <section class="relative py-24 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
     @php
         $seo = \App\Models\SeoSetting::where('page_name', 'about')->first();
-        $title = $seo->meta_title ?? 'About Us - ' . ($system->website_name ?? 'Jabed');
+        $title = $seo->meta_title ?? 'About Us - ' . ($system->website_name);
         $description = $seo->meta_description ?? 'Learn about our mission to empower businesses with secure and verified bulk accounts.';
         $keywords = $seo->meta_keywords ?? '';
     @endphp
@@ -40,10 +40,6 @@
             </div>
         @endforeach
 
-
-
-
-
        <div class="mb-20">
             <h2 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 mb-6 glow-effect">
                 Our Values & Commitment
@@ -51,9 +47,7 @@
             <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto">
                 Discover the principles that drive us to deliver exceptional services and ensure your success.
             </p>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-
                 <!-- Integrity -->
                 <div class="flex flex-col items-center text-center" data-aos="fade-up">
                     <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-red-500 to-pink-500 rounded-full shadow-lg mb-5">
@@ -64,7 +58,6 @@
                         We uphold the highest standards of integrity in every aspect of our work, ensuring our clients receive honest, transparent, and dependable service.
                     </p>
                 </div>
-
                 <!-- Security -->
                 <div class="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="100">
                     <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full shadow-lg mb-5">
@@ -75,7 +68,6 @@
                         Our clients' security is our priority. Every account we deliver is verified, reliable, and protected by the latest standards.
                     </p>
                 </div>
-
                 <!-- Customer Focus -->
                 <div class="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="200">
                     <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-green-400 to-teal-500 rounded-full shadow-lg mb-5">
@@ -86,7 +78,6 @@
                         We are dedicated to our clients' success. Your growth is our growth, and we go the extra mile to provide exceptional support and tailored solutions.
                     </p>
                 </div>
-
             </div>
         </div>
 
