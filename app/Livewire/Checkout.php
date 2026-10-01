@@ -18,7 +18,8 @@ class Checkout extends Component
     public $name, $email;
     public $countryCode = '+1';
     public $number;
-    public $paymentMethod = 'usdt_trc20';
+    public $paymentType = '';
+    public $paymentMethod = '';
     public $acceptedTerms = false;
 
     public $showPaymentModal = false;
@@ -55,42 +56,91 @@ class Checkout extends Component
             'email'         => 'required|email',
             'countryCode'   => ['required', 'string', Rule::in($this->dialCodes())],
             'number'        => ['required', 'string', 'max:50', function ($attr, $val, $fail) {
-                if (strlen(preg_replace('/\D/', '', (string) $val)) < 5) {
+                if (strlen(preg_replace('/\\D/', '', (string) $val)) < 5) {
                     $fail('Phone number must contain at least 5 digits.');
                 }
             }],
-            'paymentMethod' => ['required', 'string', Rule::in(array_keys(self::$paymentCurrencies))],
+            'paymentType'   => ['required', Rule::in(['cryptocurrency'])],
+            'paymentMethod' => ['required', 'string', Rule::in(array_keys($this->availablePaymentCurrencies()))],
             'acceptedTerms' => 'accepted',
         ];
     }
 
+    public function updatedPaymentType(): void
+    {
+        $this->paymentMethod = '';
+        $this->resetValidation('paymentMethod');
+    }
+
     public function paymentMethodOptions(): array
     {
-        $options = [];
-        foreach (self::$paymentCurrencies as $key => $config) {
-            $min = $this->fetchMinimumAmount($key);
-            $options[$key] = $min !== null
-                ? sprintf('%s (min. $%s)', $config['label'], number_format($min, 2))
-                : $config['label'];
-        }
-        return $options;
+        return collect($this->availablePaymentCurrencies())
+            ->mapWithKeys(fn ($config, $currency) => [$currency => $config['label']])
+            ->all();
+    }
+
+    private function availablePaymentCurrencies(): array
+    {
+        $apiKey = config('services.payment.api_key');
+        $cacheKey = 'nowpayments:available-currencies:' . ($this->isTestMode ? 'sandbox' : 'live') . ':' . substr(hash('sha256', (string) $apiKey), 0, 16);
+
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($apiKey) {
+            $apiKey = config('services.payment.api_key');
+            if (!$apiKey || $this->isTestMode) {
+                return self::$paymentCurrencies;
+            }
+
+            try {
+                $response = Http::acceptJson()
+                    ->withHeaders(['x-api-key' => $apiKey])
+                    ->timeout(8)
+                    ->get($this->nowPaymentsApiBase() . '/currencies');
+
+                if (!$response->successful()) {
+                    Log::warning('NOWPayments currencies request failed.', ['status' => $response->status()]);
+                    return self::$paymentCurrencies;
+                }
+
+                $codes = $response->json('currencies', []);
+                if (!is_array($codes) || $codes === []) {
+                    return self::$paymentCurrencies;
+                }
+
+                $knownLabels = collect(self::$paymentCurrencies)
+                    ->mapWithKeys(fn ($config) => [$config['pay_currency'] => $config['label']]);
+
+                return collect($codes)
+                    ->filter(fn ($code) => is_string($code) && preg_match('/^[a-z0-9]{2,20}$/i', $code))
+                    ->map(fn ($code) => strtolower($code))
+                    ->unique()
+                    ->sort()
+                    ->mapWithKeys(fn ($code) => [$code => [
+                        'label' => $knownLabels[$code] ?? strtoupper($code),
+                        'pay_currency' => $code,
+                        'outcome_currency' => $code,
+                    ]])
+                    ->all();
+            } catch (\Throwable $e) {
+                Log::warning('NOWPayments currencies request failed.', ['message' => $e->getMessage()]);
+                return self::$paymentCurrencies;
+            }
+        });
     }
 
     private function paymentMethodLabel(): string
     {
-        return self::$paymentCurrencies[$this->paymentMethod]['label'] ?? $this->paymentMethod;
+        return $this->availablePaymentCurrencies()[$this->paymentMethod]['label'] ?? $this->paymentMethod;
     }
 
     private function getPaymentCurrencyConfig(): ?array
     {
-        return self::$paymentCurrencies[$this->paymentMethod] ?? null;
+        return $this->availablePaymentCurrencies()[$this->paymentMethod] ?? null;
     }
-
     private function fetchMinimumAmount(string $paymentMethod, bool $forceRefresh = false): ?float
     {
         if ($this->isTestMode) return null;
 
-        $config = self::$paymentCurrencies[$paymentMethod] ?? null;
+        $config = $this->availablePaymentCurrencies()[$paymentMethod] ?? null;
         $apiKey = config('services.payment.api_key');
 
         if (!$config || !$apiKey) {
@@ -168,7 +218,7 @@ class Checkout extends Component
     {
         return $this->isTestMode
             ? 'https://api-sandbox.nowpayments.io/v1'
-            : 'https://api-sandbox.nowpayments.io/v1';
+            : 'https://api.nowpayments.io/v1';
     }
 
     public function proceedToPayment(): void
@@ -429,21 +479,13 @@ class Checkout extends Component
 
     public function render()
 {
-    // TEMP DEBUG — remove after fixing
-    Log::info('CHECKOUT DEBUG', [
-        'test_mode_raw'  => config('services.payment.test_mode'),
-        'test_mode_bool' => $this->isTestMode,
-        'api_key'        => config('services.payment.api_key') ? 'SET' : 'MISSING',
-        'api_key_value'  => substr((string) config('services.payment.api_key'), 0, 8) . '...',
-    ]);
-
-    return view('livewire.checkout', [
+return view('livewire.checkout', [
         'system'         => Setting::find(1),
         'isTestMode'     => $this->isTestMode,
         'cartItems'      => $this->cartItems,
         'total'          => $this->total,
         'countryCodes'   => $this->countryDialOptions(),
-        'paymentMethods' => $this->paymentMethodOptions(),
+        'paymentMethods' => $this->paymentType === 'cryptocurrency' ? $this->paymentMethodOptions() : [],
     ]);
 }
     // public function render()
@@ -454,7 +496,7 @@ class Checkout extends Component
     //         'cartItems'      => $this->cartItems,
     //         'total'          => $this->total,
     //         'countryCodes'   => $this->countryDialOptions(),
-    //         'paymentMethods' => $this->paymentMethodOptions(),
+    //         'paymentMethods' => $this->paymentType === 'cryptocurrency' ? $this->paymentMethodOptions() : [],
     //     ]);
     // }
 

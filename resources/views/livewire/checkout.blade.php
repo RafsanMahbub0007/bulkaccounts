@@ -113,24 +113,37 @@
                                 @error('email') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
                             </div>
 
-                            {{-- Payment Method --}}
+                            {{-- Payment method and cryptocurrency --}}
                             <div>
                                 <label class="text-gray-300 block mb-1">
                                     Payment Method <span class="text-red-500">*</span>
                                 </label>
-                                <select wire:model="paymentMethod" required
+                                <select wire:model.live="paymentType" required
                                     class="w-full bg-gray-700 px-4 py-3 rounded-lg focus:ring-red-500 focus:ring-2 border border-gray-600 text-white">
-                                    <option value="" disabled>Select payment method</option>
-                                    @foreach ($paymentMethods as $key => $label)
-                                        <option value="{{ $key }}">{{ $label }}</option>
-                                    @endforeach
+                                    <option value="">Choose a payment option</option>
+                                    <option value="cryptocurrency">Cryptocurrency</option>
                                 </select>
-                                @error('paymentMethod') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
-                                <p class="text-gray-500 text-xs mt-1">
-                                    NOWPayments gateway will open directly with the selected cryptocurrency.
-                                    Each method has a minimum order amount listed in parentheses.
-                                </p>
+                                @error('paymentType') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
                             </div>
+
+                            @if ($paymentType === 'cryptocurrency')
+                                <div>
+                                    <label class="text-gray-300 block mb-1">
+                                        Choose Cryptocurrency <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model.live="paymentMethod" required
+                                        class="w-full bg-gray-700 px-4 py-3 rounded-lg focus:ring-red-500 focus:ring-2 border border-gray-600 text-white">
+                                        <option value="">Select a cryptocurrency</option>
+                                        @foreach ($paymentMethods as $key => $label)
+                                            <option value="{{ $key }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('paymentMethod') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+                                    <p class="text-gray-500 text-xs mt-1">
+                                        Choose a supported cryptocurrency. The current minimum will be checked before payment.
+                                    </p>
+                                </div>
+                            @endif
 
                             {{-- Terms --}}
                             <div class="flex items-start gap-3">
